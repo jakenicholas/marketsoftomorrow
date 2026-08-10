@@ -946,7 +946,7 @@ def market_rail_html(city: str, market_slug: str, atlas_intel: dict, jumps: list
             w = max(ws, key=lambda w: w['units'])
             peak = f" · peak {_fmt_half(w['half'])}"
         vitals = (f'<span class="mkr-vitals"><b style="color:{col}">{me["score"]}</b> {esc(me["level"])}'
-                  f' · {me["pipeline_projects"]} projects{esc(peak)}</span>')
+                  f' · {me["pipeline_projects"]} projects</span>')
     chips = ''.join(f'<a class="mkr-jump" href="#{jid}" data-jump="{jid}">{esc(label)}</a>' for jid, label in jumps)
     return (f'<div class="mk-rail" id="mkRail">'
             f'{vitals}'
@@ -1389,7 +1389,9 @@ CITY_MODULES_JS = """
   // ── Sticky rail: pin under the chrome + active-section highlight ──
   var rail = document.getElementById('mkRail');
   if (rail) {
-    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0) + 8) + 'px'; }
+    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0)) + 'px'; }
+    function setStuck(){ var h = document.querySelector('.tmw-chrome-head'); var t = (h ? h.offsetHeight : 0); rail.classList.toggle('stuck', rail.getBoundingClientRect().top <= t + 1); }
+    setStuck(); window.addEventListener('scroll', setStuck, { passive: true }); window.addEventListener('resize', setStuck);
     setTop(); window.addEventListener('resize', setTop); setTimeout(setTop, 600);
     var jumps = rail.querySelectorAll('.mkr-jump');
     var sections = [];
@@ -1942,20 +1944,20 @@ def render_page(
     /* Breathing room between the supply-pressure hero and the projected-pricing card */
     #atlasIntel {{ margin-top:44px; }}
     /* Dashboard rail */
-    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin:0 0 16px;
+    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:nowrap; margin:0 0 16px;
       width:100vw; margin-left:calc(50% - 50vw);
-      background:rgba(9,10,9,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-      border:0; border-bottom:1px solid rgba(255,255,255,.09); border-radius:0; padding:11px 22px;
-      box-shadow:none; overflow-x:auto; scrollbar-width:none; }}
+      background:transparent; border:0; border-bottom:1px solid transparent; border-radius:0; padding:11px 22px;
+      transition:background .2s, border-color .2s; overflow-x:auto; scrollbar-width:none; }}
+    .mk-rail.stuck {{ background:rgba(7,8,7,.78); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-bottom-color:rgba(255,255,255,.09); }}
     .mk-rail::-webkit-scrollbar {{ display:none; }}
     .mkr-vitals {{ flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }}
     .mkr-vitals b {{ font-size:15px; font-weight:700; }}
     .mkr-jumps {{ display:flex; gap:2px; flex:0 0 auto; }}
-    .mkr-jump {{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
-      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }}
+    .mkr-jump {{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:8px 14px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }}
     .mkr-jump:hover {{ color:#fff; }}
     .mkr-jump.on {{ background:rgba(230,197,116,.15); color:#f0d68a; }}
-    .mkr-filters {{ display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }}
+    .mkr-filters {{ display:flex; gap:6px; flex:0 0 auto; }}
     .mkr-fchip {{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
       background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
       cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }}

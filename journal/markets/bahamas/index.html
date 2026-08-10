@@ -119,20 +119,20 @@
     /* Breathing room between the supply-pressure hero and the projected-pricing card */
     #atlasIntel { margin-top:44px; }
     /* Dashboard rail */
-    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin:0 0 16px;
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:nowrap; margin:0 0 16px;
       width:100vw; margin-left:calc(50% - 50vw);
-      background:rgba(9,10,9,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-      border:0; border-bottom:1px solid rgba(255,255,255,.09); border-radius:0; padding:11px 22px;
-      box-shadow:none; overflow-x:auto; scrollbar-width:none; }
+      background:transparent; border:0; border-bottom:1px solid transparent; border-radius:0; padding:11px 22px;
+      transition:background .2s, border-color .2s; overflow-x:auto; scrollbar-width:none; }
+    .mk-rail.stuck { background:rgba(7,8,7,.78); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-bottom-color:rgba(255,255,255,.09); }
     .mk-rail::-webkit-scrollbar { display:none; }
     .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
     .mkr-vitals b { font-size:15px; font-weight:700; }
     .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
-    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
-      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump { font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:8px 14px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
     .mkr-jump:hover { color:#fff; }
     .mkr-jump.on { background:rgba(230,197,116,.15); color:#f0d68a; }
-    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; }
     .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
       background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
       cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
@@ -570,7 +570,7 @@
 <div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Opening Soon</div></div>
 <div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
-<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#1FDF67">23</b> Balanced · 5 projects · peak Late ’26</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-markets" data-jump="m-markets">Markets</a><a class="mkr-jump" href="#m-brands" data-jump="m-brands">Brands</a><a class="mkr-jump" href="#m-openings" data-jump="m-openings">Openings</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div><div class="mk-onyx-kicker"><span class="mk-ok-l"><i></i>Atlas Intelligence</span><span class="mk-ok-chip"><i></i>Powered by Onyx 5</span></div>
+<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#1FDF67">23</b> Balanced · 5 projects</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-markets" data-jump="m-markets">Markets</a><a class="mkr-jump" href="#m-brands" data-jump="m-brands">Brands</a><a class="mkr-jump" href="#m-openings" data-jump="m-openings">Openings</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div><div class="mk-onyx-kicker"><span class="mk-ok-l"><i></i>Atlas Intelligence</span><span class="mk-ok-chip"><i></i>Powered by Onyx 5</span></div>
 
 <section class="section cm-mod" id="m-markets"><div class="cm-eyebrow">The local markets</div><div class="cm-title">Bahamas, <em>market by market</em></div><div class="cm-sub">Every city with a dedicated market page — scored by supply pressure where modeled.</div><div class="nb-row"><a class="nb-chip" href="/markets/bahamas/" style="text-decoration:none"><i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#1FDF67;box-shadow:0 0 8px #1FDF67;margin-right:2px"></i>Bahamas <b style="color:#1FDF67">23</b></a><a class="nb-chip" href="/map/?q=nassau" style="text-decoration:none">Nassau <span class="nb-n">1</span></a><a class="nb-chip" href="/map/?q=eleuthera" style="text-decoration:none">Eleuthera <span class="nb-n">1</span></a><a class="nb-chip" href="/map/?q=the+abacos" style="text-decoration:none">The Abacos <span class="nb-n">1</span></a><a class="nb-chip" href="/map/?q=harbour+island" style="text-decoration:none">Harbour Island <span class="nb-n">1</span></a><a class="nb-chip" href="/map/?q=paradise+island" style="text-decoration:none">Paradise Island <span class="nb-n">1</span></a><a class="nb-chip" href="/map/?q=freeport" style="text-decoration:none">Freeport <span class="nb-n">1</span></a></div></section><section class="section cm-mod" id="m-brands"><div class="cm-eyebrow">Brands arriving</div><div class="cm-title">Who's planting a <em>flag</em></div><div class="cm-sub">Hotel and residence brands with projects in the pipeline.</div><div class="br-row"><a class="br-card" href="/projects/montage-cay/"><span class="br-mono">M</span><span><span class="br-name">Montage</span><br><span class="br-sub">47 residences · 2026</span></span></a><a class="br-card" href="/projects/banyan-tree-bimini/"><span class="br-mono">BT</span><span><span class="br-name">Banyan Tree</span><br><span class="br-sub">54 residences · 2027</span></span></a><a class="br-card" href="/projects/ritz-carlton-reserve-at-cotton-bay/"><span class="br-mono">RC</span><span><span class="br-name">Ritz-Carlton</span><br><span class="br-sub">97 residences · 2027</span></span></a><a class="br-card" href="/projects/the-ocean-club/"><span class="br-mono">FS</span><span><span class="br-name">Four Seasons</span><br><span class="br-sub">67 residences · 2028</span></span></a><a class="br-card" href="/projects/amancaya/"><span class="br-mono">A</span><span><span class="br-name">Aman</span><br><span class="br-sub">23 residences · 2029</span></span></a><a class="br-card" href="/projects/six-senses-grand-bahama/"><span class="br-mono">SS</span><span><span class="br-name">Six Senses</span><br><span class="br-sub">28 residences</span></span></a></div></section><section class="section cm-mod" id="m-openings"><div class="cm-eyebrow">Delivery horizon</div><div class="cm-title">What opens <em>when</em></div><div class="cm-sub">The pipeline by expected opening year, with each year&#x27;s marquee arrival.</div><div class="ot-row ot-4"><div class="ot-cell" data-mk-yr-cell="2026" role="button" tabindex="0"><div class="ot-year">2026</div><div class="ot-n"><b>3 projects</b> · 144 units</div><div class="ot-lead"><b>Jack&#x27;s Bay Club &amp; Resort</b>South Eleuthera</div></div><div class="ot-cell peak" data-mk-yr-cell="2027" role="button" tabindex="0"><span class="ot-peakchip">Peak</span><div class="ot-year">2027</div><div class="ot-n"><b>2 projects</b> · 151 units</div><div class="ot-lead"><b>Ritz-Carlton Reserve at Cotton Bay</b>South Eleuthera</div></div><div class="ot-cell" data-mk-yr-cell="2028" role="button" tabindex="0"><div class="ot-year">2028</div><div class="ot-n"><b>1 project</b> · 67 units</div><div class="ot-lead"><b>The Ocean Club, Four Seasons Residences</b>Paradise Island</div></div><div class="ot-cell" data-mk-yr-cell="2029" role="button" tabindex="0"><div class="ot-year">2029</div><div class="ot-n"><b>2 projects</b> · 100 units</div><div class="ot-lead"><b>Baha Mar Beachfront Resort and Residences</b>Cable Beach</div></div></div></section>
 
@@ -878,7 +878,9 @@
   // ── Sticky rail: pin under the chrome + active-section highlight ──
   var rail = document.getElementById('mkRail');
   if (rail) {
-    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0) + 8) + 'px'; }
+    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0)) + 'px'; }
+    function setStuck(){ var h = document.querySelector('.tmw-chrome-head'); var t = (h ? h.offsetHeight : 0); rail.classList.toggle('stuck', rail.getBoundingClientRect().top <= t + 1); }
+    setStuck(); window.addEventListener('scroll', setStuck, { passive: true }); window.addEventListener('resize', setStuck);
     setTop(); window.addEventListener('resize', setTop); setTimeout(setTop, 600);
     var jumps = rail.querySelectorAll('.mkr-jump');
     var sections = [];
