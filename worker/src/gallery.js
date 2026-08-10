@@ -619,7 +619,27 @@ function dlUrl(im){
   const t=getToken();
   return BASE+'/dl/'+G.slug+'/'+enc(im.key)+(t?('?t='+encodeURIComponent(t)):'');
 }
+/* iPhone/iPad: attachment downloads can only land in Files — the native share
+   sheet is the one web path into the Photos app ("Save Image"). Detect file
+   sharing once; used for photo batches small enough to hold in memory. */
+const canShareFiles=(()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[new File(['x'],'x.jpg',{type:'image/jpeg'})]}));}catch(_){return false;}})();
 async function doDownloads(list){
+  const allPhotos=list.every(im=>im.type!=='video');
+  if(canShareFiles && allPhotos && list.length<=8){
+    try{
+      toast(list.length>1?('Preparing '+list.length+' images…'):'Preparing image…');
+      const files=await Promise.all(list.map(async im=>{
+        const r=await fetch(dlUrl(im)); if(!r.ok)throw new Error('HTTP '+r.status);
+        const b=await r.blob();
+        return new File([b], im.filename||im.key.split('/').pop()||'photo.jpg', {type:b.type||'image/jpeg'});
+      }));
+      await navigator.share({files});
+      return;                                   // saved via the sheet (Photos etc.)
+    }catch(e){
+      if(e&&e.name==='AbortError')return;       // user closed the share sheet
+      /* anything else (activation expired, share refused) → classic downloads */
+    }
+  }
   for(const im of list){
     const a=document.createElement('a'); a.href=dlUrl(im); a.download=im.filename||'';
     document.body.appendChild(a); a.click(); a.remove();
