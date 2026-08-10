@@ -887,7 +887,7 @@
      violet family: the first market wears the brand purple. Validated on the
      panel surface #0c0e0c: worst adjacent CVD dE 8.4, normal-vision 19.3,
      all >= 3:1. Five markets is the cap, never a sixth hue. */
-  .mc-pick{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .mc-pick{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:14px 0}
   .mc-pk-l{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600}
   .mc-chip{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#fff;
     background:rgba(255,255,255,.04);border:1px solid var(--hair-2);border-radius:999px;padding:7px 13px}
@@ -910,7 +910,7 @@
   .mc-addi .k{font-family:var(--mono);font-size:9px;color:var(--mute)}
   .mc-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .mc-selw{position:relative}
-  .mc-selb{display:inline-flex;align-items:center;gap:10px;font-family:var(--serif);font-size:20px;font-weight:600;color:#fff;
+  .mc-selb{display:inline-flex;align-items:center;gap:10px;font-family:var(--serif);font-size:16px;font-weight:600;color:#fff;
     letter-spacing:-.015em;background:rgba(255,255,255,.04);border:1px solid var(--hair-2);border-radius:12px;padding:8px 14px;cursor:pointer}
   .mc-selb:hover{border-color:rgba(167,139,250,.6)}
   .mc-selb .car{font-size:11px;color:var(--mute)}
@@ -3766,7 +3766,7 @@
         am.classList.toggle('on');if(am.classList.contains('on')){ai.value='';renderAdd();ai.focus();}});
       ai.addEventListener('input',renderAdd);
       aw.appendChild(ab);aw.appendChild(am);pk.appendChild(aw);
-      host.appendChild(pk);
+      // (pk appended below the head, so the metric dropdown + unit bar sit on top)
       // head: metric dropdown + unit + (i) + legend
       var hd=document.createElement('div');hd.className='mc-head';
       var lt=document.createElement('div');
@@ -3826,6 +3826,7 @@
       rt.appendChild(lg);
       hd.appendChild(rt);
       host.appendChild(hd);
+      host.appendChild(pk);   // selected-market pills BELOW the metric dropdown + unit bar
       // chart
       var body=document.createElement('div');body.style.marginTop='16px';host.appendChild(body);
       if(!MC.set.length){var e0=document.createElement('div');e0.className='mc-unit';
