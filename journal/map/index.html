@@ -20523,7 +20523,7 @@
     (function() {
       const ANON_CLICK_LIMIT = 5;        // anon: lifetime project opens before the signup wall
       const FREE_MEMBER_CLICK_LIMIT = 12; // (legacy, retained for reference)
-      const FREE_MEMBER_DAILY_LIMIT = 10; // signed-in FREE: project opens PER DAY, then the trial paywall
+      const FREE_MEMBER_DAILY_LIMIT = 3;  // signed-in FREE: project opens PER DAY, then the HARD Go-Pro gate
       const STORAGE_KEY = 'mot_click_count';
       // Local cache of auth state so we can gate clicks during the brief window
       // before Memberstack finishes loading on page load. Without these, a signed-in
@@ -21136,7 +21136,7 @@
           'trigger': triggerCtx || 'click_limit'
         });
       }
-      function showSubscriptionPaywall(triggerCtx) {
+      function showSubscriptionPaywall(triggerCtx, _opts) {
         // UNIFIED: use the ONE shared Pro paywall (journal-paywall.js) so pricing
         // and design live in a single place. The 24h-trial paywall is soft
         // (dismissible so the user keeps browsing); feature gates are hard-blocking;
@@ -21144,8 +21144,9 @@
         // below is a fallback only if the shared script hasn't loaded.
         if (window.tmwShowPaywall) {
           try { window._tmwSignedIn = isSignedIn; } catch (_) {}
-          var _soft = (triggerCtx === 'trial_ended' && !document.body.classList.contains('atlas-mode'));
-          window.tmwShowPaywall(triggerCtx || 'map', { hard: !_soft });
+          // The daily-limit gate is now HARD everywhere (was soft off-Atlas):
+          // 3 free opens a day, then the full-screen Go-Pro moment.
+          window.tmwShowPaywall(triggerCtx || 'map', { hard: true });
           if (window.gtag) gtag('event', 'paywall_shown', { 'trigger': triggerCtx || 'click_limit', 'surface': 'map' });
           return;
         }
@@ -22878,17 +22879,16 @@
         // returning Pro whose live auth hasn't resolved (Safari ITP) is never gated.
         if (isPaidMember) return true;
         if (!authResolved || getAuthHint() === 'paid' || sharedProHint()) return true;
-        // SIGNED-IN FREE members: FREE_MEMBER_DAILY_LIMIT (10) project opens per
-        // DAY, then the soft (dismissible) trial paywall — which re-prompts on the
-        // next open. This is a per-day nudge to go Pro, not a hard lock: browsing
-        // the map is always free, and the paywall is always a VISIBLE modal (never
-        // a silent false into a blank map).
+        // SIGNED-IN FREE members: FREE_MEMBER_DAILY_LIMIT (3) project opens per
+        // DAY, then the HARD full-screen Go-Pro gate (not dismissible) — a silent
+        // dead click is never acceptable, so the gate is a VISIBLE full-screen
+        // moment on every blocked open.
         if (isSignedIn) {
           // Server-enforced (account-bound) daily cap — mapQuota.remaining() uses
           // the hydrated D1 count, falling back to the local optimistic count only
           // until the server value loads. consume() bumps both + POSTs the server.
           if (mapQuota.remaining() > 0) { mapQuota.consume(); return true; }
-          showSubscriptionPaywall('trial_ended');
+          showSubscriptionPaywall('trial_ended', { hard: true });
           return false;
         }
         // ANONYMOUS visitors: ANON_CLICK_LIMIT (5) free project opens, then a hard

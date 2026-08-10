@@ -73,7 +73,7 @@
       '.tmww .scr.on{display:block;animation:tmwwIn .45s ease both}',
       '@keyframes tmwwIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}',
       '.tmww .wm{display:flex;align-items:center}',
-      '.tmww .wm img{height:38px;width:auto;display:block;filter:brightness(0) invert(1)}',
+      '.tmww .wm img{height:56px;width:auto;display:block;filter:brightness(0) invert(1)}',
       '.tmww .in{width:100%;height:52px;border-radius:13px;border:1px solid rgba(255,255,255,.16);background:rgba(10,11,10,.6);color:#fff;padding:0 16px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}',
       '.tmww .in:focus{border-color:#A78BFA}',
       '.tmww .in::placeholder{color:#7b847c}',
@@ -89,8 +89,8 @@
       '.tmww .msg.err{color:#ff8a8a}',
       '.tmww .msg a{color:#C4B5FD;font-weight:600;cursor:pointer;text-decoration:underline}',
       /* GATE */
-      '.tmww .g-inner{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:40px clamp(22px,6vw,70px) 40px;max-width:660px}',
-      '.tmww .g-inner .wm{margin-bottom:auto;padding-top:calc(4px + env(safe-area-inset-top))}',
+      '.tmww .g-inner{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:26px clamp(22px,6vw,70px) 40px;max-width:660px}',
+      '.tmww .g-inner .wm{margin-bottom:auto;padding-top:env(safe-area-inset-top)}',
       '.tmww .g-h{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(30px,4.2vw,50px);line-height:1.06;letter-spacing:-.015em;color:#fff;text-wrap:balance}',
       '.tmww .g-h em{font-style:italic;color:#C4B5FD}',
       '.tmww .g-sub{font-size:14.5px;color:#C2C9C3;line-height:1.6;margin:14px 0 22px;max-width:46ch}',
@@ -140,8 +140,10 @@
 
   var root = null, slideTimer = null;
 
-  function close() {
+  function close(force) {
     if (!root) return;
+    if (hardMode && force !== true) return;   // hard gate (atlas, map limit) — no escape
+    hardMode = false;
     var el = root; root = null;
     clearInterval(slideTimer); slideTimer = null;
     el.classList.remove('show');
@@ -191,7 +193,7 @@
     if (window._tmwSignedIn === true) return false;
     var source = opts.source || 'welcome_gate';
     var s = screen(
-      '<button class="skip" data-w="close">Not now</button>' +
+      (hardMode ? '' : '<button class="skip" data-w="close">Not now</button>') +
       '<div class="g-inner">' +
         '<div class="wm">' + LOGO_IMG + '</div>' +
         '<h2 class="g-h">The world of tomorrow, <em>tracked live.</em></h2>' +
@@ -247,7 +249,7 @@
   function login(opts) {
     opts = opts || {};
     var s = screen(
-      '<button class="skip" data-w="close">Not now</button>' +
+      (hardMode ? '' : '<button class="skip" data-w="close">Not now</button>') +
       '<div class="g-inner">' +
         '<div class="wm">' + LOGO_IMG + '</div>' +
         '<h2 class="g-h">Welcome <em>back.</em></h2>' +
@@ -278,7 +280,7 @@
       m.loginMemberEmailPassword({ email: email, password: password }).then(function () {
         try { if (window.gtag) window.gtag('event', 'login', { method: 'email' }); } catch (e2) {}
         msg.textContent = '\u2713 Signed in.';
-        setTimeout(function () { close(); location.reload(); }, 400);
+        setTimeout(function () { close(true); location.reload(); }, 400);
       }).catch(function (err) {
         btn.disabled = false; btn.textContent = 'Sign in';
         msg.className = 'msg err';
@@ -321,15 +323,31 @@
   }
 
   // ── GO PRO ─────────────────────────────────────────────────────────────
+  // Context-aware headline per gating surface — mirrors the lightbox paywall's
+  // map so the full-screen swap loses no specificity.
+  var PRO_COPY = {
+    'atlas': ['The full Atlas is a Pro feature', 'Every tracked project on one canvas. Start your free 2-week trial to explore the whole Atlas.'],
+    'trial_ended': ['That&rsquo;s your 3 free opens for today', 'Free accounts get 3 project opens a day. Go Pro for the whole map, unlimited, plus the Atlas and Onyx.'],
+    'feature:intelligence': ['TMW Intelligence is a Pro feature', 'Completion forecasts and the comparable-project engine. Start your free 2-week trial to unlock intelligence on every development.'],
+    'feature:watchlist': ['Watchlists are a Pro feature', 'Track the firms and projects you follow and get pinged when they move. Start your free 2-week trial.'],
+    'feature:watch': ['Watch this project', 'Watching is a Pro feature. Start your free 2-week trial to track updates and build your list.'],
+    'feature:compare': ['Comparisons are a Pro feature', 'Stack any projects side by side across cities. Start your free 2-week trial.'],
+    'feature:pulse': ['The live Pulse feed is a Pro feature', 'Follow every new project and milestone in real time. Start your free 2-week trial.'],
+    'feature:share': ['Share with friends', 'Sharing projects is a Pro feature. Start your free 2-week trial to send any development to your network.'],
+    'feature:deep': ['Deep search is a Pro feature', 'Onyx Deep reasons across the entire pipeline at once. Start your free 2-week trial to unlock it.']
+  };
+  var hardMode = false;
   function pro(opts) {
     opts = opts || {};
     if (window._isPaidMember === true) return false;
+    hardMode = !!opts.hard;
+    var copy = PRO_COPY[opts.source] || ['Try everything, free for 2 weeks', 'The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.'];
     var s = screen(
-      '<button class="skip" data-w="close">Maybe later</button>' +
+      (opts.hard ? '' : '<button class="skip" data-w="close">Maybe later</button>') +
       '<div class="c-wrap">' +
         '<div class="eyeb purple">TMW Pro</div>' +
-        '<h2 class="p-h">Try everything, free for 2 weeks</h2>' +
-        '<p class="p-sub">The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.</p>' +
+        '<h2 class="p-h">' + copy[0] + '</h2>' +
+        '<p class="p-sub">' + copy[1] + '</p>' +
         '<div class="plans">' +
           '<button class="plan sel" data-price="' + PRICE_ANNUAL + '"><span class="tag">Save 22%</span><div class="nm">Annual</div><div class="pr">$300<small>/yr</small></div><div class="nt">$25/month &middot; 14 days free</div></button>' +
           '<button class="plan" data-price="' + PRICE_MONTHLY + '"><div class="nm">Monthly</div><div class="pr">$32<small>/mo</small></div><div class="nt">14 days free</div></button>' +
@@ -340,7 +358,8 @@
         '</div>' +
         '<div class="p-form">' +
           '<button class="cta purple" data-w="checkout">Start my free trial</button>' +
-          '<p class="fine">No charge for 14 days. Cancel anytime in your account.</p>' +
+          '<p class="fine">No charge for 14 days. Cancel anytime in your account.' +
+            (window._tmwSignedIn === true ? '' : ' &middot; Already a subscriber? <a data-w="login">Sign in</a>') + '</p>' +
           '<div class="msg" aria-live="polite"></div>' +
         '</div>' +
       '</div>'
@@ -358,8 +377,8 @@
       // journal-paywall.js owns checkout (trial eligibility, grandfathered
       // no-trial pricing, the signup fallback). Load it if it isn't up yet.
       function go() {
-        if (typeof window.tmwProCheckout === 'function') { close(); window.tmwProCheckout(priceId); }
-        else if (typeof window.tmwShowPaywall === 'function') { close(); window.tmwShowPaywall('go-pro'); }
+        if (typeof window.tmwProCheckout === 'function') { close(true); window.tmwProCheckout(priceId); }
+        else if (typeof window.tmwShowPaywall === 'function') { close(true); window.tmwShowPaywall('go-pro'); }
       }
       if (window.tmwProCheckout || window.tmwShowPaywall) { go(); return; }
       var sc = document.createElement('script');
@@ -377,6 +396,7 @@
     if (!w || !root.contains(w)) return;
     var act = w.getAttribute('data-w');
     if (act === 'close') { track('welcome_dismissed'); close(); }
+    else if (act === 'forceclose') { close(true); }
     else if (act === 'topro') pro({ source: 'post_signup' });
     else if (act === 'login') {
       e.preventDefault();

@@ -238,6 +238,17 @@
     // Normalize to a string so the headline lookup + analytics trigger are clean
     // (was logging "[object Object]").
     if (ctx && typeof ctx === 'object') { if (!opts) opts = ctx; ctx = String(ctx.source || ctx.ctx || ctx.trigger || ''); }
+    // ELEVATED: the full-screen Pro moment (tmw-welcome.js) replaces this
+    // lightbox wherever the welcome module is loaded — same contexts, same
+    // hard/soft semantics, context headline carried over. Paid members get
+    // nothing (pro() refuses), matching every call site's own checks.
+    if (window.tmwWelcome && window.tmwWelcome.pro) {
+      if (window._isPaidMember === true) return;
+      if (window.tmwWelcome.pro({ source: ctx || 'go-pro', hard: !!(opts && opts.hard) })) {
+        if (window.gtag) gtag('event', 'paywall_shown', { 'trigger': ctx || 'go-pro', 'surface': 'fullscreen' });
+        return;
+      }
+    }
     build();
     hardLock = !!(opts && opts.hard);
     // close any open nav dropdown / drawer so the paywall is unobstructed

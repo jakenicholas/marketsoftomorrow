@@ -1750,7 +1750,7 @@ async function handleIntelUsage(req, env, origin, url) {
 // localStorage, going incognito, or switching devices can't reset it (the count
 // follows the member, not the browser). The project data is already client-side,
 // so this can't withhold content — it defeats casual bypass, not a JS editor.
-const FREE_MAP_DAILY_CAP = 10;
+const FREE_MAP_DAILY_CAP = 3;
 async function mapDayStatus(env, member) {
   const cap = FREE_MAP_DAILY_CAP;
   let used = 0;
