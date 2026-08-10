@@ -1447,9 +1447,9 @@
         '<div class="tmw-lc-fm"><div class="tmw-lc-eye">The flagship guide</div><h3>Iconic Hotels</h3>' +
         '<p>The stays that define every market — ranked, property by property.</p></div></a>' +
       '<div class="tmw-lc-side">' +
-        '<a class="tmw-lc-row" href="/restaurants/"><img src="' + IMG_R + '" alt="Iconic Restaurants" loading="lazy">' +
+        '<a class="tmw-lc-row" href="/restaurants/#list"><img src="' + IMG_R + '" alt="Iconic Restaurants" loading="lazy">' +
           '<div class="tmw-lc-rm"><div class="tmw-lc-eye">Where the future eats</div><h3>Iconic Restaurants</h3></div></a>' +
-        '<a class="tmw-lc-row" href="/golf/"><img src="' + IMG_G + '" alt="Iconic Golf" loading="lazy">' +
+        '<a class="tmw-lc-row" href="/golf/#list"><img src="' + IMG_G + '" alt="Iconic Golf" loading="lazy">' +
           '<div class="tmw-lc-rm"><div class="tmw-lc-eye">The courses worth the trip</div><h3>Iconic Golf</h3></div></a>' +
       '</div>' +
     '</div>';
