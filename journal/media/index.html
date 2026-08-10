@@ -83,16 +83,16 @@ h2{font-size:clamp(34px,4.6vw,60px)}
   border:1px solid var(--hair); border-radius:20px; box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);}
 .glass-deep{backdrop-filter:var(--glass-deep); -webkit-backdrop-filter:var(--glass-deep); background:rgba(20,23,20,.5)}
   /* Sticky section anchor rail — jump nav + scroll-spy ("where you are on the page") */
-  .media-railw{position:sticky; top:60px; z-index:50; display:flex; justify-content:center; padding:10px 14px; pointer-events:none}
-  .media-rail{pointer-events:auto; display:flex; align-items:center; gap:2px; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-    padding:7px 9px; background:rgba(7,8,7,.74); -webkit-backdrop-filter:var(--glass); backdrop-filter:var(--glass);
-    border:1px solid rgba(255,255,255,.08); border-radius:999px; box-shadow:0 12px 34px rgba(0,0,0,.5)}
+  .media-rail{position:sticky; top:0; z-index:45; display:flex; align-items:center; justify-content:center; gap:3px;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    padding:11px 20px; background:rgba(9,10,9,.92); -webkit-backdrop-filter:var(--glass); backdrop-filter:var(--glass);
+    border-bottom:1px solid rgba(255,255,255,.09)}
   .media-rail::-webkit-scrollbar{display:none}
-  .mr-jump{flex:0 0 auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; font-weight:700;
-    color:var(--mute); text-decoration:none; padding:7px 13px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s}
+  .mr-jump{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    color:var(--mute); text-decoration:none; padding:8px 14px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s}
   .mr-jump:hover{color:var(--white)}
   .mr-jump.on{background:rgba(230,197,116,.15); color:var(--gold-soft)}
-  @media(max-width:640px){.media-railw{padding:8px 8px} .mr-jump{font-size:9.5px; padding:6px 10px; letter-spacing:.08em}}
+  @media(max-width:640px){.media-rail{justify-content:flex-start; padding:9px 12px; gap:2px} .mr-jump{font-size:10px; padding:7px 11px; letter-spacing:.09em}}
 
 /* nav with animated logo */
 nav{position:fixed; top:0; left:0; right:0; z-index:50; padding:14px 0;
@@ -664,18 +664,16 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   <div class="scroll-hint">Scroll</div>
 </header>
 
-<div class="media-railw" id="mediaRail">
-  <nav class="media-rail" aria-label="Page sections">
-    <a class="mr-jump" data-jump="reach" href="#reach">Reach</a>
-    <a class="mr-jump" data-jump="combined" href="#combined">Audience</a>
-    <a class="mr-jump" data-jump="products" href="#products">Network</a>
-    <a class="mr-jump" data-jump="partners" href="#partners">Clients</a>
-    <a class="mr-jump" data-jump="markets" href="#markets">Travel</a>
-    <a class="mr-jump" data-jump="intelligence" href="#intelligence">Pro</a>
-    <a class="mr-jump" data-jump="offerings" href="#offerings">Services</a>
-    <a class="mr-jump" data-jump="cta" href="#cta">Contact</a>
-  </nav>
-</div>
+<nav class="media-rail" id="mediaRail" aria-label="Page sections">
+  <a class="mr-jump" data-jump="reach" href="#reach">Reach</a>
+  <a class="mr-jump" data-jump="combined" href="#combined">Audience</a>
+  <a class="mr-jump" data-jump="products" href="#products">Network</a>
+  <a class="mr-jump" data-jump="partners" href="#partners">Clients</a>
+  <a class="mr-jump" data-jump="markets" href="#markets">Travel</a>
+  <a class="mr-jump" data-jump="intelligence" href="#intelligence">Pro</a>
+  <a class="mr-jump" data-jump="offerings" href="#offerings">Services</a>
+  <a class="mr-jump" data-jump="cta" href="#cta">Contact</a>
+</nav>
 
 <section id="reach">
   <div class="wrap">
