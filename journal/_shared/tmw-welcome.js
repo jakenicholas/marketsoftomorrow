@@ -37,8 +37,11 @@
   var PRICE_ANNUAL = 'prc_pro-annual-trial-2026-08--rast0ag0';
   var IMGS = [
     'https://media.oftmw.com/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg',
-    'https://media.oftmw.com/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg',
-    'https://media.oftmw.com/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg'
+    'https://media.oftmw.com/2026/08/6940d5419dd3-Martis-3-wide.jpg',
+    'https://media.oftmw.com/wix/ca3b83_9a497901ced54548b083a156b3171fc8~mv2.jpg',
+    'https://media.oftmw.com/miami/waldorf-astoria-residences-miami.jpeg',
+    'https://media.oftmw.com/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg',
+    'https://media.oftmw.com/wix/ca3b83_829dcd8c0fc34ce3be4be20101831d64~mv2.webp'
   ];
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
@@ -69,12 +72,9 @@
       '.tmww .scr{position:absolute;inset:0;z-index:2;display:none}',
       '.tmww .scr.on{display:block;animation:tmwwIn .45s ease both}',
       '@keyframes tmwwIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}',
-      '.tmww .wm{display:flex;align-items:center;gap:9px}',
-      '.tmww .wm .hex{width:22px;height:22px;flex:0 0 auto}',
-      '.tmww .wm .hex svg{width:100%;height:100%;display:block}',
-      '.tmww .wm .t{font-weight:800;font-size:15px;color:#fff}',
-      '.tmww .wm .t small{display:block;font-size:8.5px;letter-spacing:.3em;color:#9AA39C;font-weight:700;margin-top:1px}',
-      '.tmww .in{width:100%;height:52px;border-radius:13px;border:1px solid rgba(255,255,255,.16);background:rgba(10,11,10,.6);color:#fff;padding:0 16px;font-size:16px;font-family:inherit;outline:none;transition:border-color .15s;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}',
+      '.tmww .wm{display:flex;align-items:center}',
+      '.tmww .wm img{height:38px;width:auto;display:block;filter:brightness(0) invert(1)}',
+      '.tmww .in{width:100%;height:52px;border-radius:13px;border:1px solid rgba(255,255,255,.16);background:rgba(10,11,10,.6);color:#fff;padding:0 16px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}',
       '.tmww .in:focus{border-color:#A78BFA}',
       '.tmww .in::placeholder{color:#7b847c}',
       '.tmww .cta{width:100%;height:54px;border-radius:14px;border:0;background:#1FDF67;color:#04210f;font:800 13px/1 "Inter",sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s,transform .12s}',
@@ -136,7 +136,7 @@
     document.head.appendChild(s);
   }
 
-  var HEX = '<span class="hex"><svg viewBox="0 0 100 100"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></svg></span>';
+  var LOGO_IMG = '<img src="https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow">';
 
   var root = null, slideTimer = null;
 
@@ -193,16 +193,16 @@
     var s = screen(
       '<button class="skip" data-w="close">Not now</button>' +
       '<div class="g-inner">' +
-        '<div class="wm">' + HEX + '<span class="t">MARKETS OF TMW<small>THE FUTURE IS HERE</small></span></div>' +
+        '<div class="wm">' + LOGO_IMG + '</div>' +
         '<h2 class="g-h">The world of tomorrow, <em>tracked live.</em></h2>' +
         '<p class="g-sub">1,600+ verified developments, the interactive Map and Atlas, and Onyx, our intelligence engine. Create a free account to continue.</p>' +
         '<form class="g-form" novalidate>' +
           '<div class="g-row">' +
             '<input class="in" type="email" name="email" placeholder="you@example.com" autocomplete="email" value="' + esc(opts.email || '') + '" required>' +
-            '<input class="in" type="password" name="password" placeholder="Create a password (8+)" autocomplete="new-password" minlength="8" required>' +
+            '<input class="in" type="password" name="password" placeholder="Create a password" autocomplete="new-password" minlength="8" required>' +
           '</div>' +
           '<button class="cta" type="submit">Create free account</button>' +
-          '<p class="fine g-fine">Already a member? <a data-w="login">Sign in</a> &middot; Free forever. No card required.</p>' +
+          '<p class="fine g-fine">Already a member? <a data-w="login">Sign in</a></p>' +
           '<div class="msg" aria-live="polite"></div>' +
         '</form>' +
       '</div>' +
@@ -239,6 +239,51 @@
         btn.disabled = false; btn.textContent = orig;
         msg.className = 'msg err'; msg.textContent = (res && res.message) || 'Could not create your account.';
       }
+    });
+    return true;
+  }
+
+  // ── SIGN IN (same splash, no lightbox) ─────────────────────────────────
+  function login(opts) {
+    opts = opts || {};
+    var s = screen(
+      '<button class="skip" data-w="close">Not now</button>' +
+      '<div class="g-inner">' +
+        '<div class="wm">' + LOGO_IMG + '</div>' +
+        '<h2 class="g-h">Welcome <em>back.</em></h2>' +
+        '<p class="g-sub">Sign in to pick up where you left off.</p>' +
+        '<form class="g-form" novalidate>' +
+          '<div class="g-row">' +
+            '<input class="in" type="email" name="email" placeholder="you@example.com" autocomplete="email" value="' + esc(opts.email || '') + '" required>' +
+            '<input class="in" type="password" name="password" placeholder="Password" autocomplete="current-password" required>' +
+          '</div>' +
+          '<button class="cta" type="submit">Sign in</button>' +
+          '<p class="fine g-fine">New here? <a data-w="togate">Create a free account</a> &middot; <a data-w="forgot">Forgot password?</a></p>' +
+          '<div class="msg" aria-live="polite"></div>' +
+        '</form>' +
+      '</div>'
+    );
+    track('welcome_login_shown');
+    var form = s.querySelector('form'), msg = s.querySelector('.msg');
+    (opts.email ? form.password : form.email).focus();
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = (form.email.value || '').trim();
+      var password = form.password.value || '';
+      msg.className = 'msg'; msg.textContent = '';
+      if (!email || !password) { msg.className = 'msg err'; msg.textContent = 'Enter your email and password.'; return; }
+      var btn = form.querySelector('.cta'); btn.disabled = true; btn.textContent = 'Signing in…';
+      var m = window.$memberstackDom;
+      if (!m || !m.loginMemberEmailPassword) { btn.disabled = false; btn.textContent = 'Sign in'; msg.className = 'msg err'; msg.textContent = 'Still loading — try again in a moment.'; return; }
+      m.loginMemberEmailPassword({ email: email, password: password }).then(function () {
+        try { if (window.gtag) window.gtag('event', 'login', { method: 'email' }); } catch (e2) {}
+        msg.textContent = '\u2713 Signed in.';
+        setTimeout(function () { close(); location.reload(); }, 400);
+      }).catch(function (err) {
+        btn.disabled = false; btn.textContent = 'Sign in';
+        msg.className = 'msg err';
+        msg.textContent = (err && (err.message || (err.data && err.data.message))) || 'Could not sign you in. Check your email and password.';
+      });
     });
     return true;
   }
@@ -334,12 +379,19 @@
     if (act === 'close') { track('welcome_dismissed'); close(); }
     else if (act === 'topro') pro({ source: 'post_signup' });
     else if (act === 'login') {
+      e.preventDefault();
+      var em = '';
+      try { var f = root.querySelector('input[name="email"]'); em = (f && f.value || '').trim(); } catch (e2) {}
+      login({ email: em });
+    }
+    else if (act === 'togate') { e.preventDefault(); gate({ source: 'from_login' }); }
+    else if (act === 'forgot') {
       e.preventDefault(); close();
-      try { if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('login'); else location.href = '/dashboard/'; }
-      catch (e2) { location.href = '/dashboard/'; }
+      try { if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('forgot'); else location.href = '/dashboard/'; }
+      catch (e3) { location.href = '/dashboard/'; }
     }
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && root) { track('welcome_dismissed'); close(); } });
 
-  window.tmwWelcome = { gate: gate, pro: pro, member: member, close: close };
+  window.tmwWelcome = { gate: gate, pro: pro, member: member, login: login, close: close };
 })();
