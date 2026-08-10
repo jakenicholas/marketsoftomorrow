@@ -207,38 +207,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
 a{color:inherit}
 .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--green);font-weight:500}
 h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.05;color:var(--white)}
-nav{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 0;background:rgba(7,8,7,.6);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-bottom:1px solid var(--hair)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
-/* animated logo lockup — matches /media/licensing exactly */
-.tmw-logo-lockup{display:flex;align-items:center;gap:8px;text-decoration:none}
-.tmw-hex-badge{flex:0 0 auto;width:21px;height:21px}
-.tmw-hex-badge svg{width:100%;height:100%;display:block;overflow:visible}
-.tmw-hex-spinner{transform-origin:50% 50%;animation:tmw-hardspin 4.2s cubic-bezier(.16,1,.3,1) infinite}
-@keyframes tmw-hardspin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
-.tmw-hex-core{animation:tmw-hexpulse 4.2s ease-in-out infinite;transform-origin:50% 50%}
-@keyframes tmw-hexpulse{0%,45%{stroke:var(--purple);filter:drop-shadow(0 0 0 rgba(167,139,250,0))}70%{stroke:var(--purple-glow);filter:drop-shadow(0 0 6px rgba(185,166,255,.9))}100%{stroke:var(--purple);filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
-.tmw-hex-ring{transform-origin:50% 50%;animation:tmw-ring 4.2s ease-out infinite}
-@keyframes tmw-ring{0%,60%{transform:scale(1);opacity:0}72%{opacity:.55}100%{transform:scale(1.7);opacity:0}}
-.tmw-wordmark{flex:0 1 auto;width:92px;height:auto}
-.tmw-wordmark svg{width:100%;height:auto;display:block}
-.tmw-wordmark .wm-fill{fill:#fff}
-.tmw-sweep{animation:tmw-sweep 4.2s ease-in-out infinite}
-@keyframes tmw-sweep{0%,60%{transform:translateX(-40%);opacity:0}68%{opacity:1}100%{transform:translateX(140%);opacity:0}}
-@media (prefers-reduced-motion: reduce){.tmw-hex-spinner{animation:tmw-fadespin 6s ease-in-out infinite}@keyframes tmw-fadespin{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}.tmw-sweep,.tmw-hex-ring{animation:none;opacity:0}}
-.nav-right{display:flex;align-items:center;gap:18px}
-.nav-link{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute2);text-decoration:none;transition:color .2s;white-space:nowrap}
-.nav-link:hover{color:var(--cream)}
-/* gold-glow CTA — matches the selected location filter pill (.pill.on) */
-.nav-cta{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:8px 15px;border-radius:999px;border:1px solid rgba(230,197,116,.34);background:rgba(230,197,116,.10);color:var(--gold-soft);text-decoration:none;white-space:nowrap;text-shadow:0 0 14px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.32);box-shadow:0 0 18px rgba(230,197,116,.16);transition:all .2s}
-.nav-cta:hover{background:rgba(230,197,116,.16);border-color:rgba(230,197,116,.5);transform:translateY(-1px)}
-footer{border-top:1px solid var(--hair);margin-top:90px;padding:34px 0 60px}
-footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--mute)}
-footer a{color:var(--green);text-decoration:none}
-@media(max-width:640px){.nav-link{display:none}}
 `;
-
-// Full animated logo lockup (hex badge + wordmark), identical to /media/licensing.
-const LOGO_LOCKUP = `<div class="tmw-hex-badge" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></div><div class="tmw-wordmark" aria-hidden="true"><svg viewBox="100 60 900 410" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tmw-sweepgrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A78BFA" stop-opacity="0"/><stop offset="50%" stop-color="#B9A6FF" stop-opacity="1"/><stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/></linearGradient><clipPath id="tmw-wmclip"><path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/><path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/><path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/><path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/><path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/><path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/><path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/><path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/><path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/><path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/><path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/><path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/></clipPath></defs><g class="wm-fill"><path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/><path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/><path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/><path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/><path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/><path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/><path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/><path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/><path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/><path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/><path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/><path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/></g><g clip-path="url(#tmw-wmclip)"><rect class="tmw-sweep" x="100" y="60" width="240" height="410" fill="url(#tmw-sweepgrad)"/></g></svg></div>`;
 
 // White lock icon (PIN indicator).
 const LOCK_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
@@ -246,23 +215,17 @@ const LOCK_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" st
 // Download icon — shared by "Download all" and the lightbox download button.
 const DL_ICON = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1v9m0 0L4.5 6.5M8 10l3.5-3.5M2 13.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-function navHTML(base, activeCta) {
-  return `<nav><div class="wrap">
-    <a class="tmw-logo-lockup" href="${base}/" aria-label="Markets of Tomorrow">${LOGO_LOCKUP}</a>
-    <div class="nav-right">
-      <a class="nav-link" href="https://www.oftmw.com/media/">Media Kit</a>
-      <a class="nav-link" href="https://www.oftmw.com/media/licensing/">Licensing</a>
-      <a class="nav-cta" href="${activeCta || 'https://www.oftmw.com/media/licensing/#cta'}">Request a quote</a>
-    </div>
-  </div></nav>`;
+// Universal site chrome — journal-chrome.js injects the standard TMW header
+// (and footer) at runtime, exactly like the journal + /media/licensing pages.
+// Absolute www URLs because these pages serve on gallery.oftmw.com; the chrome's
+// root-relative links are caught by the gallery-host redirect in handleGallery.
+function navHTML() {
+  return `<script src="https://www.oftmw.com/_shared/journal-chrome.js" defer></script>
+<script src="https://www.oftmw.com/_shared/journal-dock.js" defer></script>`;
 }
 
-function footerHTML() {
-  return `<footer><div class="wrap">
-    <div>Markets of Tomorrow &middot; Visual Portfolio &middot; West Palm Beach, FL</div>
-    <div><a href="https://www.oftmw.com/media/">Media Kit</a> &middot; <a href="https://www.oftmw.com/media/licensing/">Licensing &amp; Rights</a> &middot; <a href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener">@marketsoftomorrow</a></div>
-  </div></footer>`;
-}
+// The universal chrome injects the standard site footer — nothing to render here.
+function footerHTML() { return ''; }
 
 // Portfolio index — the public galleries, as a cover-image grid.
 function renderIndexHTML(galleries, base) {
@@ -1069,6 +1032,10 @@ export async function handleGallery(request, env, url, origin, deps) {
     }
   }
 
+  // Any other path on the gallery host belongs to the main site — the universal
+  // chrome's root-relative links (/hotels/, /dashboard/, …) land here, so send
+  // them to www.oftmw.com instead of the worker's API dispatcher.
+  if (onGalleryHost) return Response.redirect('https://www.oftmw.com' + url.pathname + url.search, 301);
   return null; // not a gallery route → fall through to the main dispatcher
 }
 
