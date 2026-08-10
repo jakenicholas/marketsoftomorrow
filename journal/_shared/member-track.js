@@ -15,6 +15,19 @@
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
 
   try { window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true }; } catch (e) {}
+  // Legacy-session migration: Memberstack only writes the root-domain session
+  // cookie at LOGIN time, so members whose login predates the cookie config
+  // carry a localStorage-only session — invisible to the other subdomains
+  // (gallery.oftmw.com showed them signed out). Copy the token into the shared
+  // cookie once; Memberstack keeps it fresh from then on.
+  try {
+    if (document.cookie.indexOf('_ms-mid=') < 0) {
+      var _tok = localStorage.getItem('_ms-mid');
+      if (_tok && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(_tok)) {
+        document.cookie = '_ms-mid=' + _tok + '; domain=.oftmw.com; path=/; max-age=' + (60 * 60 * 24 * 30) + '; secure; SameSite=Lax';
+      }
+    }
+  } catch (e) {}
   if (!document.querySelector('script[data-memberstack-app]')) {
     var s = document.createElement('script');
     s.setAttribute('data-memberstack-app', MS_APP);

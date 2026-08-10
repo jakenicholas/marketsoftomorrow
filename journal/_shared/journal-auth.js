@@ -29,6 +29,18 @@
   //    same session as www.oftmw.com (and vice-versa). Must be set BEFORE the
   //    Memberstack script loads, on every site sharing the app.
   try { window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true }; } catch (e) {}
+  // Legacy-session migration (same snippet as member-track.js): logins that
+  // predate the cookie config live in localStorage only, so the shared
+  // .oftmw.com cookie never existed for them and other subdomains (gallery.)
+  // saw them signed out. Write it once; Memberstack keeps it fresh after.
+  try {
+    if (document.cookie.indexOf('_ms-mid=') < 0) {
+      var _lt = localStorage.getItem('_ms-mid');
+      if (_lt && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(_lt)) {
+        document.cookie = '_ms-mid=' + _lt + '; domain=.oftmw.com; path=/; max-age=' + (60 * 60 * 24 * 30) + '; secure; SameSite=Lax';
+      }
+    }
+  } catch (e) {}
   if (!document.querySelector('script[data-memberstack-app]')) {
     var s = document.createElement('script');
     s.setAttribute('data-memberstack-app', MS_APP);
