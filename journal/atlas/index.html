@@ -891,6 +891,14 @@
   .mc-pk-l{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600}
   .mc-r1{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
   .mc-range.mc-range-row{justify-content:flex-start;margin:6px 0 2px}
+  /* Desktop: Comparing+dropdown grouped left, year toggle top-right, info line + pills below */
+  @media(min-width:700px){
+    .mc-hdr{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:16px}
+    .mc-hdr .mc-r1{grid-column:1;grid-row:1;justify-content:flex-start;gap:14px;margin-bottom:0}
+    .mc-hdr .mc-range.mc-range-row{grid-column:2;grid-row:1;justify-self:end;margin:0}
+    .mc-hdr .mc-unit{grid-column:1 / -1;grid-row:2;margin-top:9px}
+    .mc-hdr .mc-pick{grid-column:1 / -1;grid-row:3}
+  }
   .mc-chip{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#fff;
     background:rgba(255,255,255,.04);border:1px solid var(--hair-2);border-radius:999px;padding:7px 13px}
   .mc-chip i{width:10px;height:10px;border-radius:3px;flex:none}
@@ -3769,6 +3777,9 @@
       ai.addEventListener('input',renderAdd);
       aw.appendChild(ab);aw.appendChild(am);pk.appendChild(aw);
       // ── Stacked: Comparing+dropdown / info line / Markets+pills / year toggle ──
+      // Header wrapper — grid on desktop (Comparing+dropdown left · toggle right ·
+      // info + pills below), plain stack on mobile.
+      var hdr=document.createElement('div');hdr.className='mc-hdr';
       // Row 1: "Comparing" (left) + metric dropdown (right)
       var r1=document.createElement('div');r1.className='mc-r1';
       var r1l=document.createElement('span');r1l.className='mc-pk-l';r1l.textContent='Comparing';r1.appendChild(r1l);
@@ -3785,7 +3796,7 @@
         sm.appendChild(d);});
       sb.addEventListener('click',function(e){e.stopPropagation();sm.classList.toggle('on');});
       selw.appendChild(sb);selw.appendChild(sm);r1.appendChild(selw);
-      host.appendChild(r1);
+      hdr.appendChild(r1);
       // Row 2: the (i) info line — unit + truth popover
       var un=document.createElement('div');un.className='mc-unit';
       un.appendChild(document.createTextNode(M.unit));
@@ -3802,9 +3813,9 @@
       pop.appendChild(asof);
       info.appendChild(pop);
       un.appendChild(info);
-      host.appendChild(un);
+      hdr.appendChild(un);
       // Row 3: "Markets" label + selected pills (pk built above; label reads "Markets")
-      host.appendChild(pk);
+      hdr.appendChild(pk);
       // Row 4: year/range toggle (series only). No per-market colour legend — the
       // line colour already lives in each selected-market pill.
       if(M.kind==='series'){
@@ -3814,8 +3825,9 @@
           b.className='mc-rb'+(MC.range===o.v?' on':'');b.textContent=o.l;
           b.addEventListener('click',function(){MC.range=o.v;mountMaster();});
           rg.appendChild(b);});
-        host.appendChild(rg);
+        hdr.appendChild(rg);
       }
+      host.appendChild(hdr);
       var lg=document.createElement('div');lg.className='mc-lg';
       if(M.id==='pressure'){
         // Colour encodes height (saturation), not market identity — so the key is
