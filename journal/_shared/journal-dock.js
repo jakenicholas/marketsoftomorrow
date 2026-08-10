@@ -1044,6 +1044,16 @@
     document.body.appendChild(dock);
     requestAnimationFrame(function () { dock.classList.add('ready'); });
 
+    // Mobile expandable tool dock (the liquid-glass tray). Rides alongside this
+    // pill — loaded here so it exists exactly where the pill exists. Desktop
+    // no-ops (its CSS is entirely inside a max-width media query).
+    (function () {
+      var d = document.createElement('script');
+      d.src = '/_shared/tmw-mobile-dock.js';
+      d.defer = true;
+      document.head.appendChild(d);
+    })();
+
     // Transform every header into the universal menu (consolidate the flat nav,
     // inject the surface toggle, swap Open Map -> Instagram) THEN reveal it, in
     // one pass, so the raw nav never flashes. The chrome header can mount a tick
