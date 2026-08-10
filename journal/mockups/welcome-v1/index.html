@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>App-style welcome screens, 3 directions · TMW mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#070807;--panel:#101210;--white:#fff;--cream:#ECEAE5;--mute:#9AA39C;--mute2:#C2C9C3;
+    --purple:#A78BFA;--purple-soft:#C4B5FD;--purple-glow:#B9A6FF;--green:#1FDF67;--gold:#E6C574;--gold-soft:#f0d68a;
+    --hair:rgba(255,255,255,.12);--serif:'Fraunces',Georgia,serif;--sans:'Inter',-apple-system,sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#050605;color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+
+  /* ── mockup toolbar ── */
+  .top{position:sticky;top:0;z-index:200;background:rgba(7,8,7,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);padding:13px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .top h1{font-size:13.5px;font-weight:800}
+  .top .note{color:#6b736c;font-size:12px;font-weight:500}
+  .grp{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
+  .grp .lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6b736c;margin-right:2px}
+  .grp button{font:700 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer}
+  .grp button.on{color:#12091f;background:var(--purple-glow);border-color:var(--purple-glow)}
+  .grp button.grn.on{color:#062a13;background:var(--green);border-color:var(--green)}
+
+  /* ── stage: desktop frame or phone frame ── */
+  .stagewrap{display:flex;justify-content:center;padding:26px 18px 12px}
+  .frame{position:relative;width:min(1280px,96vw);height:min(76vh,800px);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 90px rgba(0,0,0,.6);background:var(--ink)}
+  body.phone .frame{width:400px;height:min(84vh,860px);border-radius:38px;border-width:2px}
+
+  /* ── shared screen skeleton ── */
+  .scr{position:absolute;inset:0;display:none}
+  .scr.on{display:block}
+  .fadein{animation:fin .45s ease both}
+  @keyframes fin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  .wm{display:flex;align-items:center;gap:9px}
+  .wm .hex{width:22px;height:22px}
+  .wm .hex svg{width:100%;height:100%;display:block}
+  .wm .t{font-weight:800;font-size:15px;letter-spacing:.01em;color:#fff}
+  .wm .t small{display:block;font-size:8.5px;letter-spacing:.3em;color:var(--mute);font-weight:700;margin-top:1px}
+
+  .in{width:100%;height:52px;border-radius:13px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#fff;padding:0 16px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s}
+  .in:focus{border-color:var(--purple)}
+  .in::placeholder{color:#7b847c}
+  .cta{width:100%;height:54px;border-radius:14px;border:0;background:var(--green);color:#04210f;font:800 13px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s,transform .12s}
+  .cta:hover{filter:brightness(1.06)}
+  .cta:active{transform:scale(.99)}
+  .cta.purple{background:linear-gradient(120deg,#A78BFA,#8b6ff0);color:#0d0618;box-shadow:0 0 26px rgba(167,139,250,.4)}
+  .alt{background:transparent;border:1px solid var(--hair);color:var(--mute2);font-weight:700}
+  .fine{font-size:11.5px;color:var(--mute);line-height:1.55;text-align:center}
+  .fine a{color:var(--purple-soft);text-decoration:none;font-weight:600}
+  .skip{position:absolute;top:18px;right:20px;z-index:6;font:600 11px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);background:rgba(8,8,8,.4);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:9px 15px;cursor:pointer;backdrop-filter:blur(8px)}
+  .skip:hover{color:#fff}
+
+  /* ════ OPTION A · CINEMATIC ════ */
+  .A .bg{position:absolute;inset:0}
+  .A .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}
+  .A .bg img.on{opacity:1}
+  .A .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(5,6,5,.96) 0%,rgba(5,6,5,.72) 34%,rgba(5,6,5,.25) 62%,rgba(5,6,5,.45) 100%)}
+  .A .inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;padding:44px clamp(22px,6vw,70px) 42px;max-width:640px}
+  .A .wm{margin-bottom:auto;padding-top:6px}
+  .A h2{font-family:var(--serif);font-weight:400;font-size:clamp(30px,4.2vw,50px);line-height:1.06;letter-spacing:-.015em;color:#fff;text-wrap:balance}
+  .A h2 em{font-style:italic;color:var(--purple-soft)}
+  .A .sub{font-size:14.5px;color:var(--mute2);line-height:1.6;margin:14px 0 24px;max-width:46ch}
+  .A .form{display:flex;flex-direction:column;gap:10px;max-width:420px}
+  .A .row2{display:flex;gap:10px}
+  .A .row2 .in{flex:1}
+  .A .fine{text-align:left;margin-top:12px}
+  .A .ticker{position:absolute;right:clamp(22px,5vw,58px);bottom:42px;z-index:2;text-align:right;display:flex;flex-direction:column;gap:16px}
+  .A .tk .v{font-family:var(--serif);font-size:clamp(22px,2.6vw,34px);font-weight:600;color:#fff;line-height:1}
+  .A .tk .k{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-top:5px}
+  body.phone .A .ticker{display:none}
+  body.phone .A .inner{padding:30px 24px 30px}
+
+  /* ════ OPTION B · SPLIT PANEL ════ */
+  .B{display:none;grid-template-columns:1.15fr 1fr}
+  .B.on{display:grid}
+  body.phone .B.on{display:block}
+  .B .vis{position:relative;overflow:hidden}
+  .B .vis img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}
+  .B .vis img.on{opacity:1}
+  .B .vis::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(5,6,5,.25),rgba(5,6,5,.65) 88%),linear-gradient(to top,rgba(5,6,5,.8),transparent 45%)}
+  .B .vis .cap{position:absolute;left:30px;bottom:26px;z-index:2}
+  .B .vis .cap .t{font-family:var(--serif);font-size:19px;color:#fff}
+  .B .vis .cap .k{font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mute2);margin-top:4px}
+  .B .pane{position:relative;display:flex;flex-direction:column;justify-content:center;padding:44px clamp(26px,4.5vw,58px);background:var(--ink)}
+  .B .wm{position:absolute;top:26px;left:clamp(26px,4.5vw,58px)}
+  .B .step{font-size:10px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:14px}
+  .B h2{font-family:var(--serif);font-weight:400;font-size:clamp(26px,3vw,38px);line-height:1.1;letter-spacing:-.01em;color:#fff}
+  .B .sub{font-size:14px;color:var(--mute2);line-height:1.6;margin:12px 0 24px}
+  .B .form{display:flex;flex-direction:column;gap:10px}
+  .B .fine{text-align:left;margin-top:12px}
+  .B .perks{display:flex;flex-direction:column;gap:9px;margin:4px 0 24px}
+  .B .perk{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--mute2)}
+  .B .perk svg{flex:0 0 auto}
+  body.phone .B .vis{display:none}
+  body.phone .B .pane{height:100%}
+
+  /* ════ OPTION C · GUIDED STEPS ════ */
+  .C .cwrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 26px;text-align:center;z-index:2}
+  .C .bg{position:absolute;inset:0}
+  .C .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.34}
+  .C .bg::after{content:"";position:absolute;inset:0;background:radial-gradient(900px 600px at 50% 20%,rgba(167,139,250,.14),transparent 60%),linear-gradient(to top,#050605 4%,rgba(5,6,5,.72) 40%,rgba(5,6,5,.55))}
+  .C .dots{display:flex;gap:7px;margin-bottom:26px}
+  .C .dot{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.22);transition:all .3s}
+  .C .dot.on{width:22px;background:var(--purple-glow)}
+  .C .glyph{width:74px;height:74px;border-radius:24px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.4);box-shadow:0 0 34px rgba(167,139,250,.3);margin-bottom:24px;color:var(--purple-soft)}
+  .C .glyph svg{width:34px;height:34px}
+  .C h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,3.6vw,44px);line-height:1.08;letter-spacing:-.015em;color:#fff;max-width:17ch;text-wrap:balance}
+  .C h2 em{font-style:italic;color:var(--purple-soft)}
+  .C .sub{font-size:14.5px;color:var(--mute2);line-height:1.6;margin:14px 0 30px;max-width:46ch}
+  .C .form{display:flex;flex-direction:column;gap:10px;width:min(400px,100%)}
+  .C .fine{margin-top:12px}
+
+  /* ════ CELEBRATE (shared) ════ */
+  .CEL{background:radial-gradient(1000px 700px at 50% -10%,rgba(167,139,250,.16),transparent 55%),#050605}
+  .CEL .cwrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 26px;text-align:center}
+  .CEL .num{font-family:var(--serif);font-weight:600;font-size:clamp(54px,8vw,92px);line-height:1;color:#fff;letter-spacing:-.02em}
+  .CEL .num i{font-style:normal;color:var(--purple-soft);text-shadow:0 0 34px rgba(167,139,250,.55)}
+  .CEL .eyeb{font-size:10.5px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:18px}
+  .CEL .sub{font-size:15px;color:var(--mute2);line-height:1.65;margin:18px 0 34px;max-width:48ch}
+  .CEL .sub b{color:#fff;font-weight:600}
+  .CEL .form{width:min(380px,100%);display:flex;flex-direction:column;gap:10px}
+  .CEL .ring{position:absolute;left:50%;top:38%;width:340px;height:340px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(167,139,250,.2);animation:ringp 3.2s ease-in-out infinite;pointer-events:none}
+  @keyframes ringp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}
+
+  /* ════ GO PRO (shared) ════ */
+  .PRO .bg{position:absolute;inset:0}
+  .PRO .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.3}
+  .PRO .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,#050605 10%,rgba(5,6,5,.82) 55%,rgba(5,6,5,.62))}
+  .PRO .cwrap{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 26px;text-align:center}
+  .PRO .eyeb{font-size:10.5px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:16px;animation:proGlow 2.4s ease-in-out infinite}
+  @keyframes proGlow{0%,100%{text-shadow:0 0 6px rgba(167,139,250,.4)}50%{text-shadow:0 0 16px rgba(167,139,250,.85)}}
+  .PRO h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,3.8vw,46px);line-height:1.08;color:#fff;max-width:20ch;text-wrap:balance}
+  .PRO .sub{font-size:14.5px;color:var(--mute2);line-height:1.6;margin:14px 0 28px;max-width:50ch}
+  .PRO .plans{display:flex;gap:12px;width:min(560px,100%);margin-bottom:16px}
+  .PRO .plan{flex:1;text-align:left;padding:18px;border-radius:16px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);cursor:pointer;transition:border-color .15s,background .15s;color:#fff;font-family:inherit;position:relative}
+  .PRO .plan.sel{border-color:var(--purple);background:rgba(167,139,250,.09);box-shadow:0 0 22px rgba(167,139,250,.3)}
+  .PRO .plan .nm{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:6px}
+  .PRO .plan .pr{font-size:24px;font-weight:700;line-height:1}
+  .PRO .plan .pr small{font-size:12px;font-weight:500;color:rgba(255,255,255,.5)}
+  .PRO .plan .nt{font-size:10.5px;color:rgba(255,255,255,.55);margin-top:6px}
+  .PRO .plan .tag{position:absolute;top:-9px;right:12px;background:var(--purple);color:#0d0d0d;font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:3px 8px;border-radius:20px}
+  .PRO .form{width:min(560px,100%);display:flex;flex-direction:column;gap:10px}
+  .PRO .feat{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:6px 0 22px;max-width:560px}
+  .PRO .ft{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mute2)}
+  body.phone .PRO .plans{flex-direction:column}
+  body.phone .PRO .feat{display:none}
+
+  .note-block{max-width:900px;margin:8px auto 60px;padding:20px 22px 0;color:var(--mute);font-size:13.5px;line-height:1.7}
+  .note-block b{color:var(--cream)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>App-style welcome, 3 directions</h1><span class="note">click any primary button to walk the flow: Gate → Member # → Go Pro</span>
+  <div class="grp">
+    <span class="lbl">Direction</span>
+    <button data-opt="A" class="on">A · Cinematic</button>
+    <button data-opt="B">B · Split panel</button>
+    <button data-opt="C">C · Guided steps</button>
+    <span class="lbl" style="margin-left:10px">Device</span>
+    <button data-dev="desktop" class="grn on">Desktop</button>
+    <button data-dev="phone" class="grn">Phone</button>
+    <span class="lbl" style="margin-left:10px">Screen</span>
+    <button data-scr="gate" class="on">Gate</button>
+    <button data-scr="cel">Member #</button>
+    <button data-scr="pro">Go Pro</button>
+  </div>
+</div>
+
+<div class="stagewrap"><div class="frame" id="frame">
+
+  <!-- ═══ A · CINEMATIC GATE ═══ -->
+  <section class="scr A" data-scr="A-gate">
+    <div class="bg" data-slideshow></div>
+    <button class="skip">Not now</button>
+    <div class="inner">
+      <div class="wm"><span class="hex"><svg viewBox="0 0 100 100"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></svg></span><span class="t">MARKETS OF TMW<small>THE FUTURE IS HERE</small></span></div>
+      <h2>The world of tomorrow, <em>tracked live.</em></h2>
+      <p class="sub">1,600+ verified developments, the interactive Map and Atlas, and Onyx, our intelligence engine. Create a free account to continue.</p>
+      <div class="form">
+        <div class="row2"><input class="in" placeholder="you@example.com"><input class="in" type="password" placeholder="Password"></div>
+        <button class="cta" data-next="cel">Create free account</button>
+        <p class="fine">Already a member? <a href="#">Sign in</a> &middot; Free forever. No card required.</p>
+      </div>
+    </div>
+    <div class="ticker">
+      <div class="tk"><div class="v">1,600+</div><div class="k">Tracked projects</div></div>
+      <div class="tk"><div class="v">8.1M</div><div class="k">Monthly views</div></div>
+      <div class="tk"><div class="v">40+</div><div class="k">Markets</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ B · SPLIT GATE ═══ -->
+  <section class="scr B" data-scr="B-gate">
+    <div class="vis" data-slideshow>
+      <div class="cap"><div class="t">Amanvari, Costa Palmas</div><div class="k">Tracked since announcement</div></div>
+    </div>
+    <div class="pane">
+      <div class="wm"><span class="hex"><svg viewBox="0 0 100 100"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></svg></span><span class="t">MARKETS OF TMW</span></div>
+      <button class="skip">Not now</button>
+      <div class="step">Create your account &middot; Step 1 of 2</div>
+      <h2>Continue with a free account</h2>
+      <p class="sub">One account for the journal, the Map, the Atlas, and Onyx.</p>
+      <div class="perks">
+        <div class="perk"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Every story, free forever</div>
+        <div class="perk"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5 Onyx intelligence searches a month</div>
+        <div class="perk"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Your Blueprint Member number</div>
+      </div>
+      <div class="form">
+        <input class="in" placeholder="you@example.com">
+        <input class="in" type="password" placeholder="Create a password (8+ characters)">
+        <button class="cta" data-next="cel">Create free account</button>
+        <p class="fine">Already a member? <a href="#">Sign in</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ C · GUIDED GATE ═══ -->
+  <section class="scr C" data-scr="C-gate">
+    <div class="bg"><img src="https://media.oftmw.com/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg" alt=""></div>
+    <button class="skip">Not now</button>
+    <div class="cwrap">
+      <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg></div>
+      <h2>Make it <em>yours</em> to continue</h2>
+      <p class="sub">A free account unlocks the journal, saves your projects, and gives you 5 Onyx searches a month. It takes 20 seconds.</p>
+      <div class="form">
+        <input class="in" placeholder="you@example.com">
+        <input class="in" type="password" placeholder="Create a password">
+        <button class="cta" data-next="cel">Continue</button>
+        <button class="cta alt">Sign in instead</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CELEBRATE · shared screen 2 ═══ -->
+  <section class="scr CEL" data-scr="cel">
+    <div class="ring"></div>
+    <div class="cwrap fadein">
+      <div class="eyeb">Welcome to the Blueprint</div>
+      <div class="num">Member <i>#0184</i></div>
+      <p class="sub">Your number is permanent, and it's yours. You're one of the first <b>200 members</b> shaping the map of what's next. Watch projects, follow markets, and ask Onyx anything.</p>
+      <div class="form">
+        <button class="cta purple" data-next="pro">See what Pro unlocks</button>
+        <button class="cta alt" data-next="done">Start exploring</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ GO PRO · shared screen 3 ═══ -->
+  <section class="scr PRO" data-scr="pro">
+    <div class="bg"><img src="https://media.oftmw.com/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg" alt=""></div>
+    <button class="skip" data-next="done">Maybe later</button>
+    <div class="cwrap">
+      <div class="eyeb">TMW Pro</div>
+      <h2>Try everything, free for 2 weeks</h2>
+      <p class="sub">The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.</p>
+      <div class="plans">
+        <button class="plan sel"><span class="tag">Save 22%</span><div class="nm">Annual</div><div class="pr">$300<small>/yr</small></div><div class="nt">$25/month &middot; 14 days free</div></button>
+        <button class="plan"><div class="nm">Monthly</div><div class="pr">$32<small>/mo</small></div><div class="nt">14 days free</div></button>
+      </div>
+      <div class="feat">
+        <span class="ft">✓ Full Map &amp; Atlas</span><span class="ft">✓ Unlimited Onyx + Deep</span><span class="ft">✓ Projected pricing</span><span class="ft">✓ Watchlist &amp; weekly brief</span>
+      </div>
+      <div class="form">
+        <button class="cta purple" data-next="done">Start my free trial</button>
+        <p class="fine">No charge for 14 days. Cancel anytime in your account.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DONE ═══ -->
+  <section class="scr CEL" data-scr="done">
+    <div class="cwrap fadein">
+      <div class="eyeb">You're in</div>
+      <div class="num" style="font-size:clamp(34px,5vw,54px)">Flow complete</div>
+      <p class="sub">This is where the screen dissolves back to whatever the reader was doing, with their account (and maybe their trial) live. Use the toolbar to replay a direction.</p>
+      <div class="form"><button class="cta alt" data-next="gate">Replay</button></div>
+    </div>
+  </section>
+
+</div></div>
+
+<div class="note-block">
+  <b>What's being proposed.</b> Every lightbox in the funnel (email capture, account nudge, Go Pro) is replaced with full-screen, app-grade moments. The gate replaces the slide-up tile at the same trigger points; after account creation, the member number celebration and the Pro pitch run as screens 2 and 3 of one continuous flow instead of separate popups on later visits.
+  <br><br>
+  <b>A &middot; Cinematic:</b> full-bleed rotating project imagery, wordmark top-left, live network stats on the right. Feels like the cover of the product. Strongest brand moment; the form floats over the image so it needs the dark gradient to stay legible.
+  <br><br>
+  <b>B &middot; Split panel:</b> imagery left, calm form pane right with perks list and a step indicator ("Step 1 of 2" sets the expectation there's a Pro pitch coming, which raises conversion honesty). Most conventional, easiest to trust with a password field. On phones the panel goes full-bleed.
+  <br><br>
+  <b>C &middot; Guided steps:</b> app-onboarding language with progress dots, one idea per screen, centered. The most mobile-native of the three; the dots make the Pro screen feel like part of setup rather than an ad.
+  <br><br>
+  <b>Shared decisions to settle:</b> (1) hard gate vs the "Not now" escape hatch top-right; keeping an escape means it's a strong nudge rather than a wall. (2) The celebration screen turns the member number into the product's hero moment; it also makes the Pro pitch feel earned rather than interruptive. (3) Pricing shows the new $32/$300 with annual preselected. (4) All screens are the same component with different content, so shipping this is one overlay, not four.
+</div>
+
+<script>
+var IMGS = [
+  'https://media.oftmw.com/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg',
+  'https://media.oftmw.com/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg',
+  'https://media.oftmw.com/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg'
+];
+document.querySelectorAll('[data-slideshow]').forEach(function(host){
+  IMGS.forEach(function(src, i){
+    var im = document.createElement('img'); im.src = src; if (i === 0) im.className = 'on';
+    host.insertBefore(im, host.firstChild);
+  });
+  var i = 0;
+  setInterval(function(){
+    var imgs = host.querySelectorAll('img');
+    imgs[i % imgs.length].classList.remove('on');
+    i++; imgs[i % imgs.length].classList.add('on');
+  }, 4200);
+});
+
+var opt = 'A', scr = 'gate';
+function paint(){
+  document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+  var id = (scr === 'gate') ? (opt + '-gate') : scr;
+  var el = document.querySelector('.scr[data-scr="' + id + '"]');
+  if (el) { el.classList.add('on'); el.classList.remove('fadein'); void el.offsetWidth; el.classList.add('fadein'); }
+  document.querySelectorAll('[data-opt]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-opt') === opt); });
+  document.querySelectorAll('[data-scr]').forEach(function(b){ if (b.tagName === 'BUTTON' && b.closest('.grp')) b.classList.toggle('on', b.getAttribute('data-scr') === scr); });
+}
+document.querySelectorAll('.grp [data-opt]').forEach(function(b){ b.addEventListener('click', function(){ opt = b.getAttribute('data-opt'); scr = 'gate'; paint(); }); });
+document.querySelectorAll('.grp [data-scr]').forEach(function(b){ b.addEventListener('click', function(){ scr = b.getAttribute('data-scr'); paint(); }); });
+document.querySelectorAll('.grp [data-dev]').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.body.classList.toggle('phone', b.getAttribute('data-dev') === 'phone');
+    document.querySelectorAll('[data-dev]').forEach(function(x){ x.classList.toggle('on', x === b); });
+  });
+});
+document.addEventListener('click', function(e){
+  var n = e.target.closest('[data-next]');
+  if (!n) return;
+  scr = n.getAttribute('data-next');
+  paint();
+});
+paint();
+</script>
+</body>
+</html>
