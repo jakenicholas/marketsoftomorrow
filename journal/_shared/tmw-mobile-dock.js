@@ -183,6 +183,9 @@
     '.tmwx-tool span{font-size:9.5px;color:rgba(255,255,255,.85)}',
     '.tmwx-tool.hero svg{color:#E6C574}',
     '.tmwx-tool.act svg{color:#34d27b}',
+    '/* the GL-heavy map page stalls CSS transitions (they hold their START frame '+
+    'forever) - run every dock state change instantly there */',
+    'html.tmwx-instant .tmwx-tray,html.tmwx-instant .tmwx-fab svg,html.tmwx-instant .tmwx-in,html.tmwx-instant .tmwx-pill,html.tmwx-instant .tmwx-scrim,html.tmwx-instant .tmwx-wrap{transition:none !important}',
     '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -242,7 +245,7 @@
     document.documentElement.classList.toggle('tmwx-open');
     var last = fab.getBoundingClientRect().left;
     var dx = first - last;
-    if (dx) {
+    if (dx && !IS_MAP) {
       fab.style.transition = 'none';
       fab.style.transform = 'translateX(' + dx + 'px)';
       void fab.offsetWidth;
@@ -274,4 +277,5 @@
   document.body.appendChild(scrim);
   document.body.appendChild(wrap);
   document.documentElement.classList.add('tmwx-on');
+  if (IS_MAP) document.documentElement.classList.add('tmwx-instant');
 })();
