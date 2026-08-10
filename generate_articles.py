@@ -53,7 +53,9 @@ T_BODY    = (
     '<span class="skel-block" style="display:block; height:18px; width:88%"></span></p>\n'
     '      </div>'
 )
-T_DATA_ANCHOR = '<script src="/post/post.js" defer></script>'
+# The post.js tag may carry a cache-bust (?v=...) — match any version so a
+# pin bump can't break the pre-render. The matched tag is re-emitted verbatim.
+T_DATA_ANCHOR_RE = re.compile(r'<script src="/post/post\.js[^"]*" defer></script>')
 
 
 def sh(cmd):
@@ -217,11 +219,8 @@ def build_page(template, post):
     data_json = json.dumps(post_data, ensure_ascii=False).replace("</", "<\\/")
     # Inline data block runs before the deferred post.js (window.__POST__ must
     # exist when the bootstrap fires).
-    data_block = (
-        f"<script>window.__PRERENDERED__=1;window.__POST__={data_json};</script>\n"
-        '<script src="/post/post.js" defer></script>'
-    )
-    page = page.replace(T_DATA_ANCHOR, data_block, 1)
+    data_prefix = f"<script>window.__PRERENDERED__=1;window.__POST__={data_json};</script>\n"
+    page = T_DATA_ANCHOR_RE.sub(lambda m: data_prefix + m.group(0), page, count=1)
 
     return page
 
@@ -241,8 +240,10 @@ def main():
     # Sanity: every marker must exist exactly once, else a template edit
     # silently broke the pre-render. Fail loud rather than ship blank pages.
     markers = [T_TITLE, T_DESC, T_OG_T, T_OG_D, T_OG_I, T_CATROW,
-               T_H1, T_DECK, T_AUTHOR, T_DATE, T_COVER, T_BODY, T_DATA_ANCHOR]
+               T_H1, T_DECK, T_AUTHOR, T_DATE, T_COVER, T_BODY]
     missing = [m[:40] for m in markers if template.count(m) != 1]
+    if len(T_DATA_ANCHOR_RE.findall(template)) != 1:
+        missing.append('/post/post.js script tag (regex)')
     if missing:
         print("ERROR: template markers missing/duplicated — pre-render aborted:")
         for m in missing:
