@@ -15201,7 +15201,7 @@ async function upsertProIncomeMonth(env, y, m) {
   const date = y + '-' + mm + '-' + String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0');
   const now = Math.floor(Date.now() / 1000);
   await env.DB.prepare(`INSERT OR REPLACE INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,invoice_date,received_date,location,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-    .bind('fl-pro-' + y + '-' + mm, 'income', y, date, gross, PRO_FLOW_DESC, 'TMW', 'Stripe', 'Florida of Tomorrow', 'paid', null, 0, null, null, null, null, null, null, now, now).run();
+    .bind('fl-pro-' + y + '-' + mm, 'income', y, date, gross, PRO_FLOW_DESC, 'TMW', 'Stripe', 'Florida of Tomorrow', 'paid', 'Subscription', 0, null, null, null, null, null, null, now, now).run();
   return { gross, charges };
 }
 async function maybeRollupProIncome(env) {
