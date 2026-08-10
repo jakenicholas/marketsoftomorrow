@@ -2718,7 +2718,10 @@ function formatDate(s) {
   }
   var _isProMem = false;
   function isProLS(){ try { return localStorage.getItem('tmw_auth_state') === 'pro'; } catch(_) { return false; } }
-  function isPro(){ return _isProMem || isProLS(); }
+  // Trust the canonical auth (journal-auth publishes _isPaidMember/tmwAuth.paid
+  // with the correct active|trialing|past_due definition) so we never race or
+  // undercount it — this page's own probe is just a fallback.
+  function isPro(){ return _isProMem || window._isPaidMember === true || !!(window.tmwAuth && window.tmwAuth.paid) || isProLS(); }
   // The localStorage flag is set by the map's auth flow — a Pro member who has
   // only used the journal won't have it. Ask Memberstack directly (it loads
   // late, so poll briefly), then unlock the page: hide the Go-Pro band,
@@ -2728,7 +2731,7 @@ function formatDate(s) {
     if (!ms || !ms.getCurrentMember) { if (tries < 20) setTimeout(function(){ proProbe(tries + 1); }, 600); return; }
     ms.getCurrentMember().then(function (r) {
       var m = r && r.data;
-      var paid = !!(m && (m.planConnections || []).some(function (pc) { return pc.active === true || pc.status === 'ACTIVE' || pc.status === 'TRIALING'; }));
+      var paid = !!(m && (m.planConnections || []).some(function (pc) { return pc.active === true || /^(active|trialing|past_due)$/i.test(String(pc.status || '')); }));
       if (paid) {
         _isProMem = true;
         try { localStorage.setItem('tmw_auth_state', 'pro'); } catch (_) {}
@@ -2737,7 +2740,26 @@ function formatDate(s) {
       }
     }).catch(function () {});
   })(0);
-  function paywall(){ if (window.tmwShowPaywall) window.tmwShowPaywall('restaurant-openings'); else location.href = 'https://map.oftmw.com/?upgrade=1'; }
+  // Also ride the canonical auth bus (journal-auth) — unlock the moment it
+  // publishes a paid member, so a Pro user never has to wait on our own probe.
+  if (window.tmwAuth && window.tmwAuth.onChange) window.tmwAuth.onChange(function (a) {
+    if (a && a.paid) {
+      _isProMem = true;
+      try { localStorage.setItem('tmw_auth_state', 'pro'); } catch (_) {}
+      var band = document.querySelector('.op-pro'); if (band) band.style.display = 'none';
+      if (typeof state !== 'undefined' && state.hotels && state.hotels.length) render();
+    }
+  });
+  function _openPaywall(){ if (window.tmwShowPaywall) window.tmwShowPaywall('restaurant-openings'); else location.href = 'https://map.oftmw.com/?upgrade=1'; }
+  function paywall(){
+    if (isPro()) return;                                 // never paywall a Pro member
+    var a = window.tmwAuth;
+    if (a && a.onChange && !a.ready) {                   // auth not resolved yet — wait, don't flash the popup at a paying member
+      a.onChange(function (x) { if (!(x && x.paid)) _openPaywall(); });
+      return;
+    }
+    _openPaywall();
+  }
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function fmtEta(d){
     if (!d) return 'TBD';
@@ -2824,7 +2846,7 @@ function formatDate(s) {
       var member = r && r.data;
       if (!member) { paywall(); return; }
       var plans = member.planConnections || [];
-      var paid = plans.some(function (p) { return p.active === true || p.status === 'ACTIVE' || p.status === 'TRIALING'; });
+      var paid = isPro() || plans.some(function (p) { return p.active === true || /^(active|trialing|past_due)$/i.test(String(p.status || '')); });
       if (!paid) { paywall(); return; }
       return ms.getMemberJSON().then(function (got) {
         var json = (got && got.data && typeof got.data === 'object') ? got.data : {};

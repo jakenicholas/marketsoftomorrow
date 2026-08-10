@@ -113,9 +113,9 @@
       '.paywall-bill{font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:.01em; padding:8px 18px; border-radius:999px; border:0; background:transparent; color:rgba(255,255,255,.6); cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:background .16s,color .16s}',
       '.paywall-bill.on{background:#A78BFA; color:#0a0a12}',
       '.paywall-bill-save{font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 6px; border-radius:999px; background:rgba(31,223,103,.22); color:#42EB81}',
-      '.paywall-bill.on .paywall-bill-save{background:rgba(10,10,18,.18); color:#0a5a24}',
-      '.paywall-plans{display:flex; flex-direction:column; gap:10px; margin-bottom:18px}',
-      '.paywall-plan{position:relative; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; color:#fff; cursor:pointer; text-align:left; transition:border-color .15s, background .15s, transform .1s; font-family:inherit}',
+      '.paywall-bill.on .paywall-bill-save{background:#1FDF67; color:#06301a}',
+      '.paywall-plans{display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px}',
+      '.paywall-plan{position:relative; width:100%; max-width:360px; box-sizing:border-box; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; color:#fff; cursor:pointer; text-align:left; transition:border-color .15s, background .15s, transform .1s; font-family:inherit}',
       '.paywall-plan:hover{border-color:rgba(167,139,250,.5); background:rgba(255,255,255,.06)}',
       '.paywall-plan:active{transform:scale(.99)}',
       '.paywall-plan-annual{border-color:#A78BFA; background:rgba(167,139,250,.07); box-shadow:0 0 18px rgba(167,139,250,.28)}',
@@ -145,7 +145,7 @@
       // DESKTOP: wide 2-column layout so the card isn't too tall / cropped off the
       // bottom — ~2x width, the two plans side by side, features in two columns.
       // Mobile (below) stays single-column.
-      '@media(min-width:600px){.paywall-card{max-width:880px; padding:34px 46px 28px} .paywall-subtitle{max-width:560px; margin-left:auto; margin-right:auto} .paywall-plans{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px} .paywall-features{display:grid; grid-template-columns:1fr 1fr; column-gap:32px; row-gap:9px}}',
+      '@media(min-width:600px){.paywall-card{max-width:880px; padding:34px 46px 28px} .paywall-subtitle{max-width:560px; margin-left:auto; margin-right:auto} .paywall-plans{margin-bottom:16px} .paywall-features{display:grid; grid-template-columns:1fr 1fr; column-gap:32px; row-gap:9px}}',
       '@media(max-width:480px){.paywall-card{padding:24px 18px 18px; max-width:100%} .paywall-title{font-size:19px} .paywall-plan-price{font-size:22px}}'
     ].join('\n');
     document.head.appendChild(s);
