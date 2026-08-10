@@ -63,6 +63,11 @@
     var css = [
       '.tmww{position:fixed;inset:0;z-index:99990;background:#050605;color:#ECEAE5;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;opacity:0;transition:opacity .4s ease}',
       '.tmww.show{opacity:1}',
+      /* GL-heavy map page stalls transitions/animations at their start frame —
+         the overlay was opening INVISIBLE there (a "dead click"). Instant mode. */
+      '.tmww.instant{transition:none}',
+      '.tmww.instant .bg img{transition:none}',
+      '.tmww.instant .scr.on{animation:none}',
       '.tmww .bg{position:absolute;inset:0}',
       '.tmww .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}',
       '.tmww .bg img.on{opacity:1}',
@@ -138,6 +143,8 @@
 
   var LOGO_IMG = '<img src="https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow">';
 
+  var IS_MAP_SURFACE = (location.hostname === 'map.oftmw.com') || /^\/map(\/|$)/.test(location.pathname);
+
   var root = null, slideTimer = null;
 
   function close(force) {
@@ -155,7 +162,7 @@
     if (root) return root;
     ensureFonts(); injectCSS();
     root = document.createElement('div');
-    root.className = 'tmww';
+    root.className = 'tmww' + (IS_MAP_SURFACE ? ' instant show' : '');
     root.innerHTML = '<div class="bg">' + IMGS.map(function (src, i) {
       return '<img src="' + esc(src) + '" alt=""' + (i === 0 ? ' class="on"' : '') + '>';
     }).join('') + '</div>';
@@ -168,7 +175,7 @@
       imgs[i % imgs.length].classList.remove('on');
       i++; imgs[i % imgs.length].classList.add('on');
     }, 4200);
-    requestAnimationFrame(function () { if (root) root.classList.add('show'); });
+    if (!IS_MAP_SURFACE) requestAnimationFrame(function () { if (root) root.classList.add('show'); });
     return root;
   }
 
@@ -343,7 +350,9 @@
     hardMode = !!opts.hard;
     var copy = PRO_COPY[opts.source] || ['Try everything, free for 2 weeks', 'The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.'];
     var s = screen(
-      (opts.hard ? '' : '<button class="skip" data-w="close">Maybe later</button>') +
+      (opts.hard
+        ? (opts.source === 'atlas' ? '<button class="skip" data-w="gohome">Maybe later</button>' : '')
+        : '<button class="skip" data-w="close">Maybe later</button>') +
       '<div class="c-wrap">' +
         '<div class="eyeb purple">TMW Pro</div>' +
         '<h2 class="p-h">' + copy[0] + '</h2>' +
@@ -358,6 +367,7 @@
         '</div>' +
         '<div class="p-form">' +
           '<button class="cta purple" data-w="checkout">Start my free trial</button>' +
+          '<a class="cta alt" href="https://www.oftmw.com/pro/" style="display:flex;align-items:center;justify-content:center;text-decoration:none">View all Pro features</a>' +
           '<p class="fine">No charge for 14 days. Cancel anytime in your account.' +
             (window._tmwSignedIn === true ? '' : ' &middot; Already a subscriber? <a data-w="login">Sign in</a>') + '</p>' +
           '<div class="msg" aria-live="polite"></div>' +
@@ -397,6 +407,7 @@
     var act = w.getAttribute('data-w');
     if (act === 'close') { track('welcome_dismissed'); close(); }
     else if (act === 'forceclose') { close(true); }
+    else if (act === 'gohome') { track('welcome_dismissed_home'); location.href = 'https://www.oftmw.com/'; }
     else if (act === 'topro') pro({ source: 'post_signup' });
     else if (act === 'login') {
       e.preventDefault();
