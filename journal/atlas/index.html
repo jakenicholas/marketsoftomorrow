@@ -889,6 +889,8 @@
      all >= 3:1. Five markets is the cap, never a sixth hue. */
   .mc-pick{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:14px 0}
   .mc-pk-l{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .mc-r1{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+  .mc-range.mc-range-row{justify-content:flex-start;margin:6px 0 2px}
   .mc-chip{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#fff;
     background:rgba(255,255,255,.04);border:1px solid var(--hair-2);border-radius:999px;padding:7px 13px}
   .mc-chip i{width:10px;height:10px;border-radius:3px;flex:none}
@@ -3737,7 +3739,7 @@
       host.textContent='';
       // picker
       var pk=document.createElement('div');pk.className='mc-pick';
-      var pl=document.createElement('span');pl.className='mc-pk-l';pl.textContent='Comparing';pk.appendChild(pl);
+      var pl=document.createElement('span');pl.className='mc-pk-l';pl.textContent='Markets';pk.appendChild(pl);
       MC.set.forEach(function(m){
         var ch=document.createElement('span');ch.className='mc-chip';
         var sw=document.createElement('i');sw.style.background=MC_SLOTS[m.slot];ch.appendChild(sw);
@@ -3766,10 +3768,10 @@
         am.classList.toggle('on');if(am.classList.contains('on')){ai.value='';renderAdd();ai.focus();}});
       ai.addEventListener('input',renderAdd);
       aw.appendChild(ab);aw.appendChild(am);pk.appendChild(aw);
-      // (pk appended below the head, so the metric dropdown + unit bar sit on top)
-      // head: metric dropdown + unit + (i) + legend
-      var hd=document.createElement('div');hd.className='mc-head';
-      var lt=document.createElement('div');
+      // ── Stacked: Comparing+dropdown / info line / Markets+pills / year toggle ──
+      // Row 1: "Comparing" (left) + metric dropdown (right)
+      var r1=document.createElement('div');r1.className='mc-r1';
+      var r1l=document.createElement('span');r1l.className='mc-pk-l';r1l.textContent='Comparing';r1.appendChild(r1l);
       var selw=document.createElement('div');selw.className='mc-selw';
       var sb=document.createElement('button');sb.type='button';sb.className='mc-selb';
       sb.appendChild(document.createTextNode(M.name+' '));
@@ -3782,7 +3784,9 @@
         d.addEventListener('click',function(){MC.metric=mx.id;mcSync();mountMaster();});
         sm.appendChild(d);});
       sb.addEventListener('click',function(e){e.stopPropagation();sm.classList.toggle('on');});
-      selw.appendChild(sb);selw.appendChild(sm);lt.appendChild(selw);
+      selw.appendChild(sb);selw.appendChild(sm);r1.appendChild(selw);
+      host.appendChild(r1);
+      // Row 2: the (i) info line — unit + truth popover
       var un=document.createElement('div');un.className='mc-unit';
       un.appendChild(document.createTextNode(M.unit));
       // the (i) truth label
@@ -3798,17 +3802,19 @@
       pop.appendChild(asof);
       info.appendChild(pop);
       un.appendChild(info);
-      lt.appendChild(un);
-      hd.appendChild(lt);
-      var rt=document.createElement('div');
+      host.appendChild(un);
+      // Row 3: "Markets" label + selected pills (pk built above; label reads "Markets")
+      host.appendChild(pk);
+      // Row 4: year/range toggle (series only). No per-market colour legend — the
+      // line colour already lives in each selected-market pill.
       if(M.kind==='series'){
-        var rg=document.createElement('div');rg.className='mc-range';
+        var rg=document.createElement('div');rg.className='mc-range mc-range-row';
         [{v:.5,l:'6M'},{v:1,l:'1Y'},{v:2,l:'2Y'},{v:0,l:'All'}].forEach(function(o){
           var b=document.createElement('button');b.type='button';
           b.className='mc-rb'+(MC.range===o.v?' on':'');b.textContent=o.l;
           b.addEventListener('click',function(){MC.range=o.v;mountMaster();});
           rg.appendChild(b);});
-        rt.appendChild(rg);
+        host.appendChild(rg);
       }
       var lg=document.createElement('div');lg.className='mc-lg';
       if(M.id==='pressure'){
@@ -3817,16 +3823,8 @@
         MC_PRESS_BANDS.forEach(function(z){var sp=document.createElement('span');
           var sw=document.createElement('i');sw.className='sw';sw.style.background=z.c;sp.appendChild(sw);
           sp.appendChild(document.createTextNode(z.label));lg.appendChild(sp);});
-      }else{
-        MC.set.forEach(function(m){var sp=document.createElement('span');
-          var sw=document.createElement('i');if(M.kind==='scalar')sw.className='sw';
-          sw.style.background=MC_SLOTS[m.slot];sp.appendChild(sw);
-          sp.appendChild(document.createTextNode(mcUnslug(m.k)));lg.appendChild(sp);});
+        host.appendChild(lg);
       }
-      rt.appendChild(lg);
-      hd.appendChild(rt);
-      host.appendChild(hd);
-      host.appendChild(pk);   // selected-market pills BELOW the metric dropdown + unit bar
       // chart
       var body=document.createElement('div');body.style.marginTop='16px';host.appendChild(body);
       if(!MC.set.length){var e0=document.createElement('div');e0.className='mc-unit';
@@ -3860,7 +3858,10 @@
           else{xs=xs.slice(0,keep);data.forEach(function(d){d.ys=d.ys.slice(0,keep);});}
         }
       }
-      var W=1120,H=300,PL=46,PR=115,PT=14,PB=40,max=1;
+      // Mobile: a smaller viewBox ≈ the render width so text isn't scaled down to
+      // an unreadable size (1120→~350px was ~0.31x). Taller too, for a legible chart.
+      var mob=window.matchMedia&&window.matchMedia('(max-width:640px)').matches;
+      var W=mob?384:1120,H=mob?400:300,PL=mob?36:46,PR=mob?92:115,PT=14,PB=mob?44:40,max=1;
       data.forEach(function(d){d.ys.forEach(function(v){if(v>max)max=v;});});
       var svg=mcEl('svg',{viewBox:'0 0 '+W+' '+H,class:'mc-svg',role:'img'});
       svg.style.width='100%';svg.style.overflow='visible';svg.style.display='block';
@@ -3909,7 +3910,8 @@
     function mcBars(host,M){
       var data=MC.set.map(function(m){return {k:m.k,c:MC_SLOTS[m.slot],v:M.val(m.k)};});
       var max=M.max||Math.max.apply(null,data.map(function(d){return d.v||0;}).concat([1]));
-      var BH=26,GAP=15,LBL=150,VW=96,W=1120,H=data.length*(BH+GAP)-GAP+6;
+      var mob=window.matchMedia&&window.matchMedia('(max-width:640px)').matches;
+      var BH=mob?30:26,GAP=15,LBL=mob?118:150,VW=mob?72:96,W=mob?384:1120,H=data.length*(BH+GAP)-GAP+6;
       var svg=mcEl('svg',{viewBox:'0 0 '+W+' '+H,class:'mc-svg',role:'img'});
       svg.style.width='100%';svg.style.overflow='visible';svg.style.display='block';
       data.forEach(function(d,i){var y=i*(BH+GAP);
@@ -3946,7 +3948,8 @@
       var lastNz=0;
       data.forEach(function(d){d.ys.forEach(function(v,i){if(v>0&&i>lastNz)lastNz=i;});});
       if(lastNz<xs.length-1){xs=xs.slice(0,lastNz+1);data.forEach(function(d){d.ys=d.ys.slice(0,lastNz+1);});}
-      var W=1120,H=300,PL=42,PR=118,PT=20,PB=40;
+      var mob=window.matchMedia&&window.matchMedia('(max-width:640px)').matches;
+      var W=mob?384:1120,H=mob?400:300,PL=mob?36:42,PR=mob?92:118,PT=20,PB=mob?44:40;
       var svg=mcEl('svg',{viewBox:'0 0 '+W+' '+H,class:'mc-svg',role:'img'});
       svg.style.width='100%';svg.style.overflow='visible';svg.style.display='block';
       var xAt=function(i){return PL+(W-PL-PR)*(xs.length<2?0:i/(xs.length-1));};
