@@ -21456,6 +21456,63 @@
       }
       window.projectSlugify = projectSlugify;
 
+      // ── SURFACE CONTRACT (map implementation) ──────────────────────────
+      // The universal dock (and any future chrome) drives every surface
+      // through window.tmw — here each call gets its NATIVE map behavior:
+      // search is spatial, open flies + opens the drawer, watch toggles the
+      // real favorite. Overrides the journal base contract (journal-dock.js).
+      window.tmw = Object.assign(window.tmw || {}, {
+        surface: 'map',
+        search: function (q) {
+          try {
+            document.documentElement.classList.add('tmwx-mapsearch');
+            var w = document.querySelector('.tmwx-wrap'); if (w) w.style.display = 'none';
+            var inp = document.querySelector('.tmw-dock-search input');
+            if (inp) {
+              if (q) { inp.value = q; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+              setTimeout(function () { inp.focus(); }, 60);
+            }
+          } catch (_) {}
+        },
+        open: function (slug) {
+          try {
+            var want = String(slug || '').toLowerCase();
+            var feats = window.allProjectFeatures || [];
+            for (var i = 0; i < feats.length; i++) {
+              var f = feats[i];
+              if (f && f.properties && projectSlugify(f.properties.title) === want) {
+                window.openProjectModal(f, 'contract');
+                return true;
+              }
+            }
+          } catch (_) {}
+          return false;
+        },
+        watch: function (slug) {
+          try {
+            var title = null;
+            if (slug) {
+              var want = String(slug).toLowerCase();
+              var feats = window.allProjectFeatures || [];
+              for (var i = 0; i < feats.length; i++) {
+                var f = feats[i];
+                if (f && f.properties && projectSlugify(f.properties.title) === want) { title = f.properties.title; break; }
+              }
+            } else if (window._currentProjectView) {
+              title = window._currentProjectView.project_name;
+            }
+            if (title && window.toggleFavorite) { window.toggleFavorite(title, document.getElementById('pmLikeBtn')); return true; }
+            var b = document.getElementById('pmLikeBtn');
+            if (b) { b.click(); return true; }
+          } catch (_) {}
+          return false;
+        },
+        context: function () {
+          var v = window._currentProjectView;
+          return { surface: 'map', title: v ? v.project_name : null, city: v ? v.project_city : null };
+        }
+      });
+
       async function loadFavoritesFromMember() {
         if (!window.$memberstackDom) return;
         try {

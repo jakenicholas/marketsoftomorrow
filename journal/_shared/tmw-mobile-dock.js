@@ -38,9 +38,17 @@
   }
   function openSearch(q) {
     closeNow();
+    if (window.tmw && window.tmw.search) { window.tmw.search(q || ''); return; }
     if (IS_MAP) { mapSearch(); return; }
     if (window.tmwOpenSearch) { window.tmwOpenSearch(q || ''); return; }
     if (window.tmwOverlay && window.tmwOverlay.open) window.tmwOverlay.open(q || '');
+  }
+  function contractWatch(fallbackSel) {
+    return function () {
+      closeNow();
+      if (window.tmw && window.tmw.watch && window.tmw.watch()) return;
+      var b = document.querySelector(fallbackSel); if (b) b.click();
+    };
   }
   function share() {
     closeNow();
@@ -84,17 +92,17 @@
   if (IS_MAP) {
     CTX = { label: 'This map', tools: [
       { ic: 'search', t: 'Search map', act: mapSearch, cls: 'hero' },
-      { ic: 'watch', t: 'Watch', act: proxyClick('#pmLikeBtn'), cls: 'act' },
+      { ic: 'watch', t: 'Watch', act: contractWatch('#pmLikeBtn'), cls: 'act' },
       { ic: 'share', t: 'Share', act: share }
     ] };
   } else if (/^\/projects?\/[^/]+/.test(path)) {
     CTX = { label: 'This project', tools: [] };
-    if (document.getElementById('watchBtn')) CTX.tools.push({ ic: 'watch', t: 'Watch', act: proxyClick('#watchBtn'), cls: 'act' });
+    if (document.getElementById('watchBtn')) CTX.tools.push({ ic: 'watch', t: 'Watch', act: contractWatch('#watchBtn'), cls: 'act' });
     CTX.tools.push({ ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' });
     CTX.tools.push({ ic: 'share', t: 'Share', act: share });
   } else if (/^\/post\//.test(path)) {
     CTX = { label: 'This story', tools: [
-      { ic: 'heart', t: 'Favorite', act: proxyClick('#fav-btn'), cls: 'act' },
+      { ic: 'heart', t: 'Favorite', act: contractWatch('#fav-btn'), cls: 'act' },
       { ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' },
       { ic: 'share', t: 'Share', act: share }
     ] };

@@ -1051,7 +1051,7 @@
       // BUMP DOCK_V whenever tmw-mobile-dock.js changes — same reason as
       // SEARCH_V: aggressive mobile caches (and any zone-level Browser Cache
       // TTL) hold the old file for hours otherwise.
-      var DOCK_V = '20260810b';
+      var DOCK_V = '20260810c';
       var d = document.createElement('script');
       d.src = '/_shared/tmw-mobile-dock.js?v=' + DOCK_V;
       d.defer = true;
@@ -1120,6 +1120,32 @@
       if (n < 50) setTimeout(function () { poll(n + 1); }, 100);
     })(0);
   };
+
+  // ── The SURFACE CONTRACT ────────────────────────────────────────────────
+  // Every surface answers the same four calls, so universal chrome (the tool
+  // dock, future shortcuts) never has to guess with selectors. This is the
+  // BASE implementation for journal-family pages; richer surfaces (the /map
+  // app) OVERRIDE these methods with their native behaviors.
+  //   tmw.search(q)  — open search prefilled with q
+  //   tmw.open(slug) — open a project by slug (navigates here; flies on map)
+  //   tmw.watch()    — watch/favorite the thing on screen (project/article)
+  //   tmw.context()  — { surface, title } describing what's on screen
+  (function () {
+    var t = window.tmw = window.tmw || {};
+    if (t.__base) return; t.__base = true;
+    t.surface = (typeof tmwSurface === 'function') ? tmwSurface() : 'journal';
+    if (!t.search) t.search = function (q) { window.tmwOpenSearch(q || ''); };
+    if (!t.open) t.open = function (slug) { location.href = 'https://www.oftmw.com/projects/' + encodeURIComponent(String(slug || '')) + '/'; };
+    if (!t.watch) t.watch = function () {
+      var b = document.getElementById('watchBtn') || document.getElementById('fav-btn');
+      if (b) { b.click(); return true; }
+      return false;
+    };
+    if (!t.context) t.context = function () {
+      var h = document.querySelector('h1');
+      return { surface: t.surface, title: h ? h.textContent.trim() : document.title };
+    };
+  })();
 
   // Render inline project cards (journal ↔ database bridge). Only loads the
   // renderer when the article actually embeds a project (new card embed or a
