@@ -9118,7 +9118,9 @@
       display: flex; align-items: center; gap: 4px;
       flex-shrink: 0;
       color: rgba(255,255,255,0.72);
-      transition: background .2s ease;
+      /* NO transition: the GL-heavy map stalls CSS transitions at their start
+         frame (the dock's tmwx-instant exists for the same reason), which froze
+         the focus state invisibly. States snap instantly instead. */
     }
     /* FOCUSED = unmistakably ready for input: the bar darkens and the site's
        purple chasing-glow border runs around it (same conic chase as the dock
@@ -9131,7 +9133,7 @@
     }
     body.ui-v2 .v2-pinned-search::before {
       content: ""; position: absolute; inset: -1.5px; border-radius: 24px; padding: 1.5px;
-      z-index: 0; pointer-events: none; opacity: 0; transition: opacity .2s ease;
+      z-index: 0; pointer-events: none; opacity: 0;
       background: conic-gradient(from var(--v2sang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg);
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor; mask-composite: exclude;
