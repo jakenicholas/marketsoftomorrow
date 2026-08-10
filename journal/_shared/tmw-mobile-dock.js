@@ -63,6 +63,7 @@
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
     map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/>',
+    heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
     golf: '<path d="M12 18v-15l7 4-7 4"/><path d="M5 21c1.5-1.4 4-2.2 7-2.2s5.5.8 7 2.2"/>',
     hotel: '<path d="M3 21V7l9-4 9 4v14"/><path d="M3 21h18"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M11 21v-4h2v4"/>',
     dining: '<path d="M5 3v7a2 2 0 0 0 2 2v9"/><path d="M5 3v5M9 3v5M9 3v7"/><path d="M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9"/>'
@@ -83,7 +84,7 @@
   if (IS_MAP) {
     CTX = { label: 'This map', tools: [
       { ic: 'search', t: 'Search map', act: mapSearch, cls: 'hero' },
-      { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/') },
+      { ic: 'watch', t: 'Watch', act: proxyClick('#pmLikeBtn'), cls: 'act' },
       { ic: 'share', t: 'Share', act: share }
     ] };
   } else if (/^\/projects?\/[^/]+/.test(path)) {
@@ -93,6 +94,7 @@
     CTX.tools.push({ ic: 'share', t: 'Share', act: share });
   } else if (/^\/post\//.test(path)) {
     CTX = { label: 'This story', tools: [
+      { ic: 'heart', t: 'Favorite', act: proxyClick('#fav-btn'), cls: 'act' },
       { ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' },
       { ic: 'share', t: 'Share', act: share }
     ] };
@@ -107,7 +109,7 @@
   var MAP_URL = 'https://www.oftmw.com/map/';
   var HOMEBASE = [
     { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
-    { ic: 'map', t: 'Database', act: go(MAP_URL), on: MATCH.map },
+    { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map },
     { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
   ];
@@ -120,7 +122,7 @@
   var PILL = [
     { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
     { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
-    { ic: 'map', t: 'Database', act: go(MAP_URL), on: MATCH.map },
+    { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map },
     { ic: 'search', t: 'Search', act: function () { openSearch(''); } },
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
   ];

@@ -4157,13 +4157,13 @@
       min-width: 0;
     }
     #projectModal .pm-cta {
-      position: sticky;
-      bottom: 0;
+      /* in-flow (was sticky-bottom) — the universal dock owns the bottom edge
+         now, and the pinned bar stacked badly under it */
+      position: static;
       background: #0d0d0d;
       padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
       margin: 0;
       border-top: 0.5px solid rgba(255,255,255,0.1);
-      z-index: 5;
     }
   }
   #projectModal .pm-scroll {
