@@ -3909,6 +3909,20 @@
       // text/Intelligence path (never a structured project readout) so we always
       // produce written prose to show after the cards are suppressed.
       if (_answerOnly) smart = null;
+      // NAMED-PROJECT OVERRIDE — a question that names a specific tracked
+      // project ("when will hotel ORA tampa construction begin") must anchor on
+      // THAT project. The structured parse reads it as a status browse (Tampa +
+      // Hotel + Under Construction) and its status filter can drop the very
+      // project asked about (ORA is Breaking Ground) — no hero, wrong Projects
+      // tab. A distinctive title token (rare across the dataset), city-broken
+      // for brand siblings, is decisive: route to the project path so the full
+      // hero renders and the ranked rows lead with the named project. The
+      // question/Intelligence answer still fires inside the text path.
+      if (!_answerOnly) {
+        var _namedP = null;
+        try { _namedP = detectNamedProject(q); } catch(_){}
+        if (_namedP) { smart = null; _conceptQ = false; intent = { kind: 'project', confidence: 1 }; _ik = 'project'; }
+      }
       if (smart) {
         renderStructuredSmart(q, smart, token);
         return;
@@ -4043,6 +4057,48 @@
       var r = Core.rankProjects(q, PROJECTS, { kind: 'concept', semanticSlugs: sem.projects || [], place: _place });
       paint(r ? r.rows.map(function (x) { return x.p; }) : []);
     }).catch(function () {});
+  }
+
+  // ── Named-project detector ──────────────────────────────────────
+  // Does the query name ONE specific tracked project? Decided by a DISTINCTIVE
+  // title token: a meaningful query token that appears in at most 4 project
+  // titles across the whole dataset ("ora", "amanvari", "pendry") — generic
+  // words (hotel, tampa, tower) are common across titles so rarity filters
+  // them out naturally. Ambiguity between same-brand siblings (Hotel Ora Tampa
+  // vs Ora by Casa Tua Miami) is broken by the project's own city appearing in
+  // the query. Returns the project or null; null on any ambiguity.
+  function detectNamedProject(q){
+    var Core = window.TmwSearchCore;
+    if (!Core || !Core.norm || !PROJECTS || !PROJECTS.length) return null;
+    var toks = (Core.filterMeaningfulTokens ? Core.filterMeaningfulTokens(tokenize(q)) : tokenize(q))
+      .filter(function(tk){ return tk.length >= 3 && !/^\d+$/.test(tk); });
+    if (!toks.length) return null;
+    // token → how many project titles contain it (word-boundary)
+    var titleToks = PROJECTS.map(function(p){
+      return ' ' + Core.norm(p.Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+    });
+    var qn = ' ' + Core.norm(q).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+    var hits = {};   // project index → rare-token hit count
+    toks.forEach(function(tk){
+      var needle = ' ' + tk + ' ', idxs = [];
+      for (var i = 0; i < titleToks.length; i++) if (titleToks[i].indexOf(needle) >= 0) { idxs.push(i); if (idxs.length > 4) break; }
+      if (!idxs.length || idxs.length > 4) return;   // absent or too common → not distinctive
+      idxs.forEach(function(i){ hits[i] = (hits[i] || 0) + 1; });
+    });
+    var cand = Object.keys(hits).map(function(k){ return { p: PROJECTS[+k], n: hits[k] }; });
+    if (!cand.length) return null;
+    cand.sort(function(a, b){ return b.n - a.n; });
+    cand = cand.filter(function(c){ return c.n === cand[0].n; });
+    if (cand.length > 1) {
+      // brand siblings — the query's place decides
+      var byCity = cand.filter(function(c){
+        var city = Core.norm(String(c.p.City || '').split(',')[0]).replace(/[^a-z0-9 ]+/g, ' ').trim();
+        return city && qn.indexOf(' ' + city + ' ') >= 0;
+      });
+      if (byCity.length !== 1) return null;
+      cand = byCity;
+    }
+    return cand[0].p;
   }
 
   function pickTitleScopedProject(q, rows){
