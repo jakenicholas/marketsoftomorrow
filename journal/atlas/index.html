@@ -893,11 +893,12 @@
   .mc-range.mc-range-row{justify-content:flex-start;margin:6px 0 2px}
   /* Desktop: Comparing+dropdown grouped left, year toggle top-right, info line + pills below */
   @media(min-width:700px){
-    .mc-hdr{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:16px}
+    .mc-hdr{display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:16px}
     .mc-hdr .mc-r1{grid-column:1;grid-row:1;justify-content:flex-start;gap:14px;margin-bottom:0}
-    .mc-hdr .mc-range.mc-range-row{grid-column:2;grid-row:1;justify-self:end;margin:0}
-    .mc-hdr .mc-unit{grid-column:1 / -1;grid-row:2;margin-top:9px}
-    .mc-hdr .mc-pick{grid-column:1 / -1;grid-row:3}
+    /* info line rides row 1, right after the dropdown */
+    .mc-hdr .mc-unit{grid-column:2;grid-row:1;margin-top:0;justify-self:start;min-width:0}
+    .mc-hdr .mc-range.mc-range-row{grid-column:3;grid-row:1;justify-self:end;margin:0}
+    .mc-hdr .mc-pick{grid-column:1 / -1;grid-row:2}
   }
   .mc-chip{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#fff;
     background:rgba(255,255,255,.04);border:1px solid var(--hair-2);border-radius:999px;padding:7px 13px}
@@ -1500,17 +1501,18 @@
       'Indonesia':'Asia','Malaysia':'Asia','Sri Lanka':'Asia','Maldives':'Asia','Vietnam':'Asia',
       'India':'Asia','Hong Kong':'Asia','Philippines':'Asia',
       'Bahamas':'Caribbean','The Bahamas':'Caribbean','Turks and Caicos Islands':'Caribbean',
-      'Turks and Caicos':'Caribbean','Dominican Republic':'Caribbean','Puerto Rico':'Caribbean',
-      'Cayman Islands':'Caribbean','Aruba':'Caribbean','Anguilla':'Caribbean',
-      'Antigua and Barbuda':'Caribbean','Saint Lucia':'Caribbean','St. Lucia':'Caribbean',
+      'Turks and Caicos':'Caribbean','Turks & Caicos':'Caribbean','Dominican Republic':'Caribbean',
+      'Puerto Rico':'Caribbean','Cayman Islands':'Caribbean','Aruba':'Caribbean','Anguilla':'Caribbean',
+      'Antigua and Barbuda':'Caribbean','Antigua':'Caribbean','Saint Lucia':'Caribbean','St. Lucia':'Caribbean',
       'Barbados':'Caribbean','Jamaica':'Caribbean','British Virgin Islands':'Caribbean',
-      'Sint Maarten':'Caribbean','St. Maarten':'Caribbean',
+      'Sint Maarten':'Caribbean','St. Maarten':'Caribbean','Dominica':'Caribbean',
       'Mexico':'Latin America','Costa Rica':'Latin America','Panama':'Latin America',
       'Brazil':'Latin America','Argentina':'Latin America','Chile':'Latin America',
-      'Colombia':'Latin America','Peru':'Latin America','Belize':'Latin America',
+      'Colombia':'Latin America','Peru':'Latin America','Belize':'Latin America','Guatemala':'Latin America',
       'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania','French Polynesia':'Oceania',
+      'Turkey':'Europe',
       'Egypt':'Africa','Morocco':'Africa','Kenya':'Africa','South Africa':'Africa',
-      'Rwanda':'Africa','Tanzania':'Africa'
+      'Rwanda':'Africa','Tanzania':'Africa','Mozambique':'Africa'
     };
     // the pseudo-state entries (UAE, UK, Japan, France) carry short labels
     var MC_STATE_ALIAS={'UAE':'United Arab Emirates','UK':'United Kingdom'};

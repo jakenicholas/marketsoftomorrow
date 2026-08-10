@@ -3780,6 +3780,116 @@ def _state_for_city(city):
         return 'Other'
     return _CITY_TO_STATE.get(city.lower().strip(), 'Other')
 
+# --- Data-driven geography ---------------------------------------------------
+# The Atlas used to lean on the hand-maintained _CITY_TO_STATE dict above, which
+# left 386 projects across 213 cities unmapped (the whole Rockies market, plus
+# most of the international book). But every project row already carries Country
+# + CountyState, so we resolve a city to a state/country code straight from the
+# data and only fall back to the hand map for the handful of rows missing both.
+#
+# US projects key off the 2-letter postal CountyState (CO, UT, AZ, ...).
+# International projects key off Country, mapped to a short code chosen to never
+# collide with a US postal code (Canada -> CAN not CA, Cayman -> CYM not KY,
+# Montenegro -> MNE, Morocco -> MAR, India -> IND, Israel -> ISR).
+_US_STATE_NAMES = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
+    'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
+    'DC': 'Washington DC', 'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii',
+    'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine',
+    'MD': 'Maryland', 'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota',
+    'MS': 'Mississippi', 'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska',
+    'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico',
+    'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island',
+    'SC': 'South Carolina', 'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas',
+    'UT': 'Utah', 'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington',
+    'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming', 'PR': 'Puerto Rico',
+}
+# Country name (lowercased, incl. common variants) -> (code, display label).
+_COUNTRY_TO_CODE = {
+    'united states': None, 'usa': None, 'us': None,  # handled via CountyState
+    'china': ('CN', 'China'), 'hong kong': ('HK', 'Hong Kong'),
+    'saudi arabia': ('SA', 'Saudi Arabia'), 'mexico': ('MX', 'Mexico'),
+    'turks and caicos islands': ('TC', 'Turks & Caicos'),
+    'turks and caicos': ('TC', 'Turks & Caicos'), 'the bahamas': ('BS', 'Bahamas'),
+    'bahamas': ('BS', 'Bahamas'), 'italy': ('IT', 'Italy'),
+    'australia': ('AU', 'Australia'), 'japan': ('JP', 'Japan'),
+    'spain': ('ES', 'Spain'), 'south korea': ('KR', 'South Korea'),
+    'korea': ('KR', 'South Korea'), 'singapore': ('SG', 'Singapore'),
+    'thailand': ('TH', 'Thailand'), 'canada': ('CAN', 'Canada'),
+    'portugal': ('PT', 'Portugal'), 'qatar': ('QA', 'Qatar'),
+    'cayman islands': ('CYM', 'Cayman Islands'),
+    'united arab emirates': ('AE', 'UAE'), 'uae': ('AE', 'UAE'),
+    'united kingdom': ('UK', 'UK'), 'uk': ('UK', 'UK'),
+    'belize': ('BZ', 'Belize'), 'antigua and barbuda': ('AG', 'Antigua'),
+    'antigua': ('AG', 'Antigua'), 'norway': ('NO', 'Norway'),
+    'greece': ('GR', 'Greece'), 'maldives': ('MV', 'Maldives'),
+    'vietnam': ('VN', 'Vietnam'), 'sri lanka': ('LK', 'Sri Lanka'),
+    'egypt': ('EG', 'Egypt'), 'sint maarten': ('SX', 'Sint Maarten'),
+    'anguilla': ('AI', 'Anguilla'), 'costa rica': ('CR', 'Costa Rica'),
+    'switzerland': ('CH', 'Switzerland'), 'barbados': ('BB', 'Barbados'),
+    'dominican republic': ('DO', 'Dominican Republic'),
+    'guatemala': ('GT', 'Guatemala'), 'turkey': ('TR', 'Turkey'),
+    'mozambique': ('MZ', 'Mozambique'), 'netherlands': ('NL', 'Netherlands'),
+    'montenegro': ('MNE', 'Montenegro'), 'morocco': ('MAR', 'Morocco'),
+    'india': ('IND', 'India'), 'brazil': ('BR', 'Brazil'),
+    'israel': ('ISR', 'Israel'), 'france': ('FR', 'France'),
+    'dominica': ('DM', 'Dominica'), 'malaysia': ('MY', 'Malaysia'),
+}
+# Rows missing BOTH Country and CountyState: resolve the city to a country name
+# that _COUNTRY_TO_CODE understands. (Grand Harbour = Grand Cayman; Paradise
+# Island = Bahamas; NEOM/AMAALA/Shura Island = Saudi Arabia; etc.)
+_CITY_COUNTRY_FALLBACK = {
+    'paradise island': 'bahamas', 'harbour island': 'bahamas',
+    'agia pelagia': 'greece', 'mykonos': 'greece', 'hersonissos': 'greece',
+    'barcelona': 'spain', 'calvià, mallorca': 'spain', 'calvia, mallorca': 'spain',
+    'neom': 'saudi arabia', 'amaala': 'saudi arabia', 'shura island': 'saudi arabia',
+    'grand harbour': 'cayman islands', 'george town': 'cayman islands',
+    'desaru coast, johor': 'malaysia', 'hua hin': 'thailand',
+    'bandol': 'france', 'sainte-maxime': 'france', 'fiesole': 'italy',
+    'kyoto': 'japan', 'sveti stefan': 'montenegro',
+    'big ambergris cay': 'turks and caicos islands', 'ella': 'sri lanka',
+}
+
+def _build_data_geo(rows):
+    """Return (city_lower -> code, code -> label) resolved from project fields.
+
+    Authoritative over _CITY_TO_STATE: uses each row's CountyState (US) or
+    Country (international), falling back to _CITY_COUNTRY_FALLBACK for rows
+    that carry neither."""
+    city_code = {}
+    labels = {}
+    def _country_code(country_lower):
+        hit = _COUNTRY_TO_CODE.get(country_lower)
+        return hit  # (code,label) or None (US) or missing->None
+    for r in rows:
+        city = (r.get('City', '') or '').strip()
+        if not city:
+            continue
+        key = city.lower()
+        country = (r.get('Country', '') or '').strip()
+        cstate = (r.get('CountyState', '') or '').strip().upper()
+        cl = country.lower()
+        code = label = None
+        # US: trust a clean 2-letter postal CountyState
+        if len(cstate) == 2 and cstate.isalpha() and (cl in ('united states', 'usa', 'us', '') and cstate in _US_STATE_NAMES):
+            code, label = cstate, _US_STATE_NAMES[cstate]
+        if not code and country:
+            hit = _country_code(cl)
+            if hit:
+                code, label = hit
+        if not code and not country and not cstate:
+            fb = _CITY_COUNTRY_FALLBACK.get(key)
+            if fb:
+                hit = _country_code(fb)
+                if hit:
+                    code, label = hit
+        if code:
+            city_code[key] = code
+            labels[code] = label
+    return city_code, labels
+
 def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     """Compute Atlas page aggregates from CSV rows. Returns dict ready to json.dump.
 
@@ -3790,6 +3900,18 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     -- each gets a separate +1 count."""
     from collections import Counter, defaultdict
     from datetime import date, timedelta
+
+    # Data-driven geography: resolve city -> state/country code from the project
+    # fields themselves, falling back to the hand-maintained _CITY_TO_STATE only
+    # for cities the data can't place. state_labels/state_for_city shadow the
+    # module-level maps for the rest of this function.
+    _data_city_code, _data_labels = _build_data_geo(rows)
+    state_labels = {**_STATE_LABELS, **_data_labels}
+    def state_for_city(city):
+        if not city:
+            return 'Other'
+        key = city.lower().strip()
+        return _data_city_code.get(key) or _CITY_TO_STATE.get(key, 'Other')
 
     now = date.today()
     current_year = now.year
@@ -3852,7 +3974,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             monthly_announcements[f'{sd.year:04d}-{sd.month:02d}'] += 1
 
         city = (row.get('City','') or '').strip()
-        state = _state_for_city(city)
+        state = state_for_city(city)
 
         if city:
             city_counts[city] += 1
@@ -3889,7 +4011,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     unmapped_cities = Counter()
     for row in rows:
         city = (row.get('City','') or '').strip()
-        st = _state_for_city(city)
+        st = state_for_city(city)
         state_project_counts[st] += 1
         if st == 'Other' and city:
             unmapped_cities[city] += 1
@@ -3906,7 +4028,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
             continue  # don't list "Other" as a filter option (catches edge cases only)
         available_states.append({
             'code': st_code,
-            'label': _STATE_LABELS.get(st_code, st_code),
+            'label': state_labels.get(st_code, st_code),
             'count': count,
         })
 
@@ -4214,7 +4336,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
 
     rows_by_state = defaultdict(list)
     for r in rows:
-        rows_by_state[_state_for_city((r.get('City', '') or '').strip())].append(r)
+        rows_by_state[state_for_city((r.get('City', '') or '').strip())].append(r)
     by_state = {st['code']: _core_aggregates(rows_by_state[st['code']]) for st in available_states}
 
     # (The atlas "Movers" panel now reads recent_activity — the Pulse feed of real
@@ -4231,7 +4353,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     projects_lite = []
     for row in rows:
         city = (row.get('City', '') or '').strip()
-        st = _state_for_city(city)
+        st = state_for_city(city)
         ty = _normalize_project_type(row.get('ProjectType', ''))
         status_label, _, _ = delivery_info((row.get('Delivery', '') or '').strip())
         dd = _parse_iso_date((row.get('DeliveryDate', '') or '').strip())
