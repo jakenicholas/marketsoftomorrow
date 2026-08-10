@@ -157,6 +157,9 @@
       '.tmww .g-inner.pro .p-feat{justify-content:flex-start;margin:2px 0 18px;max-width:none}',
       '.tmww .g-inner.pro .p-form{width:min(560px,100%)}',
       '.tmww .g-inner.pro .fine{margin-top:2px}',
+      /* the empty status line reserved ~38px under the fine print and broke
+         bottom alignment with the ticker — collapse it until it has content */
+      '.tmww .g-inner.pro .msg:empty{display:none}',
       '@media(max-width:560px){.tmww .plans{flex-direction:column}.tmww .p-feat{display:none}}',
       '@media(prefers-reduced-motion:reduce){.tmww .ring,.tmww .eyeb.purple{animation:none}.tmww .scr.on{animation:none}}'
     ].join('');
