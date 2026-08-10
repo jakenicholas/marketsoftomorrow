@@ -220,8 +220,10 @@ const DL_ICON = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d
 // Absolute www URLs because these pages serve on gallery.oftmw.com; the chrome's
 // root-relative links are caught by the gallery-host redirect in handleGallery.
 function navHTML() {
-  return `<script src="https://www.oftmw.com/_shared/journal-chrome.js" defer></script>
-<script src="https://www.oftmw.com/_shared/journal-dock.js" defer></script>`;
+  // ?v= tokens: the zone's Browser Cache TTL (4h) overrides _headers for
+  // /_shared, so gallery-critical chrome changes need a bust here + redeploy.
+  return `<script src="https://www.oftmw.com/_shared/journal-chrome.js?v=20260810g" defer></script>
+<script src="https://www.oftmw.com/_shared/journal-dock.js?v=20260810g" defer></script>`;
 }
 
 // The universal chrome injects the standard site footer — nothing to render here.
