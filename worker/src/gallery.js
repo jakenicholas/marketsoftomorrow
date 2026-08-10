@@ -411,15 +411,6 @@ ${FONTS}
    actually load (lazy images with no height never trigger). */
 .masonry{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:24px 0 0}
 @media(min-width:2000px){.masonry{grid-template-columns:repeat(3,1fr)}}
-/* phones: single column shows each image at its FULL natural height (no crop) —
-   the uniform 3/2 crop only makes sense when tiles sit side by side. min-height
-   keeps lazy images loadable before their natural height is known. */
-@media(max-width:480px){
-  .masonry{grid-template-columns:1fr}
-  .tile{aspect-ratio:auto;min-height:120px}
-  .tile img{height:auto;object-fit:unset}
-  .tile.vid video{height:auto;object-fit:unset}
-}
 .tile{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;cursor:zoom-in;background:var(--panel);position:relative;line-height:0;aspect-ratio:3/2}
 .tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1)}
 .tile:hover img{transform:scale(1.04)}
@@ -428,6 +419,16 @@ ${FONTS}
 .tile .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .tile .play svg{width:54px;height:54px;color:#fff;opacity:.92;filter:drop-shadow(0 2px 12px rgba(0,0,0,.55));transition:transform .25s}
 .tile.vid:hover .play svg{transform:scale(1.1)}
+/* phones: single column shows each image at its FULL natural height (no crop) —
+   the uniform 3/2 crop only makes sense when tiles sit side by side. This block
+   must come AFTER every base .tile rule: same specificity, so source order is
+   what lets it win the cascade. min-height keeps lazy images loadable. */
+@media(max-width:480px){
+  .masonry{grid-template-columns:1fr}
+  .tile{aspect-ratio:auto;min-height:120px}
+  .tile img{height:auto;object-fit:unset}
+  .tile.vid video{height:auto;object-fit:unset}
+}
 /* Photos / Videos tabs */
 .gtabs{display:flex;gap:0;padding:30px 0 0}
 .gtab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--mute);background:none;border:0;border-bottom:2px solid transparent;padding:8px 2px 12px;margin-right:26px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:color .2s,border-color .2s}
@@ -447,7 +448,11 @@ ${FONTS}
 .lb-x{top:20px;right:20px}.lb-dl{top:20px;right:78px;font-size:15px}
 .lb-prev{left:20px;top:50%;transform:translateY(-50%)}
 .lb-next{right:20px;top:50%;transform:translateY(-50%)}
-@media(max-width:640px){.lb-prev,.lb-next{display:none}}
+/* phones keep the arrows (smaller, hugging the edges) — plus swipe, wired in JS */
+@media(max-width:640px){
+  .lb-prev,.lb-next{width:38px;height:38px;font-size:17px;background:rgba(255,255,255,.10)}
+  .lb-prev{left:10px}.lb-next{right:10px}
+}
 /* PIN modal */
 .modal{position:fixed;inset:0;z-index:120;background:rgba(5,6,5,.8);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px}
 .modal.open{display:flex}
@@ -593,6 +598,16 @@ addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft')step(-1);
   if(e.key==='ArrowRight')step(1);
 });
+/* swipe left/right anywhere in the lightbox (mostly horizontal moves only, so
+   pinch-zoom and vertical scrolls don't accidentally change the slide) */
+let swX=0,swY=0;
+lb.addEventListener('touchstart',e=>{ if(e.touches.length===1){swX=e.touches[0].clientX;swY=e.touches[0].clientY;} },{passive:true});
+lb.addEventListener('touchend',e=>{
+  if(!lb.classList.contains('open')||!swX)return;
+  const dx=e.changedTouches[0].clientX-swX, dy=e.changedTouches[0].clientY-swY;
+  swX=0;
+  if(Math.abs(dx)>48 && Math.abs(dx)>Math.abs(dy)*1.5) step(dx<0?1:-1);
+},{passive:true});
 document.getElementById('lbDl').onclick=()=>{ if(cur>=0)requestDownload([items(lbSet)[cur]]); };
 
 /* ---- Download + email/PIN flow ---- */
