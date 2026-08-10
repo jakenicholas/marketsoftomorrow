@@ -136,6 +136,9 @@
       '.tmww .p-form{width:min(560px,100%);display:flex;flex-direction:column;gap:10px}',
       /* pro screen in the cinematic bottom-left column */
       '.tmww .g-inner.pro{max-width:620px}',
+      /* the pro column is tall — pin the logo to the corner instead of letting
+         the bottom-anchored flex push it off the top of the frame */
+      '.tmww .g-inner.pro .wm{position:absolute;top:calc(20px + env(safe-area-inset-top));left:clamp(22px,6vw,70px);margin:0;padding:0}',
       '.tmww .g-inner.pro .plans{margin:0 0 12px}',
       '.tmww .g-inner.pro .p-feat{justify-content:flex-start;margin:2px 0 18px;max-width:none}',
       '.tmww .g-inner.pro .p-form{width:min(560px,100%)}',
