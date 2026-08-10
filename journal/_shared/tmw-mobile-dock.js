@@ -70,7 +70,7 @@
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
     map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
-    mapsearch: '<path d="M12 21c4-4.2 6.5-7.6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 13.4 8 16.8 12 21Z"/><circle cx="11.3" cy="9.7" r="2.3"/><path d="m13 11.4 1.7 1.7"/>',
+    mapsearch: '<path d="M12 21.5 C9.7 19.2 5 14.5 5 9.5 A7 7 0 1 1 19 9.5 C19 11.2 18.6 12.5 17.7 13.7"/><path d="M16.7 15 C15.7 17 14.2 19.3 12 21.5"/><circle cx="12" cy="9.3" r="5.5"/><path d="m15.9 13.2 3.7 3.7"/>',
     atlassearch: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><circle cx="16.8" cy="16.8" r="4"/><path d="m19.7 19.7 2.5 2.5"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/>',
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
