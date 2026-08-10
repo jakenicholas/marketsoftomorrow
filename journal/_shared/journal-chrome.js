@@ -46,7 +46,7 @@
   var LOGO = '<a href="' + HOME + '" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
 
   var NAV = [
-    ['Read', '/', 'global'],
+    ['Read', HOME, 'global'],
     ['Florida', '/#florida', 'florida'],
     ['New York', '/#new-york', 'new-york'],
     ['Tennessee', '/#tennessee', 'tennessee'],
