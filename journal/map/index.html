@@ -28296,7 +28296,12 @@
        the map's existing paywall (the map doesn't define window.tmwShowPaywall,
        so without this the shared pill would be a no-op here). -->
   <style>body.ui-v2 #v2GoProBtn{display:none !important}</style>
-  <script>window.tmwShowPaywall=function(src){if(typeof window.showSubscriptionPaywall==='function'){window.showSubscriptionPaywall(src||'upgrade:badge');}};</script>
+  <!-- (Removed the early tmwShowPaywall shim that routed the header pill into
+       showSubscriptionPaywall: journal-paywall.js is singleton-guarded on that
+       exact global, so the shim BLOCKED the shared paywall from initializing —
+       and then shim ↔ showSubscriptionPaywall called each other into a stack
+       overflow, which is why blocked pin clicks died silently. The shared
+       script below now owns window.tmwShowPaywall for the pill and the map.) -->
   <script src="https://www.oftmw.com/_shared/tmw-auth-modal.js" defer data-tmw-authui-loader></script>
   <script data-tmw-paywall-loader></script>
   <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
