@@ -1866,7 +1866,7 @@ def render_page(
       --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
     }}
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ background: var(--ink); color: var(--cream); font-family: var(--sans); -webkit-font-smoothing:antialiased; line-height:1.55; }}
+    body {{ background: var(--ink); color: var(--cream); font-family: var(--sans); -webkit-font-smoothing:antialiased; line-height:1.55; overflow-x:hidden; }}
     body::before {{ content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
       background:
         radial-gradient(820px 540px at 76% -6%, rgba(167,139,250,.10), transparent 60%),
@@ -1942,10 +1942,11 @@ def render_page(
     /* Breathing room between the supply-pressure hero and the projected-pricing card */
     #atlasIntel {{ margin-top:44px; }}
     /* Dashboard rail */
-    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin-bottom:16px;
-      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
-      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }}
+    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin:0 0 16px;
+      width:100vw; margin-left:calc(50% - 50vw);
+      background:rgba(9,10,9,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:0; border-bottom:1px solid rgba(255,255,255,.09); border-radius:0; padding:11px 22px;
+      box-shadow:none; overflow-x:auto; scrollbar-width:none; }}
     .mk-rail::-webkit-scrollbar {{ display:none; }}
     .mkr-vitals {{ flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }}
     .mkr-vitals b {{ font-size:15px; font-weight:700; }}
@@ -1953,7 +1954,7 @@ def render_page(
     .mkr-jump {{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
       color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }}
     .mkr-jump:hover {{ color:#fff; }}
-    .mkr-jump.on {{ background:rgba(167,139,250,.16); color:#A78BFA; }}
+    .mkr-jump.on {{ background:rgba(230,197,116,.15); color:#f0d68a; }}
     .mkr-filters {{ display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }}
     .mkr-fchip {{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
       background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
