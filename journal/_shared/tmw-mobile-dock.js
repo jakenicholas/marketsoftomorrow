@@ -1,46 +1,57 @@
-/* tmw-mobile-dock.js — the expandable tool dock (ALL viewports, v3).
+/* tmw-mobile-dock.js — the expandable tool dock (ALL viewports, v4).
    Loaded by journal-dock.js right after the old bottom pill initializes; the
-   old pill (search + toggles) is hidden everywhere and this replaces it.
+   old pill (search + toggles) is hidden and this replaces it — EXCEPT on the
+   /map surface, where the old dock IS the spatial project search: there our
+   Search actions temporarily reveal + focus the native map dock (mapsearch
+   mode) so nothing of the map's search/autocomplete is lost.
 
-   Collapsed: a CENTERED cluster — icon pill (News · Database · Search ·
-   Dashboard, page-aware selected circle) + the +/✕ fab side by side. On
-   expand BOTH slide outward (the fab FLIP-slides right, the pill fades out)
-   while the tray grows taller from the dock line, ending left of the fab.
-   Materials are the old dock's flat dark glass (no gradient sheen — its lower
-   edge read badly under Safari's minimized URL bar). The tray is crowned by an
-   exact replica of the floating search bar (placeholder + masked conic purple
-   chase reusing journal-dock's --tmw-ang), then contextual tools, the Iconic
-   Lists row (Golf · Hotels · Restaurants), and the global apps. */
+   Collapsed: a CENTERED cluster — icon pill (News · Atlas · Database · Search
+   · Dashboard, page-aware selected circle) + the +/✕ fab. On expand BOTH
+   slide outward (fab FLIP-slides right, pill fades) while the tray grows from
+   the dock line. Tray sections: search bar (replica of the floating bar) →
+   Homebase (News · Database · Atlas · Dashboard) → Iconic Lists (Golf ·
+   Hotels · Restaurants · Passport) → contextual row for the current page.
+   Every grid is a fixed 4-column: rows with fewer items fill from the left. */
 (function () {
   'use strict';
   if (window.__tmwMobileDock) return;
   window.__tmwMobileDock = true;
 
   var path = location.pathname;
+  var IS_MAP = /^\/map/.test(path);
 
   /* ---------- helpers ---------- */
   function h1() { var el = document.querySelector('h1'); return el ? el.textContent.trim().slice(0, 80) : document.title.split('·')[0].trim(); }
+  function mapSearch() {
+    /* reveal the native map dock (the spatial search) and focus it */
+    closeNow();
+    document.documentElement.classList.add('tmwx-mapsearch');
+    var inp = document.querySelector('.tmw-dock-search input');
+    if (inp) setTimeout(function () { inp.focus(); }, 60);
+  }
+  function exitMapSearch() { document.documentElement.classList.remove('tmwx-mapsearch'); }
   function openSearch(q) {
-    close();
+    closeNow();
+    if (IS_MAP) { mapSearch(); return; }
     if (window.tmwOpenSearch) { window.tmwOpenSearch(q || ''); return; }
     if (window.tmwOverlay && window.tmwOverlay.open) window.tmwOverlay.open(q || '');
   }
   function share() {
-    close();
+    closeNow();
     var data = { title: document.title, url: location.href };
     if (navigator.share) { navigator.share(data).catch(function () {}); return; }
     if (navigator.clipboard) navigator.clipboard.writeText(location.href).catch(function () {});
   }
   function go(url) { return function () { location.href = url; }; }
-  function proxyClick(sel) { return function () { close(); var b = document.querySelector(sel); if (b) b.click(); }; }
+  function proxyClick(sel) { return function () { closeNow(); var b = document.querySelector(sel); if (b) b.click(); }; }
 
-  /* icons — News uses the SAME journal svg as the desktop surface toggle */
+  /* icons — News + Atlas use the SAME svgs as the desktop surface toggle */
   var I = {
     news: '<path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/>',
+    atlas: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
     watch: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
     onyx: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
-    atlas: '<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>',
     share: '<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><polyline points="8 6 12 2 16 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
@@ -52,20 +63,27 @@
   };
 
   /* page-aware selected states */
-  function onNews() { return /^\/($|post\/|category|markets)/.test(path); }
   var MATCH = {
-    news: onNews(), map: false, passport: /^\/passport/.test(path),
-    dashboard: /^\/dashboard/.test(path), atlas: /^\/atlas/.test(path),
+    news: /^\/($|post\/|category|markets)/.test(path) && !IS_MAP,
+    map: IS_MAP,
+    passport: /^\/passport/.test(path),
+    dashboard: /^\/dashboard/.test(path),
+    atlas: /^\/atlas/.test(path),
     golf: /^\/golf/.test(path), hotels: /^\/hotels/.test(path), restaurants: /^\/restaurants/.test(path)
   };
 
-  /* contextual row */
+  /* contextual row (rendered LAST, under the fixed sections) */
   var CTX = null;
-  if (/^\/projects?\/[^/]+/.test(path)) {
+  if (IS_MAP) {
+    CTX = { label: 'This map', tools: [
+      { ic: 'search', t: 'Search map', act: mapSearch, cls: 'hero' },
+      { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/') },
+      { ic: 'share', t: 'Share', act: share }
+    ] };
+  } else if (/^\/projects?\/[^/]+/.test(path)) {
     CTX = { label: 'This project', tools: [] };
     if (document.getElementById('watchBtn')) CTX.tools.push({ ic: 'watch', t: 'Watch', act: proxyClick('#watchBtn'), cls: 'act' });
     CTX.tools.push({ ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' });
-    CTX.tools.push({ ic: 'atlas', t: 'Atlas', act: go('/atlas/') });
     CTX.tools.push({ ic: 'share', t: 'Share', act: share });
   } else if (/^\/post\//.test(path)) {
     CTX = { label: 'This story', tools: [
@@ -75,48 +93,51 @@
   } else if (/^\/(golf|hotels|restaurants)\/?/.test(path)) {
     CTX = { label: 'This list', tools: [
       { ic: 'trophy', t: 'Leaderboard', act: go('/passport/'), cls: 'act' },
-      { ic: 'passport', t: 'My Passport', act: go('/dashboard/#passport') },
       { ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(''); }, cls: 'hero' },
       { ic: 'share', t: 'Share', act: share }
     ] };
   }
 
+  var MAP_URL = 'https://www.oftmw.com/map/';
+  var HOMEBASE = [
+    { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
+    { ic: 'map', t: 'Database', act: go(MAP_URL), on: MATCH.map },
+    { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
+    { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
+  ];
   var LISTS = [
     { ic: 'golf', t: 'Golf', act: go('/golf/#list'), on: MATCH.golf },
     { ic: 'hotel', t: 'Hotels', act: go('/hotels/#list'), on: MATCH.hotels },
-    { ic: 'dining', t: 'Restaurants', act: go('/restaurants/#list'), on: MATCH.restaurants }
-  ];
-  var GLOBAL = [
-    { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
-    { ic: 'map', t: 'Database', act: go('https://map.oftmw.com/') },
-    { ic: 'passport', t: 'Passport', act: go('/passport/'), on: MATCH.passport },
-    { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
+    { ic: 'dining', t: 'Restaurants', act: go('/restaurants/#list'), on: MATCH.restaurants },
+    { ic: 'passport', t: 'Passport', act: go('/passport/'), on: MATCH.passport }
   ];
   var PILL = [
     { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
-    { ic: 'map', t: 'Database', act: go('https://map.oftmw.com/') },
+    { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
+    { ic: 'map', t: 'Database', act: go(MAP_URL), on: MATCH.map },
     { ic: 'search', t: 'Search', act: function () { openSearch(''); } },
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
   ];
 
-  /* ---------- styles (all viewports; flat dark glass, no gradient) ---------- */
+  /* ---------- styles (flat dark glass) ---------- */
   var GLASS = 'background:rgba(9,11,9,.82);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgba(255,255,255,.13);box-shadow:0 16px 50px rgba(0,0,0,.55)';
   var css = [
-    /* retire the old pill + its autocomplete everywhere */
-    'html.tmwx-on .tmw-dock{display:none !important}',
-    'html.tmwx-on .tmw-dock-ac{display:none !important}',
+    /* retire the old pill + its autocomplete — EXCEPT in mapsearch mode, where
+       the native dock (the map's spatial search) is revealed on demand */
+    'html.tmwx-on:not(.tmwx-mapsearch) .tmw-dock{display:none !important}',
+    'html.tmwx-on:not(.tmwx-mapsearch) .tmw-dock-ac{display:none !important}',
+    'html.tmwx-mapsearch .tmwx-wrap{opacity:0;pointer-events:none}',
 
     '.tmwx-scrim{position:fixed;inset:0;background:rgba(4,4,6,.5);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:9001}',
     'html.tmwx-open .tmwx-scrim{opacity:1;pointer-events:auto}',
 
-    /* centered cluster wrapper: [pill][fab] collapsed → wide, fab flex-end when open */
-    '.tmwx-wrap{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:9002;display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;pointer-events:none}',
+    '.tmwx-wrap{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:9002;display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;pointer-events:none;transition:opacity .2s ease}',
     'html.tmwx-open .tmwx-wrap{width:min(100vw - 24px, 480px)}',
 
     '.tmwx-pill{pointer-events:auto;display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px;' + GLASS + ';',
     'transition:opacity .22s ease, transform .3s cubic-bezier(.34,1.45,.5,1)}',
     'html.tmwx-open .tmwx-pill{position:absolute;right:62px;bottom:0;opacity:0;transform:translateX(-18px) scale(.92);pointer-events:none}',
-    '.tmwx-pbtn{width:46px;height:46px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#ECEAE5;border:none;background:transparent;cursor:pointer;transition:background .18s}',
+    '.tmwx-pbtn{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#ECEAE5;border:none;background:transparent;cursor:pointer;transition:background .18s}',
     '.tmwx-pbtn.on{background:rgba(255,255,255,.16)}',
     '.tmwx-pbtn:active{background:rgba(255,255,255,.2)}',
     '.tmwx-pbtn svg{width:20px;height:20px}',
@@ -127,7 +148,6 @@
     '.tmwx-fab svg{width:22px;height:22px;transition:transform .34s cubic-bezier(.34,1.45,.5,1)}',
     'html.tmwx-open .tmwx-fab svg{transform:rotate(45deg)}',
 
-    /* tray: absolute inside the wrapper, grows taller from the dock line, ends left of the fab */
     '.tmwx-tray{pointer-events:auto;position:absolute;left:0;right:62px;bottom:0;border-radius:24px;padding:15px 13px 13px;' + GLASS + ';',
     'transform:scaleY(.16) scaleX(.94);opacity:0;visibility:hidden;transform-origin:50% 100%;',
     'transition:transform .4s cubic-bezier(.3,1.3,.42,1), opacity .22s ease, visibility 0s .4s}',
@@ -135,7 +155,6 @@
     '.tmwx-in{opacity:0;transform:translateY(8px);transition:opacity .24s ease .12s, transform .3s ease .12s}',
     'html.tmwx-open .tmwx-in{opacity:1;transform:none}',
 
-    /* search bar — exact replica of the floating bar */
     '.tmwx-search{position:relative;border-radius:999px;margin:0 1px 13px}',
     '.tmwx-search .si{position:absolute;left:13px;top:50%;width:20px;height:20px;color:#9AA39C;pointer-events:none;transform:translateY(-50%);z-index:2}',
     '.tmwx-search input{height:46px;width:100%;padding:0 18px 0 42px;position:relative;z-index:1;',
@@ -148,8 +167,7 @@
     'animation:tmwChase 3s linear infinite}',
 
     '.tmwx-sec{font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin:2px 5px 8px}',
-    '.tmwx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}',
-    '.tmwx-grid.g3{grid-template-columns:repeat(3,1fr)}',
+    '.tmwx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px;justify-items:stretch}',
     '.tmwx-grid:last-child{margin-bottom:2px}',
     '.tmwx-tool{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 2px 9px;border-radius:14px;cursor:pointer;border:none;background:transparent;color:#f3f1ec;font-family:inherit;transition:background .16s}',
     '.tmwx-tool:hover{background:rgba(255,255,255,.08)}',
@@ -180,21 +198,21 @@
 
   var sw = document.createElement('div'); sw.className = 'tmwx-search';
   sw.innerHTML = '<span class="si">' + svg(I.search) + '</span>' +
-    '<input type="search" autocomplete="off" placeholder="Search projects, firms, places…" aria-label="Search projects, firms, places, brands, and more">';
+    '<input type="search" autocomplete="off" placeholder="' + (IS_MAP ? 'Search the map…' : 'Search projects, firms, places…') + '" aria-label="Search projects, firms, places, brands, and more">';
   var sInput = sw.querySelector('input');
   sInput.addEventListener('focus', function () { sInput.blur(); openSearch(''); });
   sw.addEventListener('click', function () { openSearch(''); });
   inner.appendChild(sw);
 
-  function section(label, tools, cols3) {
+  function section(label, tools) {
     var s = document.createElement('div'); s.className = 'tmwx-sec'; s.textContent = label; inner.appendChild(s);
-    var g = document.createElement('div'); g.className = 'tmwx-grid' + (cols3 ? ' g3' : '');
+    var g = document.createElement('div'); g.className = 'tmwx-grid';
     tools.forEach(function (t) { g.appendChild(toolBtn(t)); });
     inner.appendChild(g);
   }
+  section('Homebase', HOMEBASE);
+  section('Iconic Lists', LISTS);
   if (CTX && CTX.tools.length) section(CTX.label, CTX.tools);
-  section('Iconic Lists', LISTS, true);
-  section('Markets of TMW', GLOBAL);
   tray.appendChild(inner);
 
   var pill = document.createElement('div'); pill.className = 'tmwx-pill';
@@ -212,8 +230,7 @@
   fab.setAttribute('aria-label', 'All tools');
   fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 
-  /* FLIP the fab so it visibly SLIDES OUT to the right when the tray opens
-     (and back to center on close) instead of jumping with the layout change. */
+  /* FLIP the fab so it slides between its center-cluster and right-edge spots */
   function toggleOpen() {
     var first = fab.getBoundingClientRect().left;
     document.documentElement.classList.toggle('tmwx-open');
@@ -228,10 +245,22 @@
       fab.addEventListener('transitionend', function te() { fab.style.transition = ''; fab.removeEventListener('transitionend', te); });
     }
   }
-  function close() { if (document.documentElement.classList.contains('tmwx-open')) toggleOpen(); }
+  function closeNow() { if (document.documentElement.classList.contains('tmwx-open')) toggleOpen(); }
   fab.addEventListener('click', toggleOpen);
-  scrim.addEventListener('click', close);
-  addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  scrim.addEventListener('click', closeNow);
+  addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (document.documentElement.classList.contains('tmwx-mapsearch')) { exitMapSearch(); return; }
+    closeNow();
+  });
+  /* leave mapsearch mode when tapping outside the native dock + its popup */
+  if (IS_MAP) {
+    document.addEventListener('pointerdown', function (e) {
+      if (!document.documentElement.classList.contains('tmwx-mapsearch')) return;
+      if (e.target.closest('.tmw-dock') || e.target.closest('.tmw-dock-ac')) return;
+      exitMapSearch();
+    }, true);
+  }
 
   wrap.appendChild(tray);
   wrap.appendChild(pill);
