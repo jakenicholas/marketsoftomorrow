@@ -789,9 +789,11 @@
        lightbox input — the spotlight must look identical on every page. */
     /* Desktop reserves room on the right for the in-bar Deep chip + go arrow. */
     + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:156px;font-size:14px}'
-    /* Mobile: pill a touch taller than the dock's 42px, placeholder 1pt down. */
+    /* Mobile: pill a touch taller than the dock's 42px; placeholder 1pt below
+       the input's 16px (the host page's iOS anti-zoom rule keeps the INPUT at
+       16px — only the placeholder shrinks, so focus-zoom stays disabled). */
     + '@media(max-width:640px){.tmw-ov-bar .tmw-dock-search input{padding-right:48px;height:48px}'
-    + '.tmw-ov-bar .tmw-dock-search input::placeholder{font-size:13px}}'
+    + '.tmw-ov-bar .tmw-dock-search input::placeholder{font-size:15px}}'
     + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%!important;'
     /* Override the dock\'s green focus state -- the overlay is the
        Intelligence surface, so it keeps the purple aesthetic everywhere. */
