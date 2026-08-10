@@ -683,7 +683,7 @@
 (function () {
   if (window.tmwWelcome || document.querySelector('script[data-tmw-welcome]')) return;
   var s = document.createElement('script');
-  s.src = '/_shared/tmw-welcome.js?v=20260810f';
+  s.src = '/_shared/tmw-welcome.js?v=20260810g';
   s.defer = true;
   s.setAttribute('data-tmw-welcome', '1');
   document.head.appendChild(s);

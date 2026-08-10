@@ -106,7 +106,18 @@
       '.tmww .g-ticker{position:absolute;right:clamp(22px,5vw,58px);bottom:44px;z-index:3;text-align:right;display:flex;flex-direction:column;gap:16px}',
       '.tmww .tk .v{font-family:"Fraunces",Georgia,serif;font-size:clamp(22px,2.6vw,34px);font-weight:600;color:#fff;line-height:1}',
       '.tmww .tk .k{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#9AA39C;margin-top:5px}',
-      '@media(max-width:760px){.tmww .g-ticker{display:none}.tmww .g-row{flex-direction:column}.tmww .g-inner{padding:28px 22px 28px}}',
+      '@media(max-width:760px){',
+      '.tmww .g-ticker{display:none}',
+      '.tmww .g-row{flex-direction:column}',
+      '.tmww .g-inner{padding:16px 22px 26px}',
+      /* mobile: the wordmark reads oversized at 56px — trim it and hug the top */
+      '.tmww .wm img{height:34px}',
+      '.tmww .g-inner.pro .wm{top:calc(14px + env(safe-area-inset-top));left:22px}',
+      /* roomy, un-squished fields + button on small screens */
+      '.tmww .in{height:58px;min-height:58px;padding:0 18px;border-radius:14px;font-size:16px;line-height:normal;-webkit-appearance:none;appearance:none}',
+      '.tmww .g-form{gap:12px}',
+      '.tmww .cta{height:58px;border-radius:14px}',
+      '}',
       /* CELEBRATE + PRO shared center layout */
       '.tmww .c-wrap{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 24px;text-align:center;overflow-y:auto}',
       '.tmww .eyeb{font-size:10.5px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;margin-bottom:16px}',
