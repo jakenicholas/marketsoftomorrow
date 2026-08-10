@@ -484,7 +484,7 @@
       // Our own fixed overlays (subscribe lightbox, custom auth modal) have
       // email/password inputs but are NOT Memberstack modals — never tag them,
       // or the MS theme overrides their styling.
-      if (el.classList && (el.classList.contains('tmw-sub') || el.classList.contains('tmw-am'))) return false;
+      if (el.classList && (el.classList.contains('tmw-sub') || el.classList.contains('tmw-am') || el.classList.contains('tmww'))) return false;
       try {
         var cs = window.getComputedStyle(el);
         if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
