@@ -1035,7 +1035,7 @@ export async function handleGallery(request, env, url, origin, deps) {
   // Any other path on the gallery host belongs to the main site — the universal
   // chrome's root-relative links (/hotels/, /dashboard/, …) land here, so send
   // them to www.oftmw.com instead of the worker's API dispatcher.
-  if (onGalleryHost) return Response.redirect('https://www.oftmw.com' + url.pathname + url.search, 301);
+  if (onGalleryHost) return Response.redirect('https://www.oftmw.com' + path + url.search, 301);
   return null; // not a gallery route → fall through to the main dispatcher
 }
 
