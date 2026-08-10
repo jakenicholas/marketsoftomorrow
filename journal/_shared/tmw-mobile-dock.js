@@ -211,8 +211,8 @@
     '.tmwx-tool.on{background:rgba(255,255,255,.13)}',
     '.tmwx-tool svg{width:21px;height:21px}',
     '.tmwx-tool span{font-size:9.5px;color:rgba(255,255,255,.85)}',
-    '.tmwx-tool.hero svg{color:#E6C574}',
-    '.tmwx-tool.act svg{color:#34d27b}',
+    /* contextual-row icons stay the same neutral gray as every other tool —
+       no colored icons anywhere in the expanded tray */
     '/* the GL-heavy map page stalls CSS transitions (they hold their START frame '+
     'forever) - run every dock state change instantly there */',
     'html.tmwx-instant .tmwx-tray,html.tmwx-instant .tmwx-fab svg,html.tmwx-instant .tmwx-in,html.tmwx-instant .tmwx-pill,html.tmwx-instant .tmwx-scrim,html.tmwx-instant .tmwx-wrap{transition:none !important}',
