@@ -1892,3 +1892,32 @@ function initSuggestMode(post) {
     }
   }
 }
+
+// ── X (Twitter) embed height sync ─────────────────────────────────────────
+// Article bodies embed tweets as direct platform.twitter.com/embed/Tweet.html
+// iframes (no widgets.js — X's widget loader renders 0-height as of 2026-08).
+// Tweet.html speaks the widgets.js jsonrpc protocol: it will NOT report its
+// size until the parent acks its "twttr.private.initialized" call. So: ack
+// every jsonrpc request from a twitter/x origin, then apply the height from
+// the "twttr.private.resize" notification to the matching iframe. This makes
+// every tweet card exactly its content height — no clipping, no dead space.
+(function () {
+  window.addEventListener('message', function (e) {
+    var origin = '';
+    try { origin = new URL(e.origin).hostname; } catch (_) { return; }
+    if (!/(^|\.)twitter\.com$|(^|\.)x\.com$/.test(origin)) return;
+    var d = e.data;
+    if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { return; } }
+    var emb = d && (d['twttr.embed'] || d);
+    if (!emb || !emb.jsonrpc) return;
+    if (emb.id != null && e.source) {
+      try { e.source.postMessage(JSON.stringify({ 'twttr.embed': { jsonrpc: '2.0', id: emb.id, result: {} } }), e.origin); } catch (_) {}
+    }
+    if (emb.method === 'twttr.private.resize' && emb.params && emb.params[0] && emb.params[0].height) {
+      var h = emb.params[0].height;
+      document.querySelectorAll('iframe[src*="platform.twitter.com/embed"]').forEach(function (f) {
+        if (f.contentWindow === e.source) f.style.height = h + 'px';
+      });
+    }
+  });
+})();
