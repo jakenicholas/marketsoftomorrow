@@ -3750,6 +3750,18 @@ _CITY_TO_STATE = {
     # Texas
     'austin': 'TX', 'houston': 'TX', 'dallas': 'TX', 'san antonio': 'TX',
     'fort worth': 'TX', 'ft worth': 'TX',
+    # California
+    'beverly hills': 'CA', 'los angeles': 'CA', 'san diego': 'CA', 'san francisco': 'CA',
+    'napa': 'CA', 'carmel valley': 'CA', 'carmel': 'CA', 'carmel-by-the-sea': 'CA',
+    'san jose': 'CA', 'palo alto': 'CA', 'menlo park': 'CA', 'mountain view': 'CA',
+    'malibu': 'CA', 'santa monica': 'CA', 'west hollywood': 'CA', 'hollywood': 'CA',
+    'culver city': 'CA', 'pasadena': 'CA', 'long beach': 'CA', 'newport beach': 'CA',
+    'irvine': 'CA', 'laguna beach': 'CA', 'santa ana': 'CA', 'anaheim': 'CA',
+    'sacramento': 'CA', 'oakland': 'CA', 'berkeley': 'CA', 'monterey': 'CA',
+    'calistoga': 'CA', 'sonoma': 'CA', 'healdsburg': 'CA', 'yountville': 'CA',
+    'st. helena': 'CA', 'st helena': 'CA', 'santa barbara': 'CA', 'montecito': 'CA',
+    'la jolla': 'CA', 'del mar': 'CA', 'coronado': 'CA', 'palm springs': 'CA',
+    'palm desert': 'CA', 'rancho mirage': 'CA', 'san luis obispo': 'CA',
     # International
     'london': 'UK', 'paris': 'FR', 'tokyo': 'JP',
     'dubai': 'AE', 'abu dhabi': 'AE',
@@ -3759,7 +3771,7 @@ _CITY_TO_STATE = {
 # Friendly region names for filter UI (state code -> label)
 _STATE_LABELS = {
     'FL': 'Florida', 'TN': 'Tennessee', 'SC': 'South Carolina', 'NC': 'North Carolina',
-    'GA': 'Georgia',  'NY': 'New York',  'TX': 'Texas',
+    'GA': 'Georgia',  'NY': 'New York',  'TX': 'Texas', 'CA': 'California',
     'UK': 'UK', 'FR': 'France', 'JP': 'Japan', 'AE': 'UAE',
 }
 
