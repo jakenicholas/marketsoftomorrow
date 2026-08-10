@@ -3624,7 +3624,32 @@
       return String(k||'').split('-').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' ');}
     function mcNf(n){return (+n||0).toLocaleString('en-US');}
     function mcM(n){return n>=1000?'$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'B':'$'+Math.round(n)+'M';}
-    function mcRowsOf(k){return (MC_ROWS||[]).filter(function(r){return mcSlug(r.City)===k;});}
+    function mcRowsOf(k){
+      if(/^st:/.test(k)){var code=k.slice(3),csm=(atlasData&&atlasData.city_state_map)||{};
+        return (MC_ROWS||[]).filter(function(r){return csm[String(r.City||'').trim()]===code;});}
+      return (MC_ROWS||[]).filter(function(r){return mcSlug(r.City)===k;});}
+    // ── State aggregation: a whole region joins the comparison as ONE line by
+    // synthesizing a combined "market" (summed windows/units, unit-weighted
+    // score) from every scored city in that state. Keyed 'st:CODE' so every
+    // existing metric (which reads supplyIntel.markets[k]) works unchanged. ──
+    function mcStateCities(code){
+      var csm=(atlasData&&atlasData.city_state_map)||{};
+      return Object.keys(supplyIntel.markets).filter(function(k){
+        if(/^st:/.test(k))return false;var m=supplyIntel.markets[k];
+        return m&&m.city&&csm[m.city]===code;});}
+    function mcSynthState(code,label){
+      var key='st:'+code;if(supplyIntel.markets[key])return key;
+      var cities=mcStateCities(code);if(!cities.length)return null;
+      var winMap={},ssSum={},ssW={},pu=0,scoreW=0,tw=0;
+      cities.forEach(function(k){var m=supplyIntel.markets[k],w=(m.pipeline_units||1);
+        (m.windows||[]).forEach(function(x){winMap[x.half]=(winMap[x.half]||0)+(x.units||0);});
+        pu+=(m.pipeline_units||0);tw+=w;scoreW+=(m.score||0)*w;
+        (m.score_series||[]).forEach(function(pt){ssSum[pt.half]=(ssSum[pt.half]||0)+(pt.score||0)*w;ssW[pt.half]=(ssW[pt.half]||0)+w;});});
+      supplyIntel.markets[key]={city:label,_state:code,pipeline_units:pu,confidence:'aggregate',
+        score:tw?Math.round(scoreW/tw):0,
+        windows:Object.keys(winMap).sort().map(function(h){return {half:h,units:winMap[h]};}),
+        score_series:Object.keys(ssSum).sort().map(function(h){return {half:h,score:ssW[h]?Math.round(ssSum[h]/ssW[h]):0};})};
+      return key;}
     function mcMoney(r){var n=parseFloat(r.FinancingAmountM);return isFinite(n)&&n>0?n:0;}
     function mcYear(r){var m=String(r.DeliveryDate||'').match(/(19|20)\d{2}/);return m?+m[0]:0;}
     function mcAsOf(){try{var d=new Date(supplyIntel.generated_at);
@@ -3688,12 +3713,12 @@
     function mcUsed(){return MC.set.map(function(m){return m.slot;});}
     function mcAdd(k){if(MC.set.length>=MC_MAX||MC.set.some(function(m){return m.k===k;}))return;
       var city=supplyIntel&&supplyIntel.markets&&supplyIntel.markets[k]&&supplyIntel.markets[k].city;
-      if(city&&atlasMarkets.length){atlasAddMarket(city);return;}   // page pills lead when active
+      if(city&&!/^st:/.test(k)&&atlasMarkets.length){atlasAddMarket(city);return;}   // page pills lead when active (cities only)
       var free=0;while(mcUsed().indexOf(free)>=0)free++;
       MC.set.push({k:k,slot:free});mcSync();mountMaster();}
     function mcDrop(k){
       var city=supplyIntel&&supplyIntel.markets&&supplyIntel.markets[k]&&supplyIntel.markets[k].city;
-      if(city&&atlasMarkets.indexOf(city)>=0){atlasDropMarket(city);return;}
+      if(city&&!/^st:/.test(k)&&atlasMarkets.indexOf(city)>=0){atlasDropMarket(city);return;}
       MC.set=MC.set.filter(function(m){return m.k!==k;});mcSync();mountMaster();}
     // the master owns ?m= and ?metric=; everything else on the URL is preserved
     function mcSync(){try{var q=new URLSearchParams(location.search);
@@ -3704,7 +3729,8 @@
     function mcSeed(){
       if(MC.set.length||!supplyIntel||!supplyIntel.markets)return;
       var q=new URLSearchParams(location.search);
-      (q.get('m')||'').split(',').map(mcSlug).filter(Boolean).slice(0,MC_MAX).forEach(function(k){
+      (q.get('m')||'').split(',').map(function(x){x=String(x).trim();return /^st:/i.test(x)?('st:'+x.slice(3).toUpperCase()):mcSlug(x);}).filter(Boolean).slice(0,MC_MAX).forEach(function(k){
+        if(/^st:/.test(k)){var s=(atlasData.available_states||[]).filter(function(z){return z.code===k.slice(3);})[0];if(s)mcSynthState(s.code,s.label);}
         if(supplyIntel.markets[k])MC.set.push({k:k,slot:MC.set.length});});
       var mt=q.get('metric');
       if(mt&&MC_METRICS.some(function(x){return x.id===mt;}))MC.metric=mt;
@@ -3763,14 +3789,17 @@
       var ai=document.createElement('input');ai.type='text';ai.placeholder='Search scored markets\u2026';am.appendChild(ai);
       var al=document.createElement('div');al.className='mc-addl';am.appendChild(al);
       function renderAdd(){var q=ai.value.trim().toLowerCase();al.textContent='';
-        Object.keys(supplyIntel.markets).map(function(k){var m=supplyIntel.markets[k];
-            return {k:k,n:m.city||mcUnslug(k),u:m.pipeline_units||0};})
-          .filter(function(c){return !MC.set.some(function(s){return s.k===c.k;})&&(!q||c.n.toLowerCase().indexOf(q)>=0);})
-          .sort(function(a,b){return b.u-a.u;}).slice(0,20)
-          .forEach(function(c){var d=document.createElement('div');d.className='mc-addi';
-            var t=document.createElement('span');t.textContent=c.n;d.appendChild(t);
-            var kk=document.createElement('span');kk.className='k';kk.textContent=mcNf(c.u)+' units';d.appendChild(kk);
-            d.addEventListener('click',function(){am.classList.remove('on');mcAdd(c.k);});
+        var cands=Object.keys(supplyIntel.markets).filter(function(k){return !/^st:/.test(k);}).map(function(k){var m=supplyIntel.markets[k];
+            return {k:k,n:m.city||mcUnslug(k),u:m.pipeline_units||0,st:false};});
+        // Whole states float to the top — adding one combines every city in it.
+        (atlasData.available_states||[]).forEach(function(s){cands.push({k:'st:'+s.code,n:s.label,u:2e9,st:true,code:s.code,cnt:s.count});});
+        cands.filter(function(c){return !MC.set.some(function(s){return s.k===c.k;})&&(!q||c.n.toLowerCase().indexOf(q)>=0);})
+          .sort(function(a,b){return b.u-a.u;}).slice(0,24)
+          .forEach(function(c){var d=document.createElement('div');d.className='mc-addi'+(c.st?' mc-addi-st':'');
+            var t=document.createElement('span');t.textContent=c.n+(c.st?'  · all markets':'');d.appendChild(t);
+            var kk=document.createElement('span');kk.className='k';kk.textContent=c.st?((c.cnt||0)+' projects'):(mcNf(c.u)+' units');d.appendChild(kk);
+            d.addEventListener('click',function(){am.classList.remove('on');
+              if(c.st){var key=mcSynthState(c.code,c.n);if(key)mcAdd(key);}else{mcAdd(c.k);}});
             al.appendChild(d);});}
       ab.addEventListener('click',function(e){e.stopPropagation();if(MC.set.length>=MC_MAX)return;
         am.classList.toggle('on');if(am.classList.contains('on')){ai.value='';renderAdd();ai.focus();}});
