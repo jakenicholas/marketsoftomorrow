@@ -1106,6 +1106,17 @@
     document.head.appendChild(s);
   }
 
+  // Public search opener — the mobile tool dock hides the pill (whose input
+  // focus used to be the only overlay trigger), so it opens search through
+  // this instead: load the overlay scripts, then open once they're ready.
+  window.tmwOpenSearch = function (q) {
+    loadSearchOverlay();
+    (function poll(n) {
+      if (window.tmwOverlay && window.tmwOverlay.open) { window.tmwOverlay.open(q || ''); return; }
+      if (n < 50) setTimeout(function () { poll(n + 1); }, 100);
+    })(0);
+  };
+
   // Render inline project cards (journal ↔ database bridge). Only loads the
   // renderer when the article actually embeds a project (new card embed or a
   // legacy map-embed iframe), so non-linked posts pay nothing.

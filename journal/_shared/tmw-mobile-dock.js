@@ -1,19 +1,15 @@
 /* tmw-mobile-dock.js — the expandable liquid-glass tool dock (MOBILE ONLY).
-   Loaded by journal-dock.js right after the bottom search pill initializes, so
-   it exists exactly where the pill exists. Desktop is untouched.
+   Loaded by journal-dock.js right after the bottom search pill initializes.
+   Desktop is untouched (every rule lives inside a max-width media query).
 
-   Collapsed: the existing glowing search pill docks LEFT, a glass ✕/+ fab pins
-   to the bottom-RIGHT corner. Tapping the fab morphs a tray up FROM the dock
-   line (scaleY, origin bottom) — the fab never moves, ending up inside the
-   tray's corner. The tray is crowned by the Onyx bar (the site's chasing purple
-   glow, promoted) and shows a CONTEXTUAL tool row per surface + the global apps.
-
-   Contexts (inferred from the URL):
-     /projects/<slug>  → Watch (proxies the page's #watchBtn) · Ask Onyx · Atlas · Share
-     /post/<slug>      → Ask Onyx about this story · Share
-     /golf|hotels|restaurants → Leaderboard · My Passport · Share · Ask Onyx
-     anything else     → global apps only
-*/
+   On mobile this REPLACES the old bottom pill (search + three toggles): the old
+   .tmw-dock is hidden and the dock becomes a glass icon pill (Journal ·
+   Database · Onyx · Dashboard) on the left + a +/✕ fab pinned bottom-right.
+   The fab morphs the tray up from the dock line; the tray ends LEFT of the fab
+   (never behind it). The tray is crowned by an exact visual replica of the
+   floating search bar — same capsule, same placeholder, same masked conic
+   purple chase (reusing journal-dock's --tmw-ang/@keyframes tmwChase; no blur
+   layer) — and tapping it opens the real search overlay via tmwOpenSearch. */
 (function () {
   'use strict';
   if (window.__tmwMobileDock) return;
@@ -25,11 +21,10 @@
   var path = location.pathname;
   var CTX = null;
   function h1() { var el = document.querySelector('h1'); return el ? el.textContent.trim().slice(0, 80) : document.title.split('·')[0].trim(); }
-  function askOnyx(q) {
+  function openSearch(q) {
     close();
-    if (window.tmwOverlay && window.tmwOverlay.open) { window.tmwOverlay.open(q || ''); return; }
-    var inp = document.querySelector('.tmw-dock-search input');
-    if (inp) { if (q) inp.value = q; inp.focus(); }
+    if (window.tmwOpenSearch) { window.tmwOpenSearch(q || ''); return; }
+    if (window.tmwOverlay && window.tmwOverlay.open) window.tmwOverlay.open(q || '');
   }
   function share() {
     close();
@@ -40,9 +35,10 @@
   function go(url) { return function () { location.href = url; }; }
   function proxyClick(sel) { return function () { close(); var b = document.querySelector(sel); if (b) b.click(); }; }
 
-  var I = { /* 24×24 stroke icons */
+  var I = {
     watch: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
     onyx: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
     atlas: '<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>',
     share: '<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><polyline points="8 6 12 2 16 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
@@ -55,19 +51,19 @@
   if (/^\/projects?\/[^/]+/.test(path)) {
     CTX = { label: 'This project', tools: [] };
     if (document.getElementById('watchBtn')) CTX.tools.push({ ic: 'watch', t: 'Watch', act: proxyClick('#watchBtn'), cls: 'act' });
-    CTX.tools.push({ ic: 'onyx', t: 'Ask Onyx', act: function () { askOnyx(h1()); }, cls: 'hero' });
+    CTX.tools.push({ ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' });
     CTX.tools.push({ ic: 'atlas', t: 'Atlas', act: go('/atlas/') });
     CTX.tools.push({ ic: 'share', t: 'Share', act: share });
   } else if (/^\/post\//.test(path)) {
     CTX = { label: 'This story', tools: [
-      { ic: 'onyx', t: 'Ask Onyx', act: function () { askOnyx(h1()); }, cls: 'hero' },
+      { ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' },
       { ic: 'share', t: 'Share', act: share }
     ] };
   } else if (/^\/(golf|hotels|restaurants)\/?/.test(path)) {
     CTX = { label: 'This list', tools: [
       { ic: 'trophy', t: 'Leaderboard', act: go('/passport/'), cls: 'act' },
       { ic: 'passport', t: 'My Passport', act: go('/dashboard/#passport') },
-      { ic: 'onyx', t: 'Ask Onyx', act: function () { askOnyx(''); }, cls: 'hero' },
+      { ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(''); }, cls: 'hero' },
       { ic: 'share', t: 'Share', act: share }
     ] };
   }
@@ -79,16 +75,37 @@
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/') }
   ];
 
+  /* pill quick-nav (collapsed state) — page-aware highlight */
+  var onJournal = /^\/($|post\/|category|markets)/.test(path);
+  var PILL = [
+    { ic: 'journal', t: 'Journal', act: go('https://www.oftmw.com/'), on: onJournal },
+    { ic: 'map', t: 'Database', act: go('https://map.oftmw.com/') },
+    { ic: 'search', t: 'Search', act: function () { openSearch(''); } },
+    { ic: 'user', t: 'Dashboard', act: go('/dashboard/') }
+  ];
+
   /* ---------- styles ---------- */
   var css = [
-    '.tmwx-fab,.tmwx-tray,.tmwx-scrim{display:none}',
+    '.tmwx-pill,.tmwx-fab,.tmwx-tray,.tmwx-scrim{display:none}',
     '@media ' + MOBILE + '{',
-    /* pill docks left to clear the corner fab (only while the fab exists) */
-    'html.tmwx-on .tmw-dock{left:12px;right:74px;transform:none;max-width:none}',
-    'html.tmwx-on .tmw-dock.ready{transform:none}',
+    /* retire the old bottom pill + its autocomplete on mobile */
+    'html.tmwx-on .tmw-dock{display:none !important}',
+    'html.tmwx-on .tmw-dock-ac{display:none !important}',
 
     '.tmwx-scrim{display:block;position:fixed;inset:0;background:rgba(4,4,6,.5);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:9001}',
     'html.tmwx-open .tmwx-scrim{opacity:1;pointer-events:auto}',
+
+    /* collapsed glass icon pill (left) */
+    '.tmwx-pill{display:flex;position:fixed;left:12px;bottom:14px;z-index:9002;align-items:center;gap:2px;padding:6px;border-radius:999px;',
+    'background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.05) 45%,rgba(255,255,255,.08));',
+    'backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);',
+    'border:1px solid rgba(255,255,255,.18);box-shadow:0 14px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.24);',
+    'transition:transform .3s cubic-bezier(.34,1.45,.5,1), opacity .2s ease}',
+    'html.tmwx-open .tmwx-pill{transform:translateY(12px) scale(.9);opacity:0;pointer-events:none}',
+    '.tmwx-pbtn{width:46px;height:46px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#ECEAE5;border:none;background:transparent;cursor:pointer}',
+    '.tmwx-pbtn.on{background:rgba(255,255,255,.14)}',
+    '.tmwx-pbtn:active{background:rgba(255,255,255,.18)}',
+    '.tmwx-pbtn svg{width:20px;height:20px}',
 
     '.tmwx-fab{display:flex;position:fixed;right:12px;bottom:14px;width:54px;height:54px;border-radius:999px;z-index:9004;',
     'align-items:center;justify-content:center;border:none;cursor:pointer;color:#0a0a0c;background:rgba(255,255,255,.94);',
@@ -96,8 +113,8 @@
     '.tmwx-fab svg{width:22px;height:22px;transition:transform .34s cubic-bezier(.34,1.45,.5,1)}',
     'html.tmwx-open .tmwx-fab svg{transform:rotate(45deg)}',
 
-    /* tray grows taller from the dock line; fab overlaps its corner */
-    '.tmwx-tray{display:block;position:fixed;left:12px;right:12px;bottom:14px;z-index:9003;border-radius:24px;padding:15px 13px 76px;',
+    /* tray: grows taller from the dock line and ENDS LEFT of the fab */
+    '.tmwx-tray{display:block;position:fixed;left:12px;right:78px;bottom:14px;z-index:9003;border-radius:24px;padding:15px 13px 13px;',
     'background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.05) 40%,rgba(255,255,255,.09));',
     'backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);',
     'border:1px solid rgba(255,255,255,.2);box-shadow:0 14px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.26);',
@@ -107,18 +124,22 @@
     '.tmwx-in{opacity:0;transform:translateY(8px);transition:opacity .24s ease .12s, transform .3s ease .12s}',
     'html.tmwx-open .tmwx-in{opacity:1;transform:none}',
 
-    /* the Onyx bar — the chasing purple glow, promoted into the tray */
-    '.tmwx-onyx{position:relative;display:flex;align-items:center;gap:9px;border-radius:999px;padding:13px 16px;margin:0 2px 13px;',
-    'background:rgba(10,10,14,.55);color:#c8c7c2;font-size:13px;cursor:pointer;isolation:isolate;border:none;width:calc(100% - 4px);text-align:left;font-family:inherit}',
-    '.tmwx-onyx svg{width:15px;height:15px;color:#B9A6FF;flex:0 0 auto}',
-    '.tmwx-onyx::before,.tmwx-onyx::after{content:"";position:absolute;inset:-1.5px;border-radius:999px;z-index:-1;',
-    'background:conic-gradient(from var(--tmwx-sweep,0deg), transparent 0 12%, #B9A6FF 22%, #7c5cff 30%, transparent 42% 100%);',
-    'animation:tmwx-chase 3.2s linear infinite}',
-    '.tmwx-onyx::after{filter:blur(10px);opacity:.55}',
-    '.tmwx-onyx .m{position:absolute;inset:1px;border-radius:999px;background:rgba(10,10,14,.92);z-index:-1}',
+    /* the search bar — an exact replica of the floating bar (same capsule, same
+       placeholder, same masked conic chase; reuses journal-dock's --tmw-ang). */
+    '.tmwx-search{position:relative;border-radius:999px;margin:0 1px 13px}',
+    '.tmwx-search .si{position:absolute;left:13px;top:50%;width:20px;height:20px;color:#9AA39C;pointer-events:none;transform:translateY(-50%);z-index:2}',
+    '.tmwx-search input{height:46px;width:100%;padding:0 18px 0 42px;position:relative;z-index:1;',
+    'background:rgba(9,11,9,.82);border:1px solid rgba(255,255,255,.10);border-radius:999px;',
+    'color:#fff;font-size:14px;font-family:inherit;outline:none}',
+    '.tmwx-search input::placeholder{color:#9AA39C}',
+    '.tmwx-search::before{content:"";position:absolute;inset:-1.5px;border-radius:999px;padding:1.5px;z-index:0;pointer-events:none;',
+    'background:conic-gradient(from var(--tmw-ang,0deg), rgba(167,139,250,0) 0deg, rgba(167,139,250,0) 205deg, #A78BFA 300deg, #E9DEFF 338deg, rgba(167,139,250,0) 360deg);',
+    '-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;',
+    'animation:tmwChase 3s linear infinite}',
 
     '.tmwx-sec{font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin:2px 5px 8px}',
     '.tmwx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}',
+    '.tmwx-grid:last-child{margin-bottom:2px}',
     '.tmwx-tool{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 2px 9px;border-radius:14px;cursor:pointer;border:none;background:transparent;color:#f3f1ec;font-family:inherit}',
     '.tmwx-tool:active{background:rgba(255,255,255,.12)}',
     '.tmwx-tool svg{width:21px;height:21px}',
@@ -126,9 +147,7 @@
     '.tmwx-tool.hero svg{color:#E6C574}',
     '.tmwx-tool.act svg{color:#34d27b}',
     '}',
-    '@property --tmwx-sweep{syntax:"<angle>";initial-value:0deg;inherits:false}',
-    '@keyframes tmwx-chase{to{--tmwx-sweep:360deg}}',
-    '@media (prefers-reduced-motion:reduce){.tmwx-onyx::before,.tmwx-onyx::after{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in{transition:none!important}}'
+    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -146,11 +165,14 @@
   var tray = document.createElement('div'); tray.className = 'tmwx-tray';
   var inner = document.createElement('div'); inner.className = 'tmwx-in';
 
-  var onyx = document.createElement('button');
-  onyx.className = 'tmwx-onyx';
-  onyx.innerHTML = '<span class="m"></span>' + svg(I.onyx) + '<span>' + (CTX && CTX.label === 'This project' ? 'Ask Onyx about ' + h1().split(',')[0] + '…' : 'Ask Onyx anything…') + '</span>';
-  onyx.addEventListener('click', function () { askOnyx(CTX && CTX.label === 'This project' ? h1() : ''); });
-  inner.appendChild(onyx);
+  /* replica search bar */
+  var sw = document.createElement('div'); sw.className = 'tmwx-search';
+  sw.innerHTML = '<span class="si">' + svg(I.search) + '</span>' +
+    '<input type="search" autocomplete="off" placeholder="Search projects, firms, places…" aria-label="Search projects, firms, places, brands, and more">';
+  var sInput = sw.querySelector('input');
+  sInput.addEventListener('focus', function () { sInput.blur(); openSearch(''); });
+  sw.addEventListener('click', function () { openSearch(''); });
+  inner.appendChild(sw);
 
   if (CTX && CTX.tools.length) {
     var s1 = document.createElement('div'); s1.className = 'tmwx-sec'; s1.textContent = CTX.label; inner.appendChild(s1);
@@ -164,12 +186,22 @@
   inner.appendChild(g2);
   tray.appendChild(inner);
 
+  /* collapsed pill */
+  var pill = document.createElement('div'); pill.className = 'tmwx-pill';
+  PILL.forEach(function (t) {
+    var b = document.createElement('button');
+    b.className = 'tmwx-pbtn' + (t.on ? ' on' : '');
+    b.setAttribute('aria-label', t.t);
+    b.innerHTML = svg(I[t.ic]);
+    b.addEventListener('click', t.act);
+    pill.appendChild(b);
+  });
+
   var fab = document.createElement('button');
   fab.className = 'tmwx-fab';
   fab.setAttribute('aria-label', 'All tools');
   fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 
-  function open() { document.documentElement.classList.add('tmwx-open'); }
   function close() { document.documentElement.classList.remove('tmwx-open'); }
   fab.addEventListener('click', function () { document.documentElement.classList.toggle('tmwx-open'); });
   scrim.addEventListener('click', close);
@@ -177,6 +209,7 @@
 
   document.body.appendChild(scrim);
   document.body.appendChild(tray);
+  document.body.appendChild(pill);
   document.body.appendChild(fab);
   document.documentElement.classList.add('tmwx-on');
 })();
