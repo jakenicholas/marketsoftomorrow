@@ -182,7 +182,9 @@
     + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
     + '.tmw-ov-history:hover{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(28,28,34,.85)}'
     + '.tmw-ov-history svg{width:15px;height:15px;display:block;flex:0 0 auto}'
-    + '@media(max-width:640px){.tmw-ov-history{right:154px;top:14px;height:34px;padding:0;width:34px;justify-content:center;gap:0}.tmw-ov-history-lbl{display:none}}'
+    /* right:176px (not 154) — the New chat pill ends around 164px from the right
+       edge on mobile, so 154 overlapped it by ~10px. */
+    + '@media(max-width:640px){.tmw-ov-history{right:176px;top:14px;height:34px;padding:0;width:34px;justify-content:center;gap:0}.tmw-ov-history-lbl{display:none}}'
     + '.tmw-ov-histpanel{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;background:#0a0c0a;border-radius:inherit;overflow:hidden}'
     + '.tmw-ov-histpanel.open{display:flex}'
     + '.tmw-ov-histpanel-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto}'
@@ -787,7 +789,9 @@
        lightbox input — the spotlight must look identical on every page. */
     /* Desktop reserves room on the right for the in-bar Deep chip + go arrow. */
     + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:156px;font-size:14px}'
-    + '@media(max-width:640px){.tmw-ov-bar .tmw-dock-search input{padding-right:48px}}'
+    /* Mobile: pill a touch taller than the dock's 42px, placeholder 1pt down. */
+    + '@media(max-width:640px){.tmw-ov-bar .tmw-dock-search input{padding-right:48px;height:48px}'
+    + '.tmw-ov-bar .tmw-dock-search input::placeholder{font-size:13px}}'
     + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%!important;'
     /* Override the dock\'s green focus state -- the overlay is the
        Intelligence surface, so it keeps the purple aesthetic everywhere. */
@@ -1109,7 +1113,7 @@
     + '.tmw-pv-stat .k{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#8b938b;margin-top:3px}'
     + '.tmw-pv-desc{font-size:14.5px;line-height:1.55;color:#d7ddd7;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
     + '.tmw-pv-cta{display:flex;gap:8px;flex-wrap:nowrap;margin-top:2px}'
-    + '.tmw-pv-cta .tmw-pv-btn{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;padding:11px 8px}'
+    + '.tmw-pv-cta .tmw-pv-btn{flex:1 1 0;min-width:0;justify-content:center;text-align:center;white-space:nowrap;padding:13px 12px}'
     + '@media(max-width:430px){.tmw-pv-cta .tmw-pv-btn{font-size:12px;gap:5px}.tmw-pv-cta .tmw-pv-btn svg{width:13px;height:13px}}'
     + '.tmw-pv-btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:11px 16px;border-radius:12px;cursor:pointer;text-decoration:none;transition:transform .15s,background .15s,border-color .15s}'
     + '.tmw-pv-btn.primary{background:#fff;color:#0b0d0b;border:1px solid #fff}'
@@ -1137,11 +1141,15 @@
     + '.tmw-pv-firm.is-plain{color:#C2C9C3;cursor:default}'
     /* ── Native map card ── */
     + '@media(max-width:700px){.tmw-pv-hero{flex-basis:170px;min-height:130px}.tmw-pv-title{font-size:24px}.tmw-pv-body{padding:4px 16px 18px;gap:11px}.tmw-pv-stat .v{font-size:16px}.tmw-pv-desc{-webkit-line-clamp:2}}'
+    /* Inline answer card (results hero) gets the bordered card look at every
+       size. Scoped to .tmw-ov-sec so the fullscreen project view panel stays
+       full-bleed. */
+    + '.tmw-ov-sec .tmw-pv{height:auto;border-radius:20px;overflow:hidden;background:#0f120f;border:1px solid rgba(255,255,255,.08)}'
+    + '.tmw-ov-sec .tmw-pv .tmw-pv-body{padding-top:16px}'
     /* Desktop: the inline answer card goes 2-column — image fills the left
-       half at full card height, content on the right. Scoped to .tmw-ov-sec
-       so the fullscreen project view panel (tall hero already) is untouched. */
+       half at full card height, content on the right. */
     + '@media(min-width:860px){'
-    +   '.tmw-ov-sec .tmw-pv{display:grid;grid-template-columns:1.08fr 1fr;align-items:stretch;border-radius:20px;overflow:hidden;background:#0f120f;border:1px solid rgba(255,255,255,.08)}'
+    +   '.tmw-ov-sec .tmw-pv{display:grid;grid-template-columns:1.08fr 1fr;align-items:stretch}'
     +   '.tmw-ov-sec .tmw-pv .tmw-pv-hero{flex:initial;height:100%;min-height:440px}'
     +   '.tmw-ov-sec .tmw-pv .tmw-pv-hero .scrim{background:linear-gradient(to top,rgba(8,9,8,.72) 0%,rgba(8,9,8,.28) 22%,transparent 48%)}'
     +   '.tmw-ov-sec .tmw-pv .tmw-pv-body{padding:26px 28px;justify-content:center;gap:15px;min-width:0}'
@@ -2489,8 +2497,8 @@
       +   '<h2 class="tmw-pv-title">' + esc(p.Title || '') + '</h2>'
       +   '<div class="tmw-pv-loc">' + esc(_locOf(p) || '') + (type ? ' &middot; ' + esc(type) : '') + '</div>'
       +   spine
-      +   (firms ? '<div class="tmw-pv-firms">' + firms + '</div>' : '')
       +   (desc ? '<p class="tmw-pv-desc">' + esc(desc) + '</p>' : '')
+      +   (firms ? '<div class="tmw-pv-firms">' + firms + '</div>' : '')
       +   '<div class="tmw-pv-cta">'
       +     (hasGeo ? '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</a>' : '')
       +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
