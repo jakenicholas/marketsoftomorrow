@@ -14761,7 +14761,7 @@
         // pages' "See all on the map" buttons (and the dock "Places" results).
         if (cityParam) {
           var nm = decodeURIComponent(cityParam);
-          var feats = window.allProjectFeatures || [];
+          var feats = _tmwAllFeats();
           var hasCity = feats.some(function (p) { return p.properties && p.properties.city === nm; });
           if (hasCity && typeof window.openCityInSidebar === 'function') {
             try { window.openCityInSidebar(nm, null); } catch (e) {}
@@ -21461,6 +21461,10 @@
       // through window.tmw — here each call gets its NATIVE map behavior:
       // search is spatial, open flies + opens the drawer, watch toggles the
       // real favorite. Overrides the journal base contract (journal-dock.js).
+      function _tmwAllFeats() {
+        if (window.allProjectFeatures && window.allProjectFeatures.length) return window.allProjectFeatures;
+        try { return map.getSource('projects')._data.features || []; } catch (_) { return []; }
+      }
       window.tmw = Object.assign(window.tmw || {}, {
         surface: 'map',
         search: function (q) {
@@ -21477,7 +21481,7 @@
         open: function (slug) {
           try {
             var want = String(slug || '').toLowerCase();
-            var feats = window.allProjectFeatures || [];
+            var feats = _tmwAllFeats();
             for (var i = 0; i < feats.length; i++) {
               var f = feats[i];
               if (f && f.properties && projectSlugify(f.properties.title) === want) {
@@ -21493,9 +21497,9 @@
             var title = null;
             if (slug) {
               var want = String(slug).toLowerCase();
-              var feats = window.allProjectFeatures || [];
-              for (var i = 0; i < feats.length; i++) {
-                var f = feats[i];
+              var feats2 = _tmwAllFeats();
+              for (var i = 0; i < feats2.length; i++) {
+                var f = feats2[i];
                 if (f && f.properties && projectSlugify(f.properties.title) === want) { title = f.properties.title; break; }
               }
             } else if (window._currentProjectView) {
