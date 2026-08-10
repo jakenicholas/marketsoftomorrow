@@ -180,6 +180,12 @@ a.tag:hover svg{transform:translateX(2px)}
 .lvl-item{display:flex; flex-direction:column; gap:3px; min-width:0}
 .lvl-item-h{font-size:14.5px; color:var(--white); font-weight:600; line-height:1.35; letter-spacing:-.005em}
 .lvl-item-s{font-size:12.5px; color:var(--mute); line-height:1.45; font-weight:300}
+
+/* Level-1 price: the travel-fee pill (base costs nothing beyond hosting + travel) */
+.lvl-fee-pill{display:inline-flex;align-items:center;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:8px 14px;border-radius:999px;background:rgba(31,223,103,.08);border:1px solid rgba(31,223,103,.4);color:var(--green-soft)}
+.lvl-fee-pill i{font-style:normal;font-weight:500;opacity:.75;margin-left:5px;text-transform:none;letter-spacing:.02em}
+.lvl-foot .lvl-fee-mini{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(31,223,103,.08);border:1px solid rgba(31,223,103,.35);color:var(--green-soft);vertical-align:middle}
+
 .lvl-foot{font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--mute2); padding-top:18px; margin-top:24px; border-top:1px solid var(--hair)}
 @media(max-width:900px){ .lvl-grid{grid-template-columns:1fr} }
 
@@ -607,7 +613,7 @@ a.tag:hover svg{transform:translateX(2px)}
         <div class="lvl-head">
           <span class="lvl-lab">Level 1</span>
           <h3 class="lvl-name">Base Partnership</h3>
-          <div class="lvl-price"><span class="base">Included</span></div>
+          <div class="lvl-price"><span class="lvl-fee-pill">Travel fee <i>(varies)</i></span></div>
         </div>
         <ul class="lvl-list">
           <li><span class="lvl-qty">1</span><span class="lvl-item"><span class="lvl-item-h">Social collab post</span><span class="lvl-item-s">One reel or carousel across our accounts, plus daily stories during the stay</span></span></li>
@@ -616,7 +622,7 @@ a.tag:hover svg{transform:translateX(2px)}
           <li><span class="lvl-qty">5</span><span class="lvl-item"><span class="lvl-item-h">5 hi-res photos</span><span class="lvl-item-s">For social media use</span></span></li>
           <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">Iconic Lists consideration</span><span class="lvl-item-s">Considered for our Iconic Hotels &amp; Restaurants lists</span></span></li>
         </ul>
-        <div class="lvl-foot">Comped stay + possible travel fee</div>
+        <div class="lvl-foot">Comped stay + <span class="lvl-fee-mini">Travel fee (varies)</span></div>
       </article>
 
       <!-- Level 2 -->
