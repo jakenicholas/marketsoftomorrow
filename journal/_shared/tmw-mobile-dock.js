@@ -23,8 +23,26 @@
   /* ---------- helpers ---------- */
   function h1() { var el = document.querySelector('h1'); return el ? el.textContent.trim().slice(0, 80) : document.title.split('·')[0].trim(); }
   function mapSearch() {
-    /* reveal the native map dock (the spatial search) and focus it */
     closeNow();
+    /* MOBILE: the search destination is the map's own discovery drawer with its
+       input focused — every time, from any state. A project modal closes first;
+       an already-open drawer just gets the keyboard. The old floating-pill
+       "mapsearch" mode is DESKTOP-ONLY now: it hides this dock while active,
+       which on mobile read as the action bar randomly disappearing (it came
+       back on the next touch via the exit handler). */
+    if (window.matchMedia('(max-width: 800px)').matches) {
+      try { if (typeof window.closeProjectModal === 'function') window.closeProjectModal(); } catch (e) {}
+      try { if (typeof window.mobileDrawerExpand === 'function') window.mobileDrawerExpand(); } catch (e) {}
+      var minp = document.getElementById('v2SearchInput') || document.getElementById('mobileSearchBar');
+      if (minp) {
+        /* focus synchronously inside the tap gesture so iOS raises the
+           keyboard; re-assert once the drawer's slide settles */
+        try { minp.focus({ preventScroll: true }); } catch (e) { try { minp.focus(); } catch (e2) {} }
+        setTimeout(function () { try { minp.focus(); } catch (e) {} }, 420);
+      }
+      return;
+    }
+    /* desktop: reveal the native map dock (the spatial search) and focus it */
     document.documentElement.classList.add('tmwx-mapsearch');
     var w = document.querySelector('.tmwx-wrap');
     if (w) w.style.display = 'none';
