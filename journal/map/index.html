@@ -4172,6 +4172,9 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    /* breathing room so the last content (CTA row, journal coverage) clears
+       the floating universal dock */
+    padding-bottom: 130px;
   }
   /* Hero image */
   #projectModal .pm-hero {
@@ -11953,9 +11956,8 @@
           setTimeout(function(){ var c = document.getElementById('mapDeepCover'); if (c && !c.hidden){ document.body.classList.remove('map-deeplink-loading'); c.classList.add('fade'); setTimeout(function(){ c.hidden = true; }, 520); } }, 4500);
           return;
         }
-        document.body.classList.add('map-landing');
-        var ml = document.getElementById('mapLanding');
-        if (ml){ ml.hidden = false; ml.classList.add('show'); }
+        // "Where are you looking?" landing RETIRED (2026-08-10, Jake) — boot
+        // straight into the map. Markup + dismiss plumbing kept inert.
       } catch (e) {}
     })();
   </script>
@@ -13131,15 +13133,7 @@
       // runs the exact same select→fly path, which then calls dismissMapLanding()
       // (hooked into openCityInSidebar + showPopup). showMapLanding() is kept
       // for programmatic re-show.
-      function showMapLanding(){
-        var ml = document.getElementById('mapLanding');
-        if (!ml) return;
-        document.body.classList.add('map-landing');
-        ml.hidden = false;
-        requestAnimationFrame(function(){ ml.classList.add('show'); });
-        // No auto-focus: focusing would auto-open the dock's teaching dropdown
-        // mid-screen and clash with the chips. The user clicks the bar to start.
-      }
+      function showMapLanding(){ /* landing retired 2026-08-10 — no-op */ }
       function dismissMapLanding(){
         if (!document.body.classList.contains('map-landing')) return;
         document.body.classList.remove('map-landing');
@@ -21468,15 +21462,10 @@
       window.tmw = Object.assign(window.tmw || {}, {
         surface: 'map',
         search: function (q) {
-          try {
-            document.documentElement.classList.add('tmwx-mapsearch');
-            var w = document.querySelector('.tmwx-wrap'); if (w) w.style.display = 'none';
-            var inp = document.querySelector('.tmw-dock-search input');
-            if (inp) {
-              if (q) { inp.value = q; inp.dispatchEvent(new Event('input', { bubbles: true })); }
-              setTimeout(function () { inp.focus(); }, 60);
-            }
-          } catch (_) {}
+          // Same Onyx overlay as every other surface — ask anything, anywhere.
+          // (The spatial map search lives on the dock's "Search map" tool.)
+          if (window.tmwOpenSearch) { window.tmwOpenSearch(q || ''); return; }
+          if (window.tmwOverlay && window.tmwOverlay.open) window.tmwOverlay.open(q || '');
         },
         open: function (slug) {
           try {

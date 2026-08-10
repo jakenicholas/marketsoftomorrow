@@ -63,7 +63,7 @@
   var I = {
     news: '<path d="M3 5.2A1.2 1.2 0 0 1 4.2 4H10a2 2 0 0 1 2 2 2 2 0 0 1 2-2h5.8A1.2 1.2 0 0 1 21 5.2v12.6a1 1 0 0 1-1 1h-6a2 2 0 0 0-2 2 2 2 0 0 0-2-2H4a1 1 0 0 1-1-1z"/><path d="M12 6v14"/>',
     atlas: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
-    watch: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+    watch: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
     onyx: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
     share: '<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><polyline points="8 6 12 2 16 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
@@ -142,6 +142,7 @@
        the native dock (the map's spatial search) is revealed on demand */
     'html.tmwx-on:not(.tmwx-mapsearch) .tmw-dock{display:none !important}',
     'html.tmwx-on:not(.tmwx-mapsearch) .tmw-dock-ac{display:none !important}',
+    'html.tmwx-mapsearch .tmw-dock > *:not(.tmw-dock-search){display:none !important}',
     'html.tmwx-mapsearch .tmwx-wrap{opacity:0;pointer-events:none}',
 
     '.tmwx-scrim{position:fixed;inset:0;background:rgba(4,4,6,.5);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:9001}',
@@ -217,7 +218,7 @@
 
   var sw = document.createElement('div'); sw.className = 'tmwx-search';
   sw.innerHTML = '<span class="si">' + svg(I.search) + '</span>' +
-    '<input type="search" autocomplete="off" placeholder="' + (IS_MAP ? 'Search the map…' : 'Search projects, firms, places…') + '" aria-label="Search projects, firms, places, brands, and more">';
+    '<input type="search" autocomplete="off" placeholder="Search projects, firms, places…" aria-label="Search projects, firms, places, brands, and more">';
   var sInput = sw.querySelector('input');
   sInput.addEventListener('focus', function () { sInput.blur(); openSearch(''); });
   sw.addEventListener('click', function () { openSearch(''); });
@@ -278,6 +279,17 @@
       if (!document.documentElement.classList.contains('tmwx-mapsearch')) return;
       if (e.target.closest('.tmw-dock') || e.target.closest('.tmw-dock-ac')) return;
       exitMapSearch();
+    }, true);
+    /* focus leaving the native search (result chosen / keyboard closed) also
+       exits — the stuck old-dock-behind-new-dock bug came from missing this */
+    document.addEventListener('focusout', function (e) {
+      if (!document.documentElement.classList.contains('tmwx-mapsearch')) return;
+      if (!e.target.closest || !e.target.closest('.tmw-dock')) return;
+      setTimeout(function () {
+        var a = document.activeElement;
+        if (a && a.closest && (a.closest('.tmw-dock') || a.closest('.tmw-dock-ac'))) return;
+        exitMapSearch();
+      }, 300);
     }, true);
   }
 
