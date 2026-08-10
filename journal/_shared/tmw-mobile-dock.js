@@ -179,7 +179,11 @@
     '.tmwx-pbtn svg{width:20px;height:20px}',
 
     '.tmwx-fab{pointer-events:auto;width:54px;height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;',
-    'border:none;cursor:pointer;color:#0a0a0c;background:rgba(255,255,255,.94);flex:0 0 auto;z-index:9004;',
+    'border:1px solid rgba(255,255,255,.13);cursor:pointer;color:#ECEAE5;background:rgba(9,11,9,.82);',
+    'backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);flex:0 0 auto;z-index:9004;',
+    'transition:background .2s ease,color .2s ease,border-color .2s ease;box-shadow:0 14px 40px rgba(0,0,0,.5)}',
+    // Collapsed (+) matches the dock glass; opening flips it to the white close (✕) chip.
+    'html.tmwx-open .tmwx-fab{color:#0a0a0c;background:rgba(255,255,255,.94);border-color:transparent;',
     'box-shadow:0 14px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5)}',
     '.tmwx-fab svg{width:22px;height:22px;transition:transform .34s cubic-bezier(.34,1.45,.5,1)}',
     'html.tmwx-open .tmwx-fab svg{transform:rotate(45deg)}',
