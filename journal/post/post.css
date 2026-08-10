@@ -166,6 +166,16 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .fav-toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
 .fav-toast.err{border-color:rgba(255,75,75,.5); color:#ffb1b1}
 @media (max-width:560px){.fav-toast{bottom:24px; padding:10px 14px; font-size:11px}}
+/* MOBILE BYLINE — one row. Writer + date scroll horizontally under a dark
+   gradient scrim (same treatment as the journal filter pills) while the
+   action buttons (comment / heart / share) stay pinned right. */
+@media(max-width:700px){
+  .article-hero .byline{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+  .article-hero .byline::-webkit-scrollbar{display:none}
+  .article-hero .byline > span{flex:0 0 auto; white-space:nowrap}
+  .article-hero .byline .share{position:sticky; right:0; flex:0 0 auto; margin-left:auto; background:var(--ink); padding-left:6px}
+  .article-hero .byline .share::before{content:""; position:absolute; right:100%; top:0; bottom:0; width:48px; background:linear-gradient(90deg, rgba(7,8,7,0), var(--ink)); pointer-events:none}
+}
 @media(max-width:560px){
   .article-hero .byline{margin-top:16px; padding-top:14px; gap:10px}
   .article-hero .byline .share .share-ico{width:34px; height:34px}

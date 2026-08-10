@@ -76,7 +76,8 @@
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
     golf: '<path d="M12 18v-15l7 4-7 4"/><path d="M5 21c1.5-1.4 4-2.2 7-2.2s5.5.8 7 2.2"/>',
     hotel: '<path d="M3 21V7l9-4 9 4v14"/><path d="M3 21h18"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M11 21v-4h2v4"/>',
-    dining: '<path d="M5 3v7a2 2 0 0 0 2 2v9"/><path d="M5 3v5M9 3v5M9 3v7"/><path d="M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9"/>'
+    dining: '<path d="M5 3v7a2 2 0 0 0 2 2v9"/><path d="M5 3v5M9 3v5M9 3v7"/><path d="M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9"/>',
+    comment: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'
   };
 
   /* page-aware selected states */
@@ -105,6 +106,7 @@
   } else if (/^\/post\//.test(path)) {
     CTX = { label: 'This story', tools: [
       { ic: 'heart', t: 'Favorite', act: contractWatch('#fav-btn'), cls: 'act' },
+      { ic: 'comment', t: 'Comment', act: proxyClick('#cmt-count-btn') },
       { ic: 'onyx', t: 'Ask Onyx', act: function () { openSearch(h1()); }, cls: 'hero' },
       { ic: 'share', t: 'Share', act: share }
     ] };
