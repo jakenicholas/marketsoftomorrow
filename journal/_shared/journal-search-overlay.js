@@ -714,6 +714,14 @@
     + '.tmw-ov-watch-btn.on .ic-check{display:inline-block}'
     + '.tmw-ov-watch-btn.on{background:rgba(230,197,116,.14);border-color:rgba(230,197,116,.62);color:#f0d68a;box-shadow:0 0 16px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.4)}'
     + '.tmw-ov-watch-btn.on:hover{background:rgba(230,197,116,.2);border-color:rgba(230,197,116,.85);box-shadow:0 0 22px rgba(230,197,116,.7)}'
+    /* Share this answer — neutral outline pill (open to everyone; copies a /?q= deep link). */
+    + '.tmw-ov-share-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#C2C9C3;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;flex:0 0 auto;transition:background .2s,border-color .2s,transform .15s}'
+    + '.tmw-ov-share-btn svg{width:15px;height:15px;flex:0 0 auto}'
+    + '.tmw-ov-share-btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.28);transform:translateY(-1px)}'
+    + '.tmw-ov-share-btn .ic-copied{display:none}'
+    + '.tmw-ov-share-btn.copied{color:#8FE0A8;border-color:rgba(120,220,150,.5);background:rgba(120,220,150,.12)}'
+    + '.tmw-ov-share-btn.copied .ic-share{display:none}'
+    + '.tmw-ov-share-btn.copied .ic-copied{display:inline-block}'
     /* Grounding byline relocated into the feedback row (by relocateBylines): the
        receipts line sits LEFT, Watch/thumbs group RIGHT, on one line (desktop).
        The byline is display:block so it wraps as normal TEXT (not the broken
@@ -1383,6 +1391,11 @@
     +   '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
     +     '<div class="tmw-ov-fb-actions">'
     +       '<span class="tmw-ov-fb-thanks">Noted</span>'
+    +       '<button class="tmw-ov-share-btn" type="button" aria-label="Share this answer" title="Copy a shareable link to this answer">'
+    +         '<svg class="ic-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>'
+    +         '<svg class="ic-copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+    +         '<span class="tmw-ov-share-txt">Share</span>'
+    +       '</button>'
     +       '<button class="tmw-ov-watch-btn" type="button" aria-label="Watch this — get proactive alerts on this">'
     +         '<svg class=\"ic-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9\"/><path d=\"M13.7 21a2 2 0 0 1-3.4 0\"/></svg><svg class=\"ic-check\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6L9 17l-5-5\"/></svg>'
     +         '<span class="tmw-ov-watch-txt">Watch this</span>'
@@ -3701,6 +3714,45 @@
       else if (txt) txt.textContent = 'Watch this';
     }).catch(function(){ if (txt) txt.textContent = 'Watch this'; });
   });
+  // ── Share this answer ──────────────────────────────────────────────
+  // Every answer turn is deep-linkable: the query is the shareable unit
+  // (opening https://www.oftmw.com/?q=<question> re-opens Onyx and re-runs
+  // it through the live pipeline — same mechanism the newsletter's "people
+  // asked Onyx" links use). On mobile we hand it to the native share sheet;
+  // elsewhere we copy the link and flash a "Copied" confirmation. Open to
+  // everyone (no Pro gate) — sharing is top-of-funnel.
+  function _fallbackCopy(text){
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    } catch(_){}
+  }
+  root.addEventListener('click', function(e){
+    var sb = e.target.closest && e.target.closest('.tmw-ov-share-btn');
+    if (!sb) return;
+    e.preventDefault(); e.stopPropagation();
+    var fb = sb.closest('[data-feedback]');
+    var q = ((fb && fb.getAttribute('data-fbq')) || _lastQuery || '').trim();
+    if (!q) return;
+    var url = 'https://www.oftmw.com/?q=' + encodeURIComponent(q);
+    var txt = sb.querySelector('.tmw-ov-share-txt');
+    function flashCopied(){
+      sb.classList.add('copied'); if (txt) txt.textContent = 'Copied';
+      setTimeout(function(){ sb.classList.remove('copied'); if (txt) txt.textContent = 'Share'; }, 2000);
+    }
+    // Native share sheet on touch devices (iOS/Android) — best UX for "send this".
+    var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+    if (isMobile && navigator.share) {
+      navigator.share({ title: 'TMW Intelligence', text: q, url: url }).catch(function(){});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(flashCopied, function(){ _fallbackCopy(url); flashCopied(); });
+    } else { _fallbackCopy(url); flashCopied(); }
+  });
   // Single delegated click handler for the two thumbs buttons. Voting
   // locks both buttons (pointer-events:none) so the user can\'t double-
   // vote on the same query; the chosen rating gets the colored fill,
@@ -5865,7 +5917,9 @@
   var TMW_HASH = '#search';
   function pushHash(){
     try {
-      if (location.hash === TMW_HASH) return;
+      // Already on a search hash (#search or a #search=<query> deep link) — leave it,
+      // so we never clobber a shared query hash or stack a duplicate history entry.
+      if (isSearchHash()) return;
       var url = location.pathname + location.search + TMW_HASH;
       history.pushState({ tmwOv: true }, '', url);
     } catch(_){}
@@ -5887,6 +5941,10 @@
     _savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.style.overflow = 'hidden';
     root.classList.add('open');
+    // Reflect the open spotlight in the URL (#search) so the state is
+    // linkable + the Studio activity feed can tell "reading" from "searching".
+    // No-op when we arrived via a #search / #search=<query> deep link.
+    pushHash();
     // Refresh the PRO / quota badge in the teach card -- and pull the AUTHORITATIVE
     // account-bound remaining from the server (so the gate + counter reflect real
     // usage, not per-device localStorage). sync() refreshes the pill on return.
