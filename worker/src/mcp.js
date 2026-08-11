@@ -23,6 +23,9 @@
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
 import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
+// Studio-admin read bridge: the connector reuses the SAME handler functions the
+// Access-gated admin pages hit, so the numbers can never drift from the Studio.
+import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -974,6 +977,96 @@ const TOOLS = [
       },
       required: ['campaign_id', 'post_id'],
     },
+  },
+
+  // ── Studio admin (read-only) ────────────────────────────────────────────────
+  // Full read parity with the backend admin studio: flows ledger, subscriptions,
+  // members, funnel, placements, galleries, giveaways, intel, social, brain.
+  // Every tool reuses the exact handler its Studio page calls — same numbers.
+  {
+    name: 'list_flows',
+    description: 'The Flows ledger — every income/offer/expense row the Studio Flows page shows: kind (incoming/offer), date, amount, description, party (the client), paid_by, category, status, type, star, notes, expenses, invoice/received dates, location. Optional year filter; response includes the list of years with data. The monthly TMW Pro gross rollup rows are automated — never suggest adding Pro income manually.',
+    inputSchema: { type: 'object', properties: { year: { type: 'integer', description: 'e.g. 2026 — omit for all years' } } },
+  },
+  {
+    name: 'get_pro_income',
+    description: 'Monthly TMW Pro gross income series straight from Stripe charges (the same series the Flows page auto-rolls up). Returns one bucket per month.',
+    inputSchema: { type: 'object', properties: { months: { type: 'integer', description: 'How many months back (default 12, max 24)' } } },
+  },
+  {
+    name: 'list_subscriptions',
+    description: 'Live Memberstack subscription snapshot — paying vs free counts, monthly vs yearly, auto-discovered price tiers with member counts, trialing members. The source of truth behind the Analytics page revenue/MRR tiles.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'list_people',
+    description: 'The member registry (Analytics "People" table): every member with email, name, plan, member number, first/last seen and event counts. Large — use limit/offset and prefer get_member_profile for one person.',
+    inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max members returned (default 100)' }, offset: { type: 'integer' }, q: { type: 'string', description: 'Case-insensitive filter on email/name' } } },
+  },
+  {
+    name: 'get_member_profile',
+    description: 'Everything the Studio knows about one member: live Stripe subscription status (trialing/active/canceled, period end) plus full subscription + invoice history by email; pass member_id too for their Onyx Deep credit status. Use for "what happened with <email>" support questions.',
+    inputSchema: { type: 'object', properties: { email: { type: 'string' }, member_id: { type: 'string', description: 'Memberstack id — adds Deep-credit status' } }, required: ['email'] },
+  },
+  {
+    name: 'get_funnel_stats',
+    description: 'Signup/conversion funnel events bucketed by ISO week (funnel:* event rollup — gate shown, account created, go-pro shown, checkout clicks…). The Analytics conversion view. weeks defaults to 12.',
+    inputSchema: { type: 'object', properties: { weeks: { type: 'integer', description: '1–52, default 12' } } },
+  },
+  {
+    name: 'get_placements',
+    description: 'First-party placement tracking stats — impressions + clicks for banner ads, Partners of Tomorrow, and newsletter creatives (the /track + /r + /px beacons), per placement id. The Studio Placements tab data.',
+    inputSchema: { type: 'object', properties: { days: { type: 'integer', description: 'Window in days' } } },
+  },
+  {
+    name: 'list_galleries',
+    description: 'Client photo galleries (gallery.oftmw.com) — every gallery incl. unlisted/private: slug, title, subtitle, category, location, visibility, PIN-protected flag, image count, timestamps. These are the client-facing deliverable galleries.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'list_gallery_downloads',
+    description: 'The gallery download log — who (email) downloaded from which client gallery, when, from where. Filter by gallery slug or free-text q on email/title.',
+    inputSchema: { type: 'object', properties: { slug: { type: 'string' }, q: { type: 'string' }, limit: { type: 'integer', description: 'Default 200, max 1000' } } },
+  },
+  {
+    name: 'list_giveaways',
+    description: 'Studio giveaways — every configured giveaway with its settings and status (the admin Giveaways page list).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'list_categories',
+    description: 'The canonical journal category list (the Studio Categories tab) — the ONLY place categories are minted. Use to check exact category spelling before writing posts.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_intel_pulse',
+    description: 'Onyx / TMW Intelligence usage stats — query volume, answer coverage, deep-search usage over time (the Intelligence tab "Pulse" view).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_intel_teaching',
+    description: 'The LIVE Onyx teaching state — learned rules + gold exemplars the intel-review loop maintains (the Intelligence tab "Teach" view). Read-only here; edits go through the Studio.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_trending_searches',
+    description: 'Trending Onyx searches (the homepage Live Board "trending" feed) — what members are asking right now.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_markets_followed',
+    description: 'Which Focus Markets members follow — per-market follower counts from market_followed events.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_social_overview',
+    description: 'Social distribution state: the connected social accounts roster (7 accounts × 6 platforms) + follower-count snapshots per account over time (the Studio Followers page).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'list_brain_proposals',
+    description: 'Shared-brain proposals awaiting human review (the /brain/proposed queue) — learning-loop notes captured from edits and routines that Jake approves/rejects in the Brain page.',
+    inputSchema: { type: 'object', properties: {} },
   },
 ];
 
@@ -4486,7 +4579,130 @@ const IMPL = {
       .bind(campaignId, per, Math.floor(Date.now() / 1000), postId).run();
     return { ok: true, campaign_id: campaignId, post_id: postId, income_per_post: per };
   },
+
+  // ── Studio admin (read-only) ──────────────────────────────────────────────
+  // These reuse the EXACT handler each admin page calls (imported from
+  // index.js), so connector numbers can never drift from the Studio. The MCP
+  // layer already authenticated the caller as the Studio admin; handlers that
+  // self-gate get a synthetic request carrying the worker's own admin bearer.
+  async list_flows(args, env) {
+    const u = new URL('https://x/admin/flows' + (args.year ? '?year=' + encodeURIComponent(args.year) : ''));
+    return bridgeJson(await handleAdminFlowsList(env, BRIDGE_ORIGIN, u));
+  },
+  async get_pro_income(args, env) {
+    const u = new URL('https://x/admin/pro-income?months=' + (parseInt(args.months, 10) || 12));
+    return bridgeJson(await handleAdminProIncome(env, BRIDGE_ORIGIN, u));
+  },
+  async list_subscriptions(args, env) {
+    return bridgeJson(await handleSubscriptions(env, BRIDGE_ORIGIN, new URL('https://x/subscriptions')));
+  },
+  async list_people(args, env) {
+    const data = await bridgeJson(await handlePeople(env, BRIDGE_ORIGIN, new URL('https://x/people')));
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    const q = String(args.q || '').trim().toLowerCase();
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 100, 1), 1000);
+    const offset = Math.max(parseInt(args.offset, 10) || 0, 0);
+    const filtered = q ? rows.filter((r) => (String(r.email || '') + ' ' + String(r.member_name || r.name || '')).toLowerCase().includes(q)) : rows;
+    return { total: filtered.length, offset, limit, rows: filtered.slice(offset, offset + limit) };
+  },
+  async get_member_profile(args, env) {
+    const email = String(args.email || '').trim().toLowerCase();
+    if (!email) throw new Error('email is required');
+    const out = { email };
+    try {
+      out.subscription = await bridgeJson(await handleSubStatus(bridgeReq(env, '/sub-status?email=' + encodeURIComponent(email)), env, BRIDGE_ORIGIN, new URL('https://x/sub-status?email=' + encodeURIComponent(email))));
+    } catch (e) { out.subscription_error = String(e.message || e); }
+    try {
+      out.history = await bridgeJson(await handleAdminMemberHistory(bridgeReq(env, '/admin/member-history?email=' + encodeURIComponent(email)), env, BRIDGE_ORIGIN, new URL('https://x/admin/member-history?email=' + encodeURIComponent(email))));
+    } catch (e) { out.history_error = String(e.message || e); }
+    const member = String(args.member_id || '').trim();
+    if (member) {
+      try {
+        out.deep_credits = await bridgeJson(await handleAdminDeepCredits(bridgeReq(env, '/admin/deep-credits?member_id=' + encodeURIComponent(member)), env, BRIDGE_ORIGIN));
+      } catch (e) { out.deep_credits_error = String(e.message || e); }
+    }
+    return out;
+  },
+  async get_funnel_stats(args, env) {
+    const u = new URL('https://x/funnel-stats?weeks=' + (parseInt(args.weeks, 10) || 12));
+    return bridgeJson(await handleFunnelStats(env, BRIDGE_ORIGIN, u));
+  },
+  async get_placements(args, env) {
+    const qs = args.days ? '?days=' + encodeURIComponent(parseInt(args.days, 10)) : '';
+    return bridgeJson(await handlePlacementStats(bridgeReq(env, '/placements' + qs), env, BRIDGE_ORIGIN));
+  },
+  async list_galleries(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const r = await env.DB.prepare(`
+      SELECT g.slug, g.title, g.subtitle, g.category, g.location, g.visibility,
+             CASE WHEN g.pin_hash IS NULL OR g.pin_hash = '' THEN 0 ELSE 1 END AS pin_protected,
+             g.created_at, g.updated_at,
+             (SELECT COUNT(*) FROM gallery_images gi WHERE gi.gallery_slug = g.slug) AS image_count
+      FROM galleries g ORDER BY g.updated_at DESC`).all();
+    return { galleries: r.results || [] };
+  },
+  async list_gallery_downloads(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim();
+    const q = String(args.q || '').trim();
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 200, 1), 1000);
+    const where = []; const params = [];
+    if (slug) { where.push(`gallery_slug = ?${params.length + 1}`); params.push(slug); }
+    if (q)    { where.push(`(email LIKE ?${params.length + 1} OR gallery_title LIKE ?${params.length + 1})`); params.push('%' + q + '%'); }
+    const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    const total = await env.DB.prepare(`SELECT COUNT(*) c FROM gallery_downloads ${whereSql}`).bind(...params).first();
+    const rows = await env.DB.prepare(`SELECT id, email, gallery_slug, gallery_title, created_at, country FROM gallery_downloads ${whereSql} ORDER BY created_at DESC LIMIT ${limit}`).bind(...params).all();
+    return { items: rows.results || [], total: total ? total.c : 0 };
+  },
+  async list_giveaways(args, env) {
+    return bridgeJson(await handleAdminGiveawaysList(env, BRIDGE_ORIGIN));
+  },
+  async list_categories(args, env) {
+    return bridgeJson(await handleAdminCategories(bridgeReq(env, '/admin/categories'), env, BRIDGE_ORIGIN));
+  },
+  async get_intel_pulse(args, env) {
+    return bridgeJson(await handleIntelStats(bridgeReq(env, '/intel-stats'), env, BRIDGE_ORIGIN));
+  },
+  async get_intel_teaching(args, env) {
+    const out = {};
+    try { out.rules = await bridgeJson(await handleIntelRules(bridgeReq(env, '/intel-rules'), env, BRIDGE_ORIGIN)); }
+    catch (e) { out.rules_error = String(e.message || e); }
+    try { out.exemplars = await bridgeJson(await handleIntelExemplars(bridgeReq(env, '/intel-exemplars'), env, BRIDGE_ORIGIN)); }
+    catch (e) { out.exemplars_error = String(e.message || e); }
+    return out;
+  },
+  async get_trending_searches(args, env) {
+    return bridgeJson(await handleTrendingSearches(env, BRIDGE_ORIGIN));
+  },
+  async get_markets_followed(args, env) {
+    return bridgeJson(await handleMarketsFollowed(bridgeReq(env, '/admin/markets-followed'), env, BRIDGE_ORIGIN));
+  },
+  async get_social_overview(args, env) {
+    const out = {};
+    try { out.accounts = await bridgeJson(await handleSocialAccountsList(bridgeReq(env, '/social-accounts'), env, BRIDGE_ORIGIN)); }
+    catch (e) { out.accounts_error = String(e.message || e); }
+    try { out.followers = await bridgeJson(await handleFollowersGet(bridgeReq(env, '/followers'), env, BRIDGE_ORIGIN)); }
+    catch (e) { out.followers_error = String(e.message || e); }
+    return out;
+  },
+  async list_brain_proposals(args, env) {
+    return bridgeJson(await handleBrainProposed(bridgeReq(env, '/brain/proposed'), env, BRIDGE_ORIGIN));
+  },
 };
+
+// ── Studio-admin bridge helpers ─────────────────────────────────────────────
+const BRIDGE_ORIGIN = 'https://www.oftmw.com';
+// Synthetic GET carrying the worker's own admin bearer, so self-gating
+// handlers (requireAdminToken) accept the already-authenticated MCP caller.
+function bridgeReq(env, path) {
+  return new Request('https://tmw.jake-ab7.workers.dev' + path, { headers: { Authorization: 'Bearer ' + (env.ADMIN_TOKEN || '') } });
+}
+async function bridgeJson(resp) {
+  let data = null;
+  try { data = await resp.json(); } catch (_) {}
+  if (!resp.ok) throw new Error('admin read failed (HTTP ' + resp.status + ')' + (data && data.error ? ': ' + data.error : ''));
+  return data;
+}
 
 function mcpCampaignIncomePerPost(c) {
   if (!c) return null;

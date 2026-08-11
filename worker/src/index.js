@@ -853,7 +853,7 @@ async function handleTopazUpscale(request, env, origin, url) {
 // Returns rich per-member stats (sessions, active_days) computed from the
 // raw events table. Cheap at low volume; if rows ever exceed ~10k we'd
 // move sessions/active_days to a precomputed table.
-async function handlePeople(env, origin, url) {
+export async function handlePeople(env, origin, url) {
   // Self-heal the registry: drop any non-Memberstack rows (system:* telemetry,
   // anon, bots) that were holding founding numbers, so this view never shows a
   // fake member with a seat.
@@ -1012,7 +1012,7 @@ async function handleStats(env, origin) {
 // GET /trending-searches — the top Onyx search queries in the last 7 days, for
 // the homepage "Trending Onyx searches" strip. Public + edge-cached 30 min;
 // anonymized (query text + count only), excludes the system routines + junk.
-async function handleTrendingSearches(env, origin) {
+export async function handleTrendingSearches(env, origin) {
   if (!env.DB) return json({ searches: [] }, {}, env, origin);
   const since = Math.floor(Date.now() / 1000) - 7 * 86400;
   const out = [];
@@ -1256,7 +1256,7 @@ async function findSubByEmail(env, email) {
 }
 // GET /sub-status?email= — read-only subscription state, used by the account
 // page to show the "trial cancelled" banner. Returns a member's OWN status.
-async function handleSubStatus(req, env, origin, url) {
+export async function handleSubStatus(req, env, origin, url) {
   if (!env.STRIPE_SECRET_KEY) return json({ found: false, configured: false }, {}, env, origin);
   const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
   if (!email) return json({ found: false }, {}, env, origin);
@@ -1613,7 +1613,7 @@ async function handleAnswerWeb(req, env, origin) {
   return reply(bodyStr);
 }
 
-async function handleAdminMemberHistory(req, env, origin, url) {
+export async function handleAdminMemberHistory(req, env, origin, url) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.STRIPE_SECRET_KEY) return json({ configured: false, subs: [], invoices: [] }, {}, env, origin);
   const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
@@ -1888,7 +1888,7 @@ async function handleDesignFinalLearn(req, env, origin) {
 // POST /admin/deep-credits { member_id, credits?, unlimited? } → grant extra deep
 // credits and/or flip the unlimited flag (owner + testers). Admin-gated. Mirrors
 // the cancel-subscription control on the member card.
-async function handleAdminDeepCredits(req, env, origin) {
+export async function handleAdminDeepCredits(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   if (req.method === 'GET') {
@@ -2216,7 +2216,7 @@ async function maybeSnapshotSubs(env) {
 // /event beacons — it's pulled live from Stripe `/subscriptions` so we
 // can show historical Pro upgrades even before the beacons captured
 // anything. start_date (sub creation) is the "became Pro" timestamp.
-async function handleFunnelStats(env, origin, url) {
+export async function handleFunnelStats(env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   const weeks = Math.min(Math.max(parseInt(url.searchParams.get('weeks') || '12', 10), 1), 52);
   const windowSec = weeks * 7 * 86400;
@@ -2329,7 +2329,7 @@ async function handleFunnelStats(env, origin, url) {
   }, {}, env, origin);
 }
 
-async function handleSubscriptions(env, origin, url) {
+export async function handleSubscriptions(env, origin, url) {
   if (!env.MEMBERSTACK_SECRET_KEY) {
     return json({ configured: false, reason: 'MEMBERSTACK_SECRET_KEY not set' }, {}, env, origin);
   }
@@ -4335,7 +4335,7 @@ async function handleTagFeedback(req, env, origin) {
 // GET /admin/categories — every category with its post count (membership) and
 // how many posts have it as their MAIN category. Powers the Studio's category
 // manager. Admin-gated (exposes the full corpus).
-async function handleAdminCategories(req, env, origin) {
+export async function handleAdminCategories(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   const rows = (await env.DB.prepare('SELECT categories, main_category FROM posts').all()).results || [];
   const count = {}, mainCount = {};
@@ -7096,7 +7096,7 @@ async function ensureSocialAccountsTable(env) {
     }
   }
 }
-async function handleSocialAccountsList(req, env, origin) {
+export async function handleSocialAccountsList(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   await ensureSocialAccountsTable(env);
@@ -7413,7 +7413,7 @@ function computeFollowers(stored) {
   }
   return { markets, umbrella, growth };
 }
-async function handleFollowersGet(req, env, origin) {
+export async function handleFollowersGet(req, env, origin) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   await ensureFollowersCacheTable(env);
   const row = await env.DB.prepare(`SELECT data, updated_at FROM followers_cache WHERE id='live'`).first();
@@ -11641,7 +11641,7 @@ async function handleBrainGarden(req, env, origin) {
 // GET /brain/proposed — the review queue of learnings captured from human edits,
 // feedback, and routine critique (events 'brain_proposed'), minus any already
 // approved/dismissed. Surfaced in the Studio Teach tab for one-click approval.
-async function handleBrainProposed(req, env, origin) {
+export async function handleBrainProposed(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
@@ -12349,7 +12349,7 @@ async function handleAdvertiserToggle(req, env, origin) {
   }
 }
 
-async function handlePlacementStats(req, env, origin) {
+export async function handlePlacementStats(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ totals: [], series: {} }, {}, env, origin);
   const url = new URL(req.url);
@@ -14030,7 +14030,7 @@ async function handleSmartAnswer(request, env, origin) {
 // intel-review routine that critiques sufficiency and learns. Admin-only.
 // /intel-stats — adoption rollup from the events table (search + intel_query),
 // excluding the system routines. Powers the Intelligence tab's Adoption cards.
-async function handleIntelStats(req, env, origin) {
+export async function handleIntelStats(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   const now = Math.floor(Date.now() / 1000), d7 = now - 7 * 86400, d30 = now - 30 * 86400;
@@ -14181,7 +14181,7 @@ async function handleIntelAnswers(env, origin, url) {
 // /intel-rules — GET the learned editorial rules injected into the smart-answer
 // prompt; POST { rules:[..], note } replaces them (the nightly intel-review
 // routine writes here). GET is admin-gated via ADMIN_READ_PATHS; POST gates here.
-async function handleIntelRules(request, env, origin) {
+export async function handleIntelRules(request, env, origin) {
   if (request.method === 'POST') {
     const denied = await requireAdminToken(request, env, origin);
     if (denied) return denied;
@@ -14246,7 +14246,7 @@ async function handleLenderMap(request, env, origin) {
 // guides into the smart-answer prompt; POST { exemplars:[{query,answer}], note }
 // replaces them (the intel-review routine writes here). GET admin-gated via
 // ADMIN_READ_PATHS; POST gates here.
-async function handleIntelExemplars(request, env, origin) {
+export async function handleIntelExemplars(request, env, origin) {
   if (request.method === 'POST') {
     const denied = await requireAdminToken(request, env, origin);
     if (denied) return denied;
@@ -14541,7 +14541,7 @@ body{margin:0;min-height:100vh;display:flex;justify-content:center;padding:24px;
 // client fires market_followed on follow but there's no market_unfollowed
 // event), so this is "members who have followed each market," not a net-current
 // count. Powers the analytics "Members by Market" breakdown.
-async function handleMarketsFollowed(req, env, origin) {
+export async function handleMarketsFollowed(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
@@ -14966,7 +14966,7 @@ async function handleGiveawayTrack(request, env, origin) {
 }
 
 // ── Admin giveaway management (token-gated) ──
-async function handleAdminGiveawaysList(env, origin) {
+export async function handleAdminGiveawaysList(env, origin) {
   try {
     await ensureGiveawayTables(env);
     const rs = await env.DB.prepare(
@@ -15100,7 +15100,7 @@ function flowRow(r) {
   };
 }
 // GET /admin/flows?year=2026 → { entries, years }
-async function handleAdminFlowsList(env, origin, url) {
+export async function handleAdminFlowsList(env, origin, url) {
   try {
     await ensureFlowsTable(env);
     const year = parseInt(url.searchParams.get('year'), 10) || null;
@@ -15228,7 +15228,7 @@ async function maybeRollupProIncome(env) {
 }
 // GET /admin/pro-income?months=12 — monthly gross series ending with the
 // current month (marked mtd). One Stripe sweep, bucketed by month.
-async function handleAdminProIncome(env, origin, url) {
+export async function handleAdminProIncome(env, origin, url) {
   if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe not configured' }, { status: 500 }, env, origin);
   try {
     const months = Math.min(24, Math.max(1, parseInt(url.searchParams.get('months'), 10) || 12));
