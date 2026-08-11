@@ -37,8 +37,10 @@
   .flap.space{background:transparent;border-color:transparent}
   .flap.done{color:var(--purple-soft);text-shadow:0 0 22px rgba(167,139,250,.5);border-color:rgba(167,139,250,.4)}
   .flap.spin{color:var(--mute)}
-  .board-sub{margin-top:26px;font:600 10.5px 'JetBrains Mono';letter-spacing:.34em;color:var(--mute);text-transform:uppercase}
-  .board-sub b{color:var(--green)}
+  .board-bar{width:min(380px,58vw);height:2px;background:rgba(255,255,255,.09);margin:30px auto 0;border-radius:2px;overflow:hidden}
+  .board-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--purple-soft));box-shadow:0 0 14px rgba(167,139,250,.7);animation:boardBarGo 2s .2s ease forwards}
+  @keyframes boardBarGo{to{width:100%}}
+  .board-sub{margin-top:16px;font:600 10.5px 'JetBrains Mono';letter-spacing:.34em;color:var(--mute);text-transform:uppercase}
 
   /* ── B · EDITORIAL SERIF RISE ── */
   .edit{ text-align:center }
@@ -106,7 +108,8 @@
     <div class="flaprow" data-word="THE"></div>
     <div class="flaprow" data-word="FUTURE"></div>
     <div class="flaprow" data-word="IS&nbsp;HERE"></div>
-    <div class="board-sub">Now boarding &middot; <b>oftmw.com</b></div>
+    <div class="board-bar"><i></i></div>
+    <div class="board-sub">Loading your experience</div>
   </div></div>
 </section>
 
@@ -172,6 +175,8 @@
 /* A · split-flap */
 function runFlaps(root){
   var GLYPHS='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var bar=root.querySelector('.board-bar i');
+  if(bar){ bar.style.animation='none'; void bar.offsetHeight; bar.style.animation=''; }
   root.querySelectorAll('.flaprow').forEach(function(row,ri){
     var word=row.getAttribute('data-word').replace('&nbsp;',' ');
     row.innerHTML='';

@@ -1,15 +1,23 @@
-/* tmw-loader.js — the between-pages loading screen.
-   Dark-gray full-screen veil with the "Future is Here" mark: the logo is a
-   CSS mask over a white base, and a purple "water" layer with two drifting
-   wave crests rises inside it, so the letters fill white → purple like a cup.
+/* tmw-loader.js — the between-pages loading screen ("Departure Board").
+   Site-black veil with the passport's faint market-code field; THE / FUTURE /
+   IS HERE spelled out on airport split-flap tiles that spin and settle with a
+   purple glow, the Terminal's purple progress hairline beneath, and a
+   "Loading your experience" caption.
 
-   Shows the moment a same-origin navigation click happens (so it covers the
-   unload/response wait) and never on the destination page. Guards:
-   - bubble-phase listener that respects e.defaultPrevented (overlay/JS links
-     never trigger it), modifier/middle clicks, target=_blank, download,
-     mailto/tel, same-page #hashes, and [data-no-loader]
+   Triggers:
+   - every qualifying same-origin <a> click (intercepted, veil holds the full
+     2s fill, then navigates)
+   - window.tmwLoader.go(url) — the SAME hold-then-navigate for programmatic
+     redirects (the pinned action dock routes through this; any other JS
+     `location.href` can too)
+   Guards:
+   - respects e.defaultPrevented (overlay/JS-handled links never trigger it),
+     modifier/middle clicks, target=_blank, download, mailto/tel, same-page
+     #hashes, and [data-no-loader]
    - pageshow ALWAYS hides it (bfcache restores would otherwise resurrect it)
-   - a 5s failsafe hides it if the navigation never actually happens
+   - a 6s failsafe hides it if no navigation was actually initiated
+   - reduced-motion: tiles render settled instantly and navigation is NOT
+     delayed
    - no CSS transitions anywhere (the GL map stalls them); animations only
    Include once per page (journal-chrome.js loads it site-wide). */
 (function () {
@@ -19,21 +27,21 @@
 
   var css = [
     '.tmwl{position:fixed;inset:0;z-index:99990;background:#070807;display:none;align-items:center;justify-content:center}',
-    /* the passport's faint market-code field, dropped behind the mark */
-    '.tmwl-codes{position:absolute;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;font-family:\'JetBrains Mono\',ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.045)}',
     '.tmwl.on{display:flex}',
-    '.tmwl-logo{position:relative;z-index:1;width:min(150px,36vw);aspect-ratio:382.2/419;background:#fff;overflow:hidden;',
-    '-webkit-mask:url(/_shared/futureishere.svg) center/contain no-repeat;mask:url(/_shared/futureishere.svg) center/contain no-repeat}',
-    /* the rising water — loops like the cup refilling */
-    '.tmwl-water{position:absolute;left:0;right:0;bottom:0;height:0;background:#A78BFA;animation:tmwlRise 1.9s ease-in-out forwards}',
-    /* two drifting crests riding the waterline (only visible inside the mask) */
-    '.tmwl-wave{position:absolute;bottom:100%;left:0;width:200%;height:12px;background-repeat:repeat-x;background-size:96px 12px;animation:tmwlDrift 1.15s linear infinite}',
-    '.tmwl-wave.w1{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 96 12%27%3E%3Cpath d=%27M0 12V7C12 7 12 2 24 2s12 5 24 5 12-5 24-5 12 5 24 5v5z%27 fill=%27%23A78BFA%27/%3E%3C/svg%3E")}',
-    '.tmwl-wave.w2{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 96 12%27%3E%3Cpath d=%27M0 12V6C16 6 16 10 32 10S48 4 64 4s16 6 32 6v2z%27 fill=%27%23C4B5FD%27 fill-opacity=%27.55%27/%3E%3C/svg%3E")',
-    ';animation-duration:1.7s;animation-direction:reverse;height:10px}',
-    '@keyframes tmwlRise{0%{height:4%}70%{height:92%}100%{height:104%}}',
-    '@keyframes tmwlDrift{to{transform:translateX(-96px)}}',
-    '@media(prefers-reduced-motion:reduce){.tmwl-water{animation:none;height:55%}.tmwl-wave{animation:none}}'
+    /* the passport's faint market-code field, dropped behind the board */
+    '.tmwl-codes{position:absolute;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;font-family:\'JetBrains Mono\',ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.045)}',
+    '.tmwl-board{position:relative;z-index:1;display:flex;flex-direction:column;gap:12px;align-items:center}',
+    '.tmwl-row{display:flex;gap:6px}',
+    '.tmwl-flap{width:clamp(30px,4.4vw,54px);height:clamp(42px,6.1vw,74px);border-radius:7px;background:linear-gradient(180deg,#151517 48%,#0e0e10 52%);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font:700 clamp(19px,2.9vw,35px) \'JetBrains Mono\',ui-monospace,Menlo,monospace;color:#9AA39C;position:relative;overflow:hidden}',
+    '.tmwl-flap::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.55)}',
+    '.tmwl-flap.space{background:transparent;border-color:transparent}',
+    '.tmwl-flap.done{color:#C4B5FD;text-shadow:0 0 22px rgba(167,139,250,.5);border-color:rgba(167,139,250,.4)}',
+    /* the Terminal's progress hairline */
+    '.tmwl-bar{width:min(380px,58vw);height:2px;background:rgba(255,255,255,.09);margin-top:20px;border-radius:2px;overflow:hidden}',
+    '.tmwl-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#A78BFA,#C4B5FD);box-shadow:0 0 14px rgba(167,139,250,.7);animation:tmwlBar 1.9s ease forwards}',
+    '@keyframes tmwlBar{to{width:100%}}',
+    '.tmwl-sub{margin-top:15px;font:600 10.5px \'JetBrains Mono\',ui-monospace,Menlo,monospace;letter-spacing:.34em;color:#9AA39C;text-transform:uppercase}',
+    '@media(prefers-reduced-motion:reduce){.tmwl-bar i{animation:none;width:100%}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = css;
   document.head.appendChild(st);
@@ -47,28 +55,75 @@
     return out;
   })();
 
+  var WORDS = ['THE', 'FUTURE', 'IS HERE'];
   var el = document.createElement('div');
   el.className = 'tmwl';
   el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = '<pre class="tmwl-codes"></pre><div class="tmwl-logo"><div class="tmwl-water"><div class="tmwl-wave w1"></div><div class="tmwl-wave w2"></div></div></div>';
+  el.innerHTML = '<pre class="tmwl-codes"></pre>' +
+    '<div class="tmwl-board">' +
+      WORDS.map(function(){ return '<div class="tmwl-row"></div>'; }).join('') +
+      '<div class="tmwl-bar"><i></i></div>' +
+      '<div class="tmwl-sub">Loading your experience</div>' +
+    '</div>';
   el.querySelector('.tmwl-codes').textContent = codeField;
   function mount(){ if (!el.parentNode && document.body) document.body.appendChild(el); }
   if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+
+  var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var flapTimers = [];
+  function reduced(){ try { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } }
+  function runFlaps(){
+    flapTimers.forEach(function (t) { clearInterval(t.iv); clearTimeout(t.to); });
+    flapTimers = [];
+    var still = reduced();
+    var rows = el.querySelectorAll('.tmwl-row');
+    WORDS.forEach(function (word, ri) {
+      var row = rows[ri]; if (!row) return;
+      row.innerHTML = '';
+      word.split('').forEach(function (ch, i) {
+        var f = document.createElement('div');
+        f.className = 'tmwl-flap' + (ch === ' ' ? ' space' : '');
+        row.appendChild(f);
+        if (ch === ' ') return;
+        if (still) { f.textContent = ch; f.classList.add('done'); return; }
+        f.textContent = GLYPHS[Math.floor(Math.random() * 26)];
+        var iv = setInterval(function () { f.textContent = GLYPHS[Math.floor(Math.random() * 26)]; }, 55);
+        var to = setTimeout(function () { clearInterval(iv); f.textContent = ch; f.classList.add('done'); },
+          420 + ri * 250 + i * 120 + Math.random() * 150);
+        flapTimers.push({ iv: iv, to: to });
+      });
+    });
+    var bar = el.querySelector('.tmwl-bar i');
+    if (bar) { bar.style.animation = 'none'; void bar.offsetHeight; bar.style.animation = ''; }
+  }
 
   var hideTimer = null;
   var navigated = false;
   function show(){
     mount();
-    // restart the fill animation from empty on every show
-    var w = el.querySelector('.tmwl-water');
-    if (w) { w.style.animation = 'none'; void w.offsetHeight; w.style.animation = ''; }
+    runFlaps();
     el.classList.add('on');
     clearTimeout(hideTimer);
-    // failsafe: a click that never became a navigation must not trap the page
+    // failsafe: a show that never became a navigation must not trap the page
     hideTimer = setTimeout(function () { if (!navigated) hide(); }, 6000);
   }
-  function hide(){ clearTimeout(hideTimer); el.classList.remove('on'); }
-  window.tmwLoader = { show: show, hide: hide };
+  function hide(){
+    clearTimeout(hideTimer);
+    flapTimers.forEach(function (t) { clearInterval(t.iv); clearTimeout(t.to); });
+    flapTimers = [];
+    el.classList.remove('on');
+  }
+  // Programmatic full-page redirects (the dock, any JS nav) come through here:
+  // same show → 2s board settle → navigate, exactly like link clicks.
+  // Reduced-motion navigates immediately.
+  function go(url){
+    if (!url) return;
+    if (reduced()) { location.href = url; return; }
+    show();
+    navigated = false;
+    setTimeout(function () { navigated = true; location.href = url; }, 2000);
+  }
+  window.tmwLoader = { show: show, hide: hide, go: go };
 
   // bfcache restore (Safari/Chrome back-forward) resurrects the old page WITH
   // the veil up — always drop it when a page becomes visible again.
@@ -88,14 +143,9 @@
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return;
     if (u.origin !== location.origin) return;
     if (u.pathname === location.pathname && u.search === location.search && u.hash) return;  // same-page anchor
-    // Reduced-motion users skip the held animation entirely — navigate natively.
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { show(); return; }
-    // Hold the veil for the FULL 2s fill, then navigate (Jake wants the cup
-    // to finish filling before the page swaps).
+    // Reduced-motion users navigate natively (no held animation).
+    if (reduced()) return;
     e.preventDefault();
-    show();
-    var dest = u.href;
-    navigated = false;
-    setTimeout(function () { navigated = true; location.href = dest; }, 2000);
+    go(u.href);
   });
 })();

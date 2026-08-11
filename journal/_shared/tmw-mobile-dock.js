@@ -79,7 +79,10 @@
     if (navigator.share) { navigator.share(data).catch(function () {}); return; }
     if (navigator.clipboard) navigator.clipboard.writeText(location.href).catch(function () {});
   }
-  function go(url) { return function () { location.href = url; }; }
+  // Full-page redirects route through the loading veil (Departure Board) so
+  // the dock's tools trigger it exactly like link clicks do.
+  function nav(url) { if (window.tmwLoader && window.tmwLoader.go) window.tmwLoader.go(url); else location.href = url; }
+  function go(url) { return function () { closeNow(); nav(url); }; }
   function proxyClick(sel) { return function () { closeNow(); var b = document.querySelector(sel); if (b) b.click(); }; }
 
   /* icons — News + Atlas use the SAME svgs as the desktop surface toggle */
@@ -125,7 +128,7 @@
       { ic: 'compare', t: 'Compare', act: function () {
         closeNow();
         if (window.comparisons && typeof window.comparisons.openBuilder === 'function') { window.comparisons.openBuilder(); return; }
-        try { var u = new URL(location.href); u.searchParams.set('view', 'compare'); location.href = u.toString(); } catch (e) {}
+        try { var u = new URL(location.href); u.searchParams.set('view', 'compare'); nav(u.toString()); } catch (e) {}
       } },
       { ic: 'share', t: 'Share', act: share }
     ] };
