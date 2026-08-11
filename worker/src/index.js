@@ -4801,14 +4801,14 @@ function decodeXml(s) {
 // ---------------------------------------------------------------------------
 
 // GET /post-categories — the category master for the studio multi-select.
-// Union of the Wix blog taxonomy + every category already used on a post, so
-// "add new category" (saved on a post) shows up here on the next load.
+// LIVE categories only: exactly what's on posts right now (categories +
+// main_category), so a category deleted in the Categories manager disappears
+// here too. The dead Wix blog taxonomy is deliberately NOT unioned in — it
+// kept resurrecting retired tags ("X of Tomorrow", one-off places) forever.
+// "Add new category" still works: a new one saved on a post shows up on the
+// next load because it's now IN a post.
 async function handlePostCategories(env, origin) {
   const set = new Set();
-  try {
-    const m = await fetchWixCategoryMap(env);
-    for (const v of Object.values(m)) if (v) set.add(v);
-  } catch (e) {}
   try {
     const rows = await env.DB.prepare(
       "SELECT DISTINCT categories FROM posts WHERE categories IS NOT NULL AND categories != '' AND categories != '[]' LIMIT 3000"
