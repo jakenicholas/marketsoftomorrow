@@ -74,7 +74,9 @@
       '.tmww .bg{position:absolute;inset:0}',
       '.tmww .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}',
       '.tmww .bg img.on{opacity:1}',
-      '.tmww .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(5,6,5,.96) 0%,rgba(5,6,5,.72) 34%,rgba(5,6,5,.28) 62%,rgba(5,6,5,.48) 100%)}',
+      /* Center-weighted vignette: darkest band behind the member-number text,
+         fading to transparent at the top and bottom edges (Jake 2026-08-11). */
+      '.tmww .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,6,5,0) 0%,rgba(5,6,5,.6) 26%,rgba(5,6,5,.92) 44%,rgba(5,6,5,.92) 58%,rgba(5,6,5,.6) 76%,rgba(5,6,5,0) 100%)}',
       '.tmww .skip{position:absolute;top:calc(16px + env(safe-area-inset-top));right:18px;z-index:6;font:600 11px/1 "Inter",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(8,8,8,.4);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:10px 16px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}',
       '.tmww .skip:hover{color:#fff}',
       '.tmww .scr{position:absolute;inset:0;z-index:2;display:none}',
