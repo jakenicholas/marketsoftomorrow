@@ -124,6 +124,15 @@
     el.classList.remove('on');
     var stub = document.getElementById('tmwl-stub');
     if (stub && stub.parentNode) stub.parentNode.removeChild(stub);
+    // The veil held the page (scroll locked) while the mobile browser toolbar
+    // settled, so viewport-sized components may have captured a too-short height
+    // during the hold — e.g. the map's --app-height (= visualViewport.height),
+    // which left a black bar under the map after the veil lifted (Jake, mobile,
+    // 2026-08-11). Nudge a recompute now and once more after the toolbar settles.
+    try {
+      window.dispatchEvent(new Event('resize'));
+      setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (_) {} }, 300);
+    } catch (_) {}
   }
   // Programmatic full-page redirects (the dock, any JS nav) come through here.
   // TRUE loading screen: stamp the handoff, show the board, navigate almost

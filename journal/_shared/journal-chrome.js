@@ -713,7 +713,7 @@
 (function () {
   if (window.__tmwLoader || document.querySelector('script[data-tmw-loader]')) return;
   var s = document.createElement('script');
-  s.src = '/_shared/tmw-loader.js?v=20260811g';
+  s.src = '/_shared/tmw-loader.js?v=20260811h';
   s.defer = true;
   s.setAttribute('data-tmw-loader', '1');
   document.head.appendChild(s);
