@@ -3228,6 +3228,88 @@ async function handleReviseDraft(req, env, origin) {
     unmatched: (edits.length > 0 && applied === 0) || undefined }, {}, env, origin);
 }
 
+// POST /admin/design-chat — the article Polish chat, ported to the carousel
+// Design editor. Same brain, same conversational contract, but the edit
+// surface is discrete slide text boxes + the Instagram caption, so edits are
+// whole-box replacements addressed by (slide, index) — no find/replace
+// ambiguity. Questions get a reply only; caption rewrites return the full new
+// caption. Nothing persists server-side: the editor applies edits into its
+// doc and the normal Save/commit path (incl. design-learn) takes over.
+async function handleDesignChat(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  let instruction = String(b.instruction || '').trim().slice(0, 2000);
+  const context = String(b.context || '').trim().slice(0, 8000);
+  const title = String(b.title || '').slice(0, 300);
+  const caption = String(b.caption || '').slice(0, 3000);
+  const slides = Array.isArray(b.slides) ? b.slides.slice(0, 12).map((s, si) => ({
+    n: si + 1,
+    texts: (Array.isArray(s.texts) ? s.texts : []).slice(0, 8).map((t, ti) => ({
+      index: ti, role: String((t && t.role) || ''), content: String((t && t.content) || '').slice(0, 400),
+    })),
+  })) : [];
+  const target = b.target && typeof b.target === 'object' ? b.target : null;
+  if (!instruction && !target) return json({ error: 'instruction required' }, { status: 400 }, env, origin);
+  if (!instruction) instruction = target.kind === 'caption'
+    ? 'Rewrite the Instagram caption in TMW voice — tighter, more on-brand, same facts.'
+    : 'Rewrite the selected slide text in TMW voice — tighter and more on-brand, same fact.';
+
+  let brainText = '';
+  try { const brain = await assembleBrain(env, { topic: title || instruction, voice: true, surface: 'carousel', maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
+
+  const deck = slides.map((s) =>
+    'SLIDE ' + s.n + ':\n' + (s.texts.length ? s.texts.map((t) => '  [box ' + t.index + (t.role ? ' · ' + t.role : '') + '] ' + (t.content || '(empty)')).join('\n') : '  (no text boxes)')
+  ).join('\n');
+
+  const sys = [
+    'You are the senior social editor for Markets of Tomorrow (TMW), chatting with a colleague INSIDE the carousel Design editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
+    brainText ? ('HOUSE BRAIN (voice + learned rules, FOLLOW THESE):\n' + brainText) : '',
+    'CAROUSEL ARC (how our decks read start to finish):\n- Slide 1 is the HOOK: one bold, high-energy claim that stops the scroll (never a title or label).\n- Middle slides deliver the INFO: one concrete fact each, every slide building on the one before so the deck reads in a smooth flow.\n- The last slide lands the payoff or a light call to action.',
+    'Read the colleague\'s message and decide what it needs:',
+    '- A QUESTION, discussion, or a request for IDEAS/OPTIONS: answer in `reply` only. NO edits, NO caption unless they clearly asked you to APPLY a change.',
+    '- A change to SLIDE TEXT: return `edits` — whole-box replacements addressed by slide + box index from the DECK below — plus a short `reply` saying what you did.',
+    '- A change to the INSTAGRAM CAPTION: return the FULL new `caption` plus a `reply`. The caption is the post text under the carousel, not a slide.',
+    (target && target.kind === 'caption' ? 'THE COLLEAGUE IS WORKING ON THE CAPTION right now — unless they say otherwise, edits go to the caption.' : ''),
+    (target && target.kind === 'box' ? ('THE COLLEAGUE SELECTED slide ' + target.slide + ' box ' + target.index + ' — unless they say otherwise, edit THAT box.') : ''),
+    'SLIDE TEXT RULES: one punchy line per box, lead with a concrete fact; keep each headline roughly 40-80 characters; match the deck\'s punctuation and case; no hashtags, no emojis, no clickbait, no em dashes; preserve exact spellings and diacritics; never invent facts.',
+    'CAPTION RULES: first line is the hook (it shows before "more"); short paragraphs with real line breaks; keep every verified fact, number and name; no em dashes; hashtags ONLY if the colleague asks for them; under 2,200 characters.',
+    'OUTPUT: return ONLY JSON, no fences: {"reply":"<chat message>","edits":[{"slide":<n>,"index":<box index>,"text":"<new box text>"}],"caption":"<full new caption ONLY if changing it>"}. `edits` and `caption` are OPTIONAL; `reply` is ALWAYS present.',
+  ].filter(Boolean).join('\n\n');
+
+  const usr = 'MESSAGE:\n' + instruction
+    + (context ? '\n\nREFERENCE MATERIAL the colleague pasted (verified facts you may use; do not exceed it):\n' + context : '')
+    + '\n\nPOST TITLE: ' + (title || '(untitled)')
+    + '\n\nTHE DECK:\n' + (deck || '(no slides yet)')
+    + '\n\nCURRENT INSTAGRAM CAPTION:\n' + (caption || '(empty)');
+
+  let raw = '';
+  try { raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 2400 }); }
+  catch (e) { return json({ error: 'editor model failed: ' + (e.message || e) }, { status: 502 }, env, origin); }
+  let parsed = null;
+  try { parsed = JSON.parse(raw); }
+  catch { try { parsed = JSON.parse(repairTruncatedJson(String(raw).replace(/^\s*```(?:json)?|```\s*$/g, ''))); } catch (_) {} }
+  if (!parsed || typeof parsed.reply !== 'string') {
+    const fb = String(raw || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 600);
+    if (fb) return json({ ok: true, reply: fb, edits: [] }, {}, env, origin);
+    return json({ ok: false, error: 'The editor could not respond. Try rephrasing.' }, {}, env, origin);
+  }
+  const deDash = (s) => String(s || '').replace(/\s*—\s*/g, ', ').replace(/\s*–\s*/g, ', ');
+  const reply = String(parsed.reply || '').slice(0, 800);
+  const outEdits = [];
+  for (const e of (Array.isArray(parsed.edits) ? parsed.edits.slice(0, 20) : [])) {
+    const sn = parseInt(e && e.slide, 10), bi = parseInt(e && e.index, 10);
+    const txt = deDash(e && e.text).trim().slice(0, 300);
+    if (!txt || !Number.isFinite(sn) || !Number.isFinite(bi)) continue;
+    const s = slides[sn - 1]; if (!s || !s.texts[bi]) continue;
+    if (txt === s.texts[bi].content) continue;
+    outEdits.push({ slide: sn, index: bi, text: txt });
+  }
+  const newCaption = (parsed.caption != null && String(parsed.caption).trim() && deDash(parsed.caption).trim() !== caption.trim())
+    ? deDash(parsed.caption).trim().slice(0, 2200) : '';
+  return json({ ok: true, reply, edits: outEdits, caption: newCaption || undefined }, {}, env, origin);
+}
+
 // POST /admin/revise-feedback { slug, signal:'up'|'down'|'manual', before, after, instruction?, summary? }
 // The training signal behind the in-editor Polish chat. Every signal is banked
 // raw (event 'revise_feedback' = proof + corpus); the ones that carry a real
@@ -16747,6 +16829,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/design-chat')         return await handleDesignChat(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-feedback')     return await handleReviseFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/answer-web')                return await handleAnswerWeb(request, env, origin);
