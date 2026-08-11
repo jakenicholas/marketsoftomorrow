@@ -689,6 +689,17 @@
   document.head.appendChild(s);
 })();
 
+// Between-pages loading veil (the Future-is-Here purple water fill). Shows on
+// same-origin navigation clicks, hides itself on pageshow. BUMP ?v= on change.
+(function () {
+  if (window.__tmwLoader || document.querySelector('script[data-tmw-loader]')) return;
+  var s = document.createElement('script');
+  s.src = '/_shared/tmw-loader.js?v=20260811a';
+  s.defer = true;
+  s.setAttribute('data-tmw-loader', '1');
+  document.head.appendChild(s);
+})();
+
 (function () {
   if (document.querySelector('script[data-tmw-dashbtn]')) return;
   var s = document.createElement('script');
