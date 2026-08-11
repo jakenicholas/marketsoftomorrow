@@ -8480,6 +8480,84 @@ async function handleSocialSync(req, env, origin) {
   return json(res, {}, env, origin);
 }
 
+// ── Resend webhook — real newsletter opens/clicks ───────────────────────────
+// Resend's broadcast API doesn't report opens, so we register a webhook and
+// store the raw email.sent/delivered/opened/clicked events in D1. The Morning
+// Desk's Weekly-email box counts DISTINCT recipients per type off this table,
+// and cross-refs openers to Stripe/Memberstack for the who-opened breakdown.
+async function deskConfigGet(env, key) {
+  try { const r = await env.DB.prepare("SELECT value FROM sync_state WHERE key = ?1").bind(key).first(); return r && r.value ? r.value : null; } catch (_) { return null; }
+}
+async function deskConfigSet(env, key, value) {
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES (?1,?2,?3) ON CONFLICT(key) DO UPDATE SET value=?2, updated_at=?3").bind(key, value, now).run();
+}
+async function ensureResendEventsTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS resend_events (
+    svix_id TEXT PRIMARY KEY, type TEXT, email TEXT, email_id TEXT, broadcast_id TEXT, ts INTEGER, created_at INTEGER)`).run();
+  try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS resend_ev_bt ON resend_events (broadcast_id, type)').run(); } catch (_) {}
+}
+// Verify a Svix (Resend) webhook signature: base64( HMAC-SHA256( key, id.ts.body ) )
+// must match one of the space-separated "v1,<sig>" entries in svix-signature.
+async function svixVerify(secret, id, ts, body, sigHeader) {
+  try {
+    const raw = secret.indexOf('whsec_') === 0 ? secret.slice(6) : secret;
+    const keyBytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(id + '.' + ts + '.' + body));
+    const expected = btoa(String.fromCharCode.apply(null, new Uint8Array(sig)));
+    return String(sigHeader || '').split(' ').some((part) => { const c = part.split(','); return (c[1] || c[0]) === expected; });
+  } catch (_) { return false; }
+}
+// POST /resend/webhook — public, Svix-verified. Records one row per event.
+async function handleResendWebhook(req, env) {
+  if (!env.DB) return new Response('no db', { status: 503 });
+  const body = await req.text();
+  const secret = await deskConfigGet(env, 'resend_webhook_secret');
+  if (!secret) return new Response('webhook not configured', { status: 503 });
+  const id = req.headers.get('svix-id'), ts = req.headers.get('svix-timestamp'), sig = req.headers.get('svix-signature');
+  if (!id || !ts || !sig) return new Response('missing signature headers', { status: 400 });
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - (parseInt(ts, 10) || 0)) > 600) return new Response('stale timestamp', { status: 400 });
+  if (!(await svixVerify(secret, id, ts, body, sig))) return new Response('bad signature', { status: 401 });
+  let evt = null; try { evt = JSON.parse(body); } catch (_) { return new Response('bad json', { status: 400 }); }
+  const type = String(evt && evt.type || '');
+  const d = (evt && evt.data) || {};
+  const email = (Array.isArray(d.to) ? (d.to[0] || '') : (d.to || '')).toString().trim().toLowerCase();
+  const created = Math.floor(Date.parse(evt && evt.created_at || '') / 1000) || now;
+  try {
+    await ensureResendEventsTable(env);
+    await env.DB.prepare('INSERT OR IGNORE INTO resend_events (svix_id,type,email,email_id,broadcast_id,ts,created_at) VALUES (?1,?2,?3,?4,?5,?6,?7)')
+      .bind(id, type, email, String(d.email_id || ''), String(d.broadcast_id || ''), created, now).run();
+  } catch (_) {}
+  return new Response('ok', { status: 200 });
+}
+// POST /admin/resend-webhook-setup — one-click: (re)register the Resend webhook
+// at our endpoint, capturing the signing secret into D1. Removes any prior
+// webhook pointing at the same endpoint so events aren't double-counted.
+async function handleResendWebhookSetup(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.RESEND_API_KEY) return json({ error: 'RESEND_API_KEY not configured' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const endpoint = 'https://tmw.jake-ab7.workers.dev/resend/webhook';
+  const events = ['email.sent', 'email.delivered', 'email.opened', 'email.clicked', 'email.bounced'];
+  const H = { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' };
+  try {
+    // drop any existing webhook to our endpoint (avoid duplicate deliveries)
+    try {
+      const lr = await fetch('https://api.resend.com/webhooks', { headers: H });
+      if (lr.ok) { const ld = await lr.json(); for (const w of ((ld && ld.data) || [])) { if (w && w.endpoint === endpoint && w.id) { try { await fetch('https://api.resend.com/webhooks/' + w.id, { method: 'DELETE', headers: H }); } catch (_) {} } } }
+    } catch (_) {}
+    const r = await fetch('https://api.resend.com/webhooks', { method: 'POST', headers: H, body: JSON.stringify({ endpoint, events }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.signing_secret) return json({ error: 'Resend webhook create failed (' + r.status + '): ' + JSON.stringify(d).slice(0, 200) }, { status: 502 }, env, origin);
+    await ensureResendEventsTable(env);
+    await deskConfigSet(env, 'resend_webhook_secret', d.signing_secret);
+    await deskConfigSet(env, 'resend_webhook_id', d.id || '');
+    return json({ ok: true, webhook_id: d.id, endpoint, events }, {}, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
+}
+
 // ── Morning Desk feeds ──────────────────────────────────────────────────────
 // GET /admin/morning → real last-post-per-account from the daily IG archive
 // sync (ig_posts), so the desk's accounts board reflects actual Instagram
@@ -8543,13 +8621,38 @@ async function handleMorningData(req, env, origin) {
             const cr = await env.DB.prepare(`SELECT SUM(clicks) c FROM placement_stats WHERE surface='newsletter' AND day >= ?1`).bind(sentDay).first();
             directed = (cr && cr.c) || 0;
           } catch (_) {}
+          // Opens/delivered/clicked come from the Resend webhook event store
+          // (resend_events), which is the real signal — Resend's broadcast API
+          // doesn't report opens. Counts are DISTINCT recipients per event type.
+          let wSent = null, wDelivered = null, wOpened = null, wClicked = null, openBreak = null, webhookLive = false;
+          try {
+            const secret = await deskConfigGet(env, 'resend_webhook_secret');
+            webhookLive = !!secret;
+            await ensureResendEventsTable(env);
+            const agg = (await env.DB.prepare(`SELECT type, COUNT(DISTINCT email) c FROM resend_events WHERE broadcast_id = ?1 GROUP BY type`).bind(wk.id).all()).results || [];
+            const m = {}; for (const r of agg) m[r.type] = r.c;
+            if (Object.keys(m).length) {
+              wSent = m['email.sent'] != null ? m['email.sent'] : (m['email.delivered'] != null ? m['email.delivered'] : null);
+              wDelivered = m['email.delivered'] != null ? m['email.delivered'] : null;
+              wOpened = m['email.opened'] != null ? m['email.opened'] : null;
+              wClicked = m['email.clicked'] != null ? m['email.clicked'] : null;
+            }
+            if (wOpened) {
+              const orows = (await env.DB.prepare(`SELECT DISTINCT email FROM resend_events WHERE broadcast_id = ?1 AND type = 'email.opened'`).bind(wk.id).all()).results || [];
+              let f = 0, p = 0, a = 0;
+              for (const r of orows) { const c = classify(r.email); if (c === 'pro') p++; else if (c === 'free') f++; else a++; }
+              openBreak = { free: f, pro: p, anon: a };
+            }
+          } catch (_) {}
           out.weekly_email = {
             id: wk.id, name: wk.name || null, status: wk.status || null, sent_at: wk.sent_at || null,
-            sent: num(det.sent) || num(det.total_sent) || num(det.recipient_count) || null,
-            delivered: num(det.delivered) || null,
-            opened: num(det.opened) || num(det.open) || null,
-            clicked: num(det.clicked) || num(det.click) || null,
+            sent: wSent != null ? wSent : (num(det.sent) || num(det.total_sent) || num(det.recipient_count) || null),
+            delivered: wDelivered != null ? wDelivered : (num(det.delivered) || null),
+            opened: wOpened != null ? wOpened : (num(det.opened) || num(det.open) || null),
+            clicked: wClicked != null ? wClicked : (num(det.clicked) || num(det.click) || null),
             directed_to_site: directed,
+            open_breakdown: openBreak,
+            webhook_live: webhookLive,
           };
         }
       } else { out.weekly_email_error = 'Resend /broadcasts HTTP ' + br.status; }
@@ -16825,6 +16928,9 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/daily-pulse')         return await handleDailyPulse(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/admin/signups')             return await handleSignups(request, env, origin, url);
       if ((request.method === 'POST' || request.method === 'DELETE') && url.pathname === '/admin/desk-events') return await handleDeskEvents(request, env, origin);
+      // Resend newsletter analytics: public Svix-verified event sink + one-click setup.
+      if (request.method === 'POST' && url.pathname === '/resend/webhook')            return await handleResendWebhook(request, env);
+      if (request.method === 'POST' && url.pathname === '/admin/resend-webhook-setup') return await handleResendWebhookSetup(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/wallhit-test')        return await handleWallhitTest(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
