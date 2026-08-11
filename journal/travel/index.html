@@ -402,7 +402,7 @@ function tripHtml(t, i){
     +   '<div class="trip-date">'+esc(st === 'ended' ? t.date : coarseWindow(t))+'</div>'
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
-    +   partnersHtml(t.partners, t.openCTA)
+    +   partnersHtml(t.partners, t.openCTA && st !== 'ended')
     +   (st !== 'ended' ? '<button type="button" class="trip-req" data-trip="'+esc(t.title).replace(/\n/g,' ')+'">Request partnership</button>' : '')
     + '</div>';
   var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '') + (t._next ? ' trip-next' : '') + (t.older ? ' trip-older' : '');
