@@ -21140,6 +21140,17 @@
       }
 
       function showSignupWall(triggerCtx) {
+        // NEW: the full-screen welcome flow (tmw-welcome.js, loaded by
+        // journal-chrome.js on every surface incl. the map) replaces the old
+        // inline "Keep exploring" modal. Force it whenever it's available; the
+        // legacy modal below is only a fallback if that script never loaded.
+        if (window.tmwWelcome && typeof window.tmwWelcome.gate === 'function') {
+          const src = triggerCtx ? ('map_' + String(triggerCtx).replace(/[^a-z0-9]+/gi, '_')) : 'map_preview_limit';
+          if (window.gtag) gtag('event', 'signup_wall_shown', {
+            'click_count': getAnonClicks(), 'trigger': triggerCtx || 'click_limit', 'flow': 'welcome'
+          });
+          if (window.tmwWelcome.gate({ source: src })) return;
+        }
         buildSignupWall();
         const modal = document.getElementById('signupWall');
         modal.classList.add('active');
