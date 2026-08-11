@@ -97,6 +97,12 @@
       //   (b) contains a [data-ms-*], [data-cy], or auth-shaped form
       function looksLikeMSModal(el) {
         if (!el || el.nodeType !== 1) return false;
+        // Our own fixed overlays (subscribe lightbox, custom auth modal, and the
+        // full-screen welcome flow .tmww) have email/password inputs but are NOT
+        // Memberstack modals — never tag them, or the MS dark theme flattens
+        // their background images (filter:brightness(0) invert(1)) and rounds
+        // their corners. Mirrors the guard in journal-auth.js.
+        if (el.classList && (el.classList.contains('tmw-sub') || el.classList.contains('tmw-am') || el.classList.contains('tmww'))) return false;
         try {
           var cs = window.getComputedStyle(el);
           if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;
