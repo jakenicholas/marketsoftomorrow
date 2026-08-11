@@ -146,6 +146,28 @@
   .trip-badge{position:absolute;top:14px;right:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:5px 12px;background:#FBF6EC;box-shadow:0 2px 8px rgba(40,25,12,.18)}
   .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.55)}
   .trip-badge.planning{color:#1d7a3e;border:1px solid rgba(29,122,62,.5)}
+  /* section dividers */
+  .trips-div{display:flex;align-items:center;gap:16px;margin:34px 0 18px}
+  .trips-div:first-child{margin-top:0}
+  .trips-div span{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--terra);white-space:nowrap}
+  .trips-div::before,.trips-div::after{content:"";height:1px;background:rgba(176,96,58,.25);flex:1}
+  .trips-div::before{max-width:34px}
+  /* request-partnership button */
+  .trip-req{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#FBF6EC;background:var(--terra);border:1px solid var(--terra);border-radius:99px;padding:11px 18px;cursor:pointer;transition:background .18s,transform .18s}
+  .trip-req:hover{background:#9E4A28;transform:translateY(-1px)}
+  /* partnership modal */
+  .pr-scrim{position:fixed;inset:0;z-index:90;background:rgba(40,25,12,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .pr-scrim.on{display:flex}
+  .pr-box{width:min(460px,100%);background:#FBF6EC;border:1px solid rgba(176,96,58,.3);border-radius:18px;padding:26px 26px 24px;box-shadow:0 30px 80px rgba(40,25,12,.35)}
+  .pr-box h3{font-family:var(--serif);font-size:24px;font-weight:600;color:#3E2F22;letter-spacing:-.01em}
+  .pr-box .pr-sub{font-size:13px;color:#8C7862;margin-top:6px;line-height:1.5}
+  .pr-box label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8C7862;margin:14px 0 5px}
+  .pr-box input,.pr-box textarea{width:100%;background:#F2E9D7;border:1px solid rgba(176,96,58,.3);border-radius:10px;padding:11px 13px;font:400 14px var(--sans);color:#3E2F22;outline:none}
+  .pr-box input:focus,.pr-box textarea:focus{border-color:var(--terra)}
+  .pr-box textarea{min-height:84px;resize:vertical}
+  .pr-actions{display:flex;gap:10px;margin-top:18px}
+  .pr-actions .trip-req{margin-top:0;flex:1;justify-content:center}
+  .pr-cancel{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#8C7862;background:transparent;border:1px solid rgba(74,57,43,.25);border-radius:99px;padding:11px 18px;cursor:pointer}
   /* the NEXT trip: pinned first with a warm glow */
   .trip.trip-next{border-color:var(--terra);box-shadow:0 0 0 1px rgba(176,96,58,.30), 0 18px 50px -14px rgba(176,96,58,.50), 0 0 34px -6px rgba(176,96,58,.25)}
   .trip-badge.ended{color:var(--mute2);border:1px solid var(--hair2)}
@@ -241,14 +263,14 @@
 // Newest first. `href` = clickable (has a detail page); past trips have none.
 // `img` empty → an elegant gradient placeholder tile (drop a URL in later).
 var TRIPS = [
-  { title:'Previewing Bone Valley', place:'Streamsong Resort, Florida', date:'December 2026', upcoming:true, start:'2026-12-01', end:'2026-12-31',
+  { title:'Previewing Bone Valley', place:'Streamsong Resort, Florida', date:'December 2026', upcoming:true, openCTA:true, start:'2026-12-01', end:'2026-12-31',
     img:'https://media.oftmw.com/wix/ca3b83_5711439bb4fe41ceac59f04221065d3d~mv2.jpeg',
     partners:['Streamsong Resort'] },
-  { title:'Riviera Nayarit', place:'Riviera Nayarit, Mexico', date:'November 2026', upcoming:true, planning:true, start:'2026-11-12', end:'2026-11-15',
+  { title:'Riviera Nayarit', place:'Riviera Nayarit, Mexico', date:'November 2026', upcoming:true, planning:true, openCTA:true, start:'2026-11-12', end:'2026-11-15',
     img:'https://media.oftmw.com/riviera-nayarit/siari-a-ritz-carlton-reserve-2.jpeg',
     partners:['C&R','Nauka','Quinn','Mayakoba'] },
-  { title:'Nashville', place:'Nashville, Tennessee', date:'October 2026', upcoming:true, planning:true, start:'2026-10-15', end:'2026-10-18',
-    img:'/media/img/5ef6d4c351e7.jpg',
+  { title:'Nashville', place:'Nashville, Tennessee', date:'October 2026', upcoming:true, planning:true, openCTA:true, start:'2026-10-15', end:'2026-10-18',
+    img:'https://media.oftmw.com/2026/08/607a5ecd823a-Image-86564-gigapixel-standard-v2-2x.jpeg',
     partners:['C&R','Firefly','Darcy Jusich','Noko Hospitality'] },
   { title:'Italy, The Isles & The Alps', place:'Italy · Croatia · Greece · Slovenia · Switzerland', date:'September 3 – October 5, 2026',
     href:'/travel/2026/europe/', upcoming:true, openCTA:true, start:'2026-09-03', end:'2026-10-05',
@@ -381,7 +403,7 @@ function tripHtml(t, i){
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
     +   partnersHtml(t.partners, t.openCTA)
-    +   ((t.href && st !== 'ended') ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
+    +   (st !== 'ended' ? '<button type="button" class="trip-req" data-trip="'+esc(t.title).replace(/\n/g,' ')+'">Request partnership</button>' : '')
     + '</div>';
   var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '') + (t._next ? ' trip-next' : '') + (t.older ? ' trip-older' : '');
   // Ended trips are non-clickable (no detail link, no "View itinerary") even if they still carry an href.
@@ -397,11 +419,51 @@ function tripHtml(t, i){
   var future = TRIPS.filter(function(t){ return tripStatus(t) !== 'ended'; })
     .sort(function(a,b){ return String(a.start||'9999').localeCompare(String(b.start||'9999')); });
   if (future.length) future[0]._next = true;
-  var ordered = future.concat(TRIPS.filter(function(t){ return tripStatus(t) === 'ended'; }));
-  el.innerHTML = ordered.map(tripHtml).join('')
+  var past = TRIPS.filter(function(t){ return tripStatus(t) === 'ended'; });
+  var div = function(label){ return '<div class="trips-div"><span>'+label+'</span></div>'; };
+  el.innerHTML =
+      (future.length ? div('Next up') + tripHtml(future[0], 0) : '')
+    + (future.length > 1 ? div('Pipeline') + future.slice(1).map(tripHtml).join('') : '')
+    + (past.length ? div('Past trips') + past.map(tripHtml).join('') : '')
     + (hasOlder ? '<button type="button" class="trips-more" id="tripsMore">Load older trips</button>' : '');
   var btn = document.getElementById('tripsMore');
   if (btn) btn.addEventListener('click', function(){ el.classList.add('show-older'); btn.remove(); });
+})();
+
+// ── Request-partnership popup: a short form that composes an email to the
+// media-trips desk. No backend; mailto keeps it working everywhere.
+(function(){
+  var scrim = document.createElement('div');
+  scrim.className = 'pr-scrim';
+  scrim.innerHTML = '<div class="pr-box">'
+    + '<h3 id="prTitle">Request partnership</h3>'
+    + '<div class="pr-sub">Tell us who you are and what you have in mind. This opens an email to our media-trips desk.</div>'
+    + '<label for="prName">Name</label><input id="prName" placeholder="Your name">'
+    + '<label for="prCo">Company / property</label><input id="prCo" placeholder="Hotel, brand, or agency">'
+    + '<label for="prMsg">What do you have in mind?</label><textarea id="prMsg" placeholder="A stay, a dine, an experience…"></textarea>'
+    + '<div class="pr-actions"><button type="button" class="trip-req" id="prSend">Send request</button><button type="button" class="pr-cancel" id="prCancel">Cancel</button></div>'
+    + '</div>';
+  document.body.appendChild(scrim);
+  var tripName = '';
+  function open(name){ tripName = name || ''; document.getElementById('prTitle').textContent = 'Partner on ' + (tripName || 'a trip'); scrim.classList.add('on'); }
+  function close(){ scrim.classList.remove('on'); }
+  scrim.addEventListener('click', function(e){ if (e.target === scrim) close(); });
+  document.getElementById('prCancel').addEventListener('click', close);
+  document.getElementById('prSend').addEventListener('click', function(){
+    var name = document.getElementById('prName').value.trim();
+    var co   = document.getElementById('prCo').value.trim();
+    var msg  = document.getElementById('prMsg').value.trim();
+    var subject = 'Partnership request: ' + tripName;
+    var body = (name ? name + (co ? ' - ' + co : '') + '\n\n' : '') + (msg || 'We would love to host Markets of Tomorrow on this trip.');
+    location.href = 'mailto:kait@oftmw.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    close();
+  });
+  document.getElementById('trips').addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('.trip-req');
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    open(b.getAttribute('data-trip'));
+  });
 })();
 
 // ── Markets visited: single source for the grid + the world map. To make this
