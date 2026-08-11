@@ -25,7 +25,7 @@ import { ONTOLOGY } from './ontology.js';
 import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
 // Studio-admin read bridge: the connector reuses the SAME handler functions the
 // Access-gated admin pages hit, so the numbers can never drift from the Studio.
-import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats } from './index.js';
+import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats, handleDailyPulse } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -1067,6 +1067,11 @@ const TOOLS = [
     name: 'get_email_stats',
     description: 'Email operations rollup for the morning brief: wall-hit/blast automation sends (24h + 7d by kind and mode, pending quota-errored sends, live flag, launch-blast report), the latest Resend newsletter broadcasts (id/status/sent_at), and the newsletter\'s first-party placement performance (views/clicks per creative, last 7 days). One call answers "how many automated emails went out and how did the newsletter do".',
     inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_daily_pulse',
+    description: 'Today-so-far activity pulse (local-midnight window via off = minutes behind UTC, e.g. 240 for ET): total site visitors (with the signed-in members listed by email), free accounts created today (who + when), and automated upgrade emails sent today (who, which wall, status). Powers the Morning Desk headline.',
+    inputSchema: { type: 'object', properties: { off: { type: 'integer', description: 'Timezone offset in minutes behind UTC (ET = 240; default 0 = UTC midnight)' } } },
   },
   {
     name: 'list_brain_proposals',
@@ -4692,6 +4697,11 @@ const IMPL = {
   },
   async get_email_stats(args, env) {
     return bridgeJson(await handleEmailStats(bridgeReq(env, '/admin/email-stats'), env, BRIDGE_ORIGIN));
+  },
+  async get_daily_pulse(args, env) {
+    const off = parseInt(args.off, 10) || 0;
+    const u = new URL('https://x/admin/daily-pulse?off=' + off);
+    return bridgeJson(await handleDailyPulse(bridgeReq(env, '/admin/daily-pulse?off=' + off), env, BRIDGE_ORIGIN, u));
   },
   async list_brain_proposals(args, env) {
     return bridgeJson(await handleBrainProposed(bridgeReq(env, '/brain/proposed'), env, BRIDGE_ORIGIN));

@@ -2541,6 +2541,62 @@ export async function handleEmailStats(req, env, origin) {
   return json(out, {}, env, origin);
 }
 
+// GET /admin/daily-pulse?off=<tz offset minutes> — the Morning Desk headline:
+// who visited TODAY, who created a free account, which automated emails went
+// out. "Today" = the caller's local midnight (off = Date.getTimezoneOffset()).
+// Each number ships with its drill-down list so the desk can show WHO.
+export async function handleDailyPulse(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const off = parseInt(url.searchParams.get('off'), 10) || 0;   // minutes behind UTC (ET = 240)
+  const nowMs = Date.now();
+  const local = nowMs - off * 60000;
+  const midnight = Math.floor((Math.floor(local / 86400000) * 86400000 + off * 60000) / 1000);
+  const out = { since: new Date(midnight * 1000).toISOString() };
+  // Visitors: every identity that produced an event today (system rows excluded).
+  const vrows = (await env.DB.prepare(
+    `SELECT member_id, MAX(email) email, MAX(member_name) name, COUNT(*) events, MAX(ts) last_ts
+     FROM events WHERE ts >= ?1 AND member_id NOT LIKE 'system:%' GROUP BY member_id`
+  ).bind(midnight).all()).results || [];
+  const members = vrows.filter((r) => String(r.member_id || '').indexOf('mem_') === 0);
+  // Wall-hit style email join: a member's email often lives on OTHER rows.
+  for (const m of members) {
+    if (m.email) continue;
+    try {
+      const em = await env.DB.prepare(`SELECT email FROM events WHERE member_id = ?1 AND email IS NOT NULL AND email != '' ORDER BY ts DESC LIMIT 1`).bind(m.member_id).first();
+      if (em && em.email) m.email = em.email;
+    } catch (_) {}
+  }
+  out.visitors = {
+    total: vrows.length,
+    members: members.map((m) => ({ member_id: m.member_id, email: m.email || null, name: m.name || null, events: m.events, last_ts: m.last_ts })).sort((a, b) => b.last_ts - a.last_ts),
+    anon: vrows.length - members.length,
+  };
+  // Free accounts created today (both event spellings; dedupe by email).
+  const arows = (await env.DB.prepare(
+    `SELECT ts, member_id, email, props_json FROM events
+     WHERE ts >= ?1 AND event_name IN ('free_account_created','funnel:free_account_created') ORDER BY ts DESC`
+  ).bind(midnight).all()).results || [];
+  const seen = new Set(); const created = [];
+  for (const r of arows) {
+    let email = r.email || '';
+    if (!email) { try { email = (JSON.parse(r.props_json || '{}').email) || ''; } catch (_) {} }
+    const key = (email || r.member_id || String(r.ts)).toLowerCase();
+    if (seen.has(key)) continue; seen.add(key);
+    created.push({ ts: r.ts, email: email || null, member_id: r.member_id || null });
+  }
+  out.accounts_created = { total: created.length, list: created };
+  // Automated emails sent today (the wall-hit/blast mailer's ledger).
+  try {
+    await ensureWallhitTable(env);
+    const erows = (await env.DB.prepare(
+      `SELECT ts, email, kind, mode FROM wallhit_sends WHERE ts >= ?1 ORDER BY ts DESC`
+    ).bind(midnight).all()).results || [];
+    out.auto_emails = { total: erows.filter((r) => r.mode === 'live').length, list: erows };
+  } catch (_) { out.auto_emails = { total: 0, list: [] }; }
+  return json(out, {}, env, origin);
+}
+
 // GET /funnel-stats?weeks=12 — article-to-Pro funnel by week.
 // Reads the `events` table for event_name LIKE 'funnel:%' (the funnel
 // beacon prefix journal-auth.js writes), buckets by ISO week, and
@@ -16447,6 +16503,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/admin/wallhit-preview')     return await handleWallhitPreview(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/email-stats')         return await handleEmailStats(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/daily-pulse')         return await handleDailyPulse(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/wallhit-test')        return await handleWallhitTest(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
