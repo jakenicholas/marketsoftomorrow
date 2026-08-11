@@ -185,21 +185,24 @@
     /* right:176px (not 154) — the New chat pill ends around 164px from the right
        edge on mobile, so 154 overlapped it by ~10px. */
     + '@media(max-width:640px){.tmw-ov-history{right:176px;top:14px;height:34px;padding:0;width:34px;justify-content:center;gap:0}.tmw-ov-history-lbl{display:none}}'
-    + '.tmw-ov-histpanel{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;background:#0a0c0a;border-radius:inherit;overflow:hidden}'
+    /* Gemini-style recents: translucent purple-glow glass, roomy single-line
+       rows (title left, quiet time right), no icon chips, NO monospace. */
+    + '.tmw-ov-histpanel{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;border-radius:inherit;overflow:hidden;'
+    +   'background:radial-gradient(760px 320px at 18% 0%, rgba(167,139,250,.13), transparent 62%), rgba(8,9,11,.86);'
+    +   'backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2)}'
     + '.tmw-ov-histpanel.open{display:flex}'
-    + '.tmw-ov-histpanel-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto}'
-    + '.tmw-ov-histpanel-ttl{font-family:Fraunces,Georgia,serif;font-size:20px;font-weight:600;color:#fff}'
-    + '.tmw-ov-histpanel-x{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(20,20,25,.7);color:#C2C9C3;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s}'
-    + '.tmw-ov-histpanel-x:hover{color:#fff;border-color:rgba(255,255,255,.28)}'
+    + '.tmw-ov-histpanel-head{display:flex;align-items:center;justify-content:space-between;padding:22px 26px 16px;flex:0 0 auto}'
+    + '.tmw-ov-histpanel-ttl{font-family:Fraunces,Georgia,serif;font-size:21px;font-weight:600;color:#fff;letter-spacing:.01em}'
+    + '.tmw-ov-histpanel-x{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#C2C9C3;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s}'
+    + '.tmw-ov-histpanel-x:hover{color:#fff;border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.12)}'
     + '.tmw-ov-histpanel-x svg{width:14px;height:14px;display:block}'
-    + '.tmw-ov-histpanel-body{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 24px}'
-    + '.tmw-ov-hist-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;cursor:pointer;transition:background .15s,border-color .15s;border:1px solid transparent}'
-    + '.tmw-ov-hist-row:hover{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.22)}'
-    + '.tmw-ov-hist-ic{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.28);color:#C4B5FD}'
-    + '.tmw-ov-hist-ic svg{width:16px;height:16px}'
+    + '.tmw-ov-histpanel-body{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 16px 28px;display:flex;flex-direction:column;gap:2px}'
+    + '.tmw-ov-hist-row{display:flex;align-items:center;gap:14px;padding:16px 16px;border-radius:14px;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s;border:1px solid transparent}'
+    + '.tmw-ov-hist-row:hover{background:rgba(167,139,250,.09);border-color:rgba(167,139,250,.28);box-shadow:0 0 22px -8px rgba(167,139,250,.45)}'
     + '.tmw-ov-hist-main{flex:1 1 auto;min-width:0}'
-    + '.tmw-ov-hist-ttl{font-size:14px;color:#ECEAE5;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
-    + '.tmw-ov-hist-meta{font-family:ui-monospace,"JetBrains Mono",monospace;font-size:10.5px;color:#8b958d;margin-top:3px}'
+    + '.tmw-ov-hist-ttl{display:block;font-size:15px;color:#ECEAE5;font-weight:500;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    + '.tmw-ov-hist-meta{flex:0 0 auto;font-size:12px;color:#8b958d;white-space:nowrap}'
+    + '@media(max-width:640px){.tmw-ov-hist-n{display:none}}'
     + '.tmw-ov-hist-del{flex:0 0 auto;width:30px;height:30px;border-radius:7px;border:1px solid transparent;background:transparent;color:#6b736c;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:all .15s}'
     + '.tmw-ov-hist-row:hover .tmw-ov-hist-del{opacity:1}'
     + '.tmw-ov-hist-del:hover{color:#ff6b6b;border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.1)}'
@@ -5987,7 +5990,6 @@
   var histPanel = root.querySelector('.tmw-ov-histpanel');
   var histBody = root.querySelector('.tmw-ov-histpanel-body');
   var histX = root.querySelector('.tmw-ov-histpanel-x');
-  var HIST_ROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10h8M8 14h5"/><path d="M21 11.5a9 9 0 1 1-3-6.7"/></svg>';
   var HIST_DEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
   function _histEsc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
   function renderHistory(){
@@ -5996,10 +5998,11 @@
     if (!list.length) { histBody.innerHTML = '<div class="tmw-ov-hist-empty">No past chats yet.<br>Conversations move here once you start a new chat or leave the site.</div>'; return; }
     histBody.innerHTML = list.map(function(e){
       var n = (e.qs ? e.qs.length : 0);
+      // Gemini-style single line: title left, quiet meta right (message count
+      // hides on phones), delete on hover. No icon chip, no monospace.
       return '<div class="tmw-ov-hist-row" data-id="' + _histEsc(e.id) + '">'
-        + '<span class="tmw-ov-hist-ic">' + HIST_ROW_ICON + '</span>'
-        + '<span class="tmw-ov-hist-main"><span class="tmw-ov-hist-ttl">' + _histEsc(e.title || 'Conversation') + '</span>'
-        + '<span class="tmw-ov-hist-meta">' + n + ' message' + (n === 1 ? '' : 's') + ' · ' + _histEsc(_relTime(e.updatedTs || e.startedTs)) + '</span></span>'
+        + '<span class="tmw-ov-hist-main"><span class="tmw-ov-hist-ttl">' + _histEsc(e.title || 'Conversation') + '</span></span>'
+        + '<span class="tmw-ov-hist-meta"><span class="tmw-ov-hist-n">' + n + ' message' + (n === 1 ? '' : 's') + ' &middot; </span>' + _histEsc(_relTime(e.updatedTs || e.startedTs)) + '</span>'
         + '<button class="tmw-ov-hist-del" type="button" aria-label="Delete conversation" title="Delete">' + HIST_DEL_ICON + '</button>'
         + '</div>';
     }).join('');
