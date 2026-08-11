@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loading screens · The Future is Here · 5 directions</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#070807; --purple:#A78BFA; --purple-soft:#C4B5FD; --green:#1FDF67; --gold:#f0d68a; --text:#ECEAE5; --mute:#9AA39C; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+
+  .intro{max-width:900px;margin:0 auto;padding:64px 24px 20px;text-align:center}
+  .intro .eyebrow{font:700 11px/1 'Inter';letter-spacing:.3em;text-transform:uppercase;color:var(--purple-soft)}
+  .intro h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(30px,4.5vw,46px);margin:16px 0 10px;color:#fff}
+  .intro p{color:var(--mute);font-size:14.5px;line-height:1.6;max-width:56ch;margin:0 auto}
+
+  .demo{position:relative;height:92vh;min-height:560px;margin:38px auto;max-width:1500px;border:1px solid rgba(255,255,255,.09);border-radius:22px;overflow:hidden;background:var(--bg)}
+  .tag{position:absolute;top:18px;left:20px;z-index:8;display:flex;align-items:center;gap:12px}
+  .tag .l{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 15px 'Inter';background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.5);color:var(--purple-soft)}
+  .tag .n{font:700 12px 'Inter';letter-spacing:.14em;text-transform:uppercase;color:#fff}
+  .tag .d{font:400 11.5px 'Inter';color:var(--mute);margin-top:3px}
+  .replay{position:absolute;top:18px;right:20px;z-index:8;font:700 10.5px 'Inter';letter-spacing:.12em;text-transform:uppercase;color:var(--mute);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:9px 16px;cursor:pointer;transition:.15s}
+  .replay:hover{color:#fff;border-color:rgba(167,139,250,.6)}
+
+  /* shared faint market-code field */
+  .codes{position:absolute;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.042)}
+  .stage{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center}
+
+  /* ── A · SPLIT-FLAP DEPARTURE BOARD ── */
+  .flapline{display:flex;flex-direction:column;gap:14px;align-items:center}
+  .flaprow{display:flex;gap:7px}
+  .flap{width:clamp(34px,4.6vw,58px);height:clamp(48px,6.4vw,80px);border-radius:7px;background:linear-gradient(180deg,#151517 48%,#0e0e10 52%);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font:700 clamp(22px,3vw,38px) 'JetBrains Mono';color:#fff;position:relative;overflow:hidden}
+  .flap::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.55)}
+  .flap.space{background:transparent;border-color:transparent}
+  .flap.done{color:var(--purple-soft);text-shadow:0 0 22px rgba(167,139,250,.5);border-color:rgba(167,139,250,.4)}
+  .flap.spin{color:var(--mute)}
+  .board-sub{margin-top:26px;font:600 10.5px 'JetBrains Mono';letter-spacing:.34em;color:var(--mute);text-transform:uppercase}
+  .board-sub b{color:var(--green)}
+
+  /* ── B · EDITORIAL SERIF RISE ── */
+  .edit{ text-align:center }
+  .edit .rule{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 30px;animation:ruleGrow 1.2s .2s ease forwards}
+  @keyframes ruleGrow{to{width:min(320px,60vw)}}
+  .edit h2{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(44px,7.5vw,104px);line-height:1.04;letter-spacing:-.015em;color:#fff;margin:0}
+  .edit .w{display:inline-block;overflow:hidden;vertical-align:bottom}
+  .edit .w i{display:inline-block;font-style:inherit;transform:translateY(110%);animation:wordUp .8s cubic-bezier(.2,.7,.2,1) forwards}
+  .edit .em{font-style:italic;color:var(--purple-soft)}
+  .edit .w:nth-child(1) i{animation-delay:.15s}.edit .w:nth-child(2) i{animation-delay:.3s}
+  .edit .w2 i{animation-delay:.55s}.edit .w3 i{animation-delay:.7s}
+  @keyframes wordUp{to{transform:none}}
+  .edit .since{margin-top:30px;font:700 10px 'Inter';letter-spacing:.4em;text-transform:uppercase;color:var(--mute);opacity:0;animation:fadeIn .6s 1.3s forwards}
+  @keyframes fadeIn{to{opacity:1}}
+
+  /* ── C · LIQUID TYPE (water inside the letters) ── */
+  .liq{text-align:center;font-family:'Fraunces',serif;font-weight:600;font-size:clamp(52px,9vw,120px);line-height:1.02;letter-spacing:-.01em}
+  .liq .row{position:relative;display:block;color:rgba(255,255,255,.96)}
+  .liq .row span{position:absolute;inset:0;color:var(--purple);-webkit-background-clip:unset;
+    clip-path:inset(calc(100% - var(--fill,0%)) 0 0 0);animation:liqRise 2.2s ease-in-out forwards}
+  .liq .row:nth-child(2) span{animation-delay:.15s}
+  .liq .row:nth-child(3) span{animation-delay:.3s}
+  @keyframes liqRise{0%{--fill:0%;clip-path:inset(100% 0 0 0)}100%{clip-path:inset(-6% 0 0 0)}}
+  .liq .shimmer{position:absolute;inset:0;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.35) 50%,transparent 58%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 2.6s 1s linear infinite}
+  @keyframes shine{from{background-position:180% 0}to{background-position:-80% 0}}
+
+  /* ── D · TERMINAL TYPE-ON ── */
+  .term{text-align:center;font-family:'JetBrains Mono',monospace}
+  .term .line{font-weight:700;font-size:clamp(26px,4.6vw,58px);letter-spacing:.14em;color:#fff;white-space:nowrap}
+  .term .line .typed-p{color:var(--purple-soft);text-shadow:0 0 26px rgba(167,139,250,.45)}
+  .term .cursor{display:inline-block;width:.55em;height:1.05em;background:var(--purple);vertical-align:text-bottom;margin-left:6px;animation:blink .9s step-end infinite;box-shadow:0 0 18px rgba(167,139,250,.6)}
+  @keyframes blink{50%{opacity:0}}
+  .term .bar{width:min(420px,64vw);height:2px;background:rgba(255,255,255,.09);margin:34px auto 0;border-radius:2px;overflow:hidden}
+  .term .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--purple-soft));box-shadow:0 0 14px rgba(167,139,250,.7);animation:barGo 2s .2s ease forwards}
+  @keyframes barGo{to{width:100%}}
+  .term .stat{margin-top:16px;font:600 10px 'JetBrains Mono';letter-spacing:.3em;color:var(--mute);text-transform:uppercase}
+
+  /* ── E · THE MARK, LIGHT SWEEP ── */
+  .mark{position:relative;width:min(170px,38vw);aspect-ratio:382.2/419;background:#fff;
+    -webkit-mask:url(/_shared/futureishere.svg) center/contain no-repeat;mask:url(/_shared/futureishere.svg) center/contain no-repeat;overflow:hidden;animation:markBloom 2.4s ease-in-out infinite}
+  .mark i{position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(167,139,250,.95) 50%,transparent 60%);transform:translateX(-120%);animation:sweep 2.4s ease-in-out infinite}
+  @keyframes sweep{45%,100%{transform:translateX(120%)}}
+  @keyframes markBloom{0%,38%{filter:drop-shadow(0 0 0 rgba(167,139,250,0))}58%{filter:drop-shadow(0 0 26px rgba(167,139,250,.55))}100%{filter:drop-shadow(0 0 0 rgba(167,139,250,0))}}
+  .mark-sub{position:absolute;bottom:60px;left:0;right:0;text-align:center;font:700 10px 'Inter';letter-spacing:.42em;text-transform:uppercase;color:var(--mute)}
+  .mark-sub b{color:var(--purple-soft)}
+
+  .foot{max-width:900px;margin:10px auto 90px;padding:0 24px;text-align:center;color:var(--mute);font-size:13px;line-height:1.7}
+  .foot b{color:#fff}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="eyebrow">Loading screen · 5 directions</div>
+  <h1>The future is here, five ways</h1>
+  <p>Same dark canvas and market-code field as the passport, same phrase every time. Each panel loops its full load cycle; hit replay to watch again. Pick a letter.</p>
+</div>
+
+<!-- A · SPLIT-FLAP -->
+<section class="demo" data-demo="A">
+  <div class="tag"><span class="l">A</span><span><div class="n">Departure Board</div><div class="d">split-flap tiles settle on the phrase, airport style</div></span></div>
+  <button class="replay">Replay</button>
+  <pre class="codes" aria-hidden="true"></pre>
+  <div class="stage"><div class="flapline">
+    <div class="flaprow" data-word="THE"></div>
+    <div class="flaprow" data-word="FUTURE"></div>
+    <div class="flaprow" data-word="IS&nbsp;HERE"></div>
+    <div class="board-sub">Now boarding &middot; <b>oftmw.com</b></div>
+  </div></div>
+</section>
+
+<!-- B · EDITORIAL SERIF -->
+<section class="demo" data-demo="B">
+  <div class="tag"><span class="l">B</span><span><div class="n">The Editorial</div><div class="d">Fraunces serif rises word by word, gold rule, journal voice</div></span></div>
+  <button class="replay">Replay</button>
+  <pre class="codes" aria-hidden="true"></pre>
+  <div class="stage"><div class="edit">
+    <div class="rule"></div>
+    <h2><span class="w"><i>The&nbsp;</i></span><span class="w"><i>future</i></span><br>
+        <span class="w w2"><i class="em">is&nbsp;</i></span><span class="w w3"><i class="em">here.</i></span></h2>
+    <div class="since">Markets of Tomorrow</div>
+  </div></div>
+</section>
+
+<!-- C · LIQUID TYPE -->
+<section class="demo" data-demo="C">
+  <div class="tag"><span class="l">C</span><span><div class="n">Liquid Type</div><div class="d">the words themselves fill with purple water, then a light passes through</div></span></div>
+  <button class="replay">Replay</button>
+  <pre class="codes" aria-hidden="true"></pre>
+  <div class="stage"><div class="liq">
+    <span class="row">THE<span aria-hidden="true">THE</span><span class="shimmer" aria-hidden="true">THE</span></span>
+    <span class="row">FUTURE<span aria-hidden="true">FUTURE</span><span class="shimmer" aria-hidden="true">FUTURE</span></span>
+    <span class="row">IS HERE<span aria-hidden="true">IS HERE</span><span class="shimmer" aria-hidden="true">IS HERE</span></span>
+  </div></div>
+</section>
+
+<!-- D · TERMINAL -->
+<section class="demo" data-demo="D">
+  <div class="tag"><span class="l">D</span><span><div class="n">The Terminal</div><div class="d">typed in mono with a live cursor, Onyx energy, progress hairline</div></span></div>
+  <button class="replay">Replay</button>
+  <pre class="codes" aria-hidden="true"></pre>
+  <div class="stage"><div class="term">
+    <div class="line"><span class="typed"></span><span class="cursor"></span></div>
+    <div class="bar"><i></i></div>
+    <div class="stat">Syncing 1,600+ projects</div>
+  </div></div>
+</section>
+
+<!-- E · THE MARK, LIGHT SWEEP -->
+<section class="demo" data-demo="E">
+  <div class="tag"><span class="l">E</span><span><div class="n">The Mark</div><div class="d">your logo stays white; a purple light sweeps through and blooms</div></span></div>
+  <button class="replay">Replay</button>
+  <pre class="codes" aria-hidden="true"></pre>
+  <div class="stage"><div class="mark"><i></i></div></div>
+  <div class="mark-sub">The future is <b>here</b></div>
+</section>
+
+<div class="foot">
+  All five keep the passport code field and the site background. <b>A</b> and <b>D</b> lean travel/tech, <b>B</b> is the journal's voice, <b>C</b> evolves the water fill into typography, <b>E</b> keeps the current mark with a calmer, faster read. Tell me the letter and I swap it into the live loader.
+</div>
+
+<script>
+/* shared code field (same seeded generator as the passport + loader) */
+(function(){
+  var CODES=['LAX','WPB','LON','MIA','NYC','TYO','CHI','SLC','AUS','BNA','PAR','DXB','HKG','SIN','MIL','ASP','SFO','BOS','SEA','DFW','ATL','DEN','LAS','GVA','ZRH','MAD','ROM','SYD','DOH','SJD','JFK','LHR','CDG','HND','ORD','PBI','NAS','PHX','SAN','AUH','IST','BCN','VCE','MUC','AMS','VIE','CPH','DUB','MEX','SCL','BOM','DEL','BKK','ICN','PEK','MEL','CPT','TLV','RUH','JED','YYZ','YVR','HNL','MCO','NCE','LIS','ATH','PRG','KEF','NAP','MNL'];
+  var seed=7; function rnd(){ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+  var out=''; for(var r=0;r<46;r++){ var ln=''; for(var c=0;c<80;c++) ln+=CODES[Math.floor(rnd()*CODES.length)]+' '; out+=ln+'\n'; }
+  document.querySelectorAll('.codes').forEach(function(p){ p.textContent=out; });
+})();
+
+/* A · split-flap */
+function runFlaps(root){
+  var GLYPHS='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  root.querySelectorAll('.flaprow').forEach(function(row,ri){
+    var word=row.getAttribute('data-word').replace('&nbsp;',' ');
+    row.innerHTML='';
+    word.split('').forEach(function(ch,i){
+      var f=document.createElement('div');
+      f.className='flap'+(ch===' '?' space':' spin');
+      f.textContent=ch===' '?'':GLYPHS[Math.floor(Math.random()*26)];
+      row.appendChild(f);
+      if(ch===' ')return;
+      var settle=500+ri*260+i*130+Math.random()*160;
+      var iv=setInterval(function(){ f.textContent=GLYPHS[Math.floor(Math.random()*26)]; },55);
+      setTimeout(function(){ clearInterval(iv); f.textContent=ch; f.classList.remove('spin'); f.classList.add('done'); },settle);
+    });
+  });
+}
+
+/* D · typewriter */
+function runTerm(root){
+  var el=root.querySelector('.typed'); if(!el)return;
+  var PLAIN='THE FUTURE ', EM='IS HERE';
+  el.innerHTML=''; var i=0,j=0;
+  clearInterval(el._iv);
+  el._iv=setInterval(function(){
+    if(i<PLAIN.length){ el.innerHTML=PLAIN.slice(0,++i); }
+    else if(j<EM.length){ el.innerHTML=PLAIN+'<span class="typed-p">'+EM.slice(0,++j)+'</span>'; }
+    else clearInterval(el._iv);
+  },95);
+  var bar=root.querySelector('.bar i');
+  if(bar){ bar.style.animation='none'; void bar.offsetHeight; bar.style.animation=''; }
+}
+
+/* generic CSS-animation restart */
+function restartCss(root){
+  root.querySelectorAll('.edit .w i,.edit .rule,.edit .since,.liq .row span,.mark,.mark i').forEach(function(n){
+    n.style.animation='none'; void n.offsetHeight; n.style.animation='';
+  });
+}
+
+function run(section){
+  var k=section.getAttribute('data-demo');
+  if(k==='A') runFlaps(section);
+  else if(k==='D') runTerm(section);
+  else restartCss(section);
+}
+document.querySelectorAll('.demo').forEach(function(s){
+  run(s);
+  s.querySelector('.replay').addEventListener('click',function(){ run(s); });
+});
+/* replay each when scrolled into view */
+if('IntersectionObserver' in window){
+  var seen=new WeakMap();
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){
+    if(e.isIntersecting && !seen.get(e.target)){ seen.set(e.target,true); run(e.target); }
+    if(!e.isIntersecting) seen.set(e.target,false);
+  }); },{threshold:.5});
+  document.querySelectorAll('.demo').forEach(function(s){ io.observe(s); });
+}
+</script>
+</body>
+</html>
