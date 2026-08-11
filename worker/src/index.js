@@ -7519,7 +7519,7 @@ async function handleClientsList(req, env, origin, url) {
   add('type', url.searchParams.get('type'));
   const q = (url.searchParams.get('q') || '').trim();
   if (q) { params.push('%' + q.toLowerCase() + '%'); where.push('(LOWER(name) LIKE ?' + params.length + ' OR LOWER(location) LIKE ?' + params.length + ')'); }
-  const sql = 'SELECT * FROM clients' + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY name COLLATE NOCASE ASC LIMIT 500';
+  const sql = 'SELECT * FROM clients' + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY name COLLATE NOCASE ASC LIMIT 2000';
   const { results } = await env.DB.prepare(sql).bind(...params).all();
   return json({ items: results || [], total: (results || []).length }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
 }
