@@ -2833,7 +2833,10 @@
     // EXCEPTION — `immediate`: when we know the LLM will NOT be called (zero
     // results, or a fully-deterministic firm/no-results answer), show the answer
     // text right away. Otherwise the loader would spin forever ("Thinking…").
-    var cached = cachedAnswer(q);
+    // Firm-ranking answers reflect LIVE project counts (they change the moment a
+    // project is added/retagged), so never serve the query-keyed cache for them —
+    // always show the fresh deterministic leaderboard + a fresh LLM upgrade.
+    var cached = (s && s.firmRank) ? null : cachedAnswer(q);
     var showNow = !!cached || !!immediate;
     var ansCls = showNow ? '' : 'loading';
     var ansHtml = cached ? linkifyAnswer(esc(cached))
@@ -3996,7 +3999,12 @@
       // Analytical/synthesis question → the LLM prose IS the answer. Force the
       // text/Intelligence path (never a structured project readout) so we always
       // produce written prose to show after the cards are suppressed.
-      if (_answerOnly) smart = null;
+      // EXCEPT a firm-RANKING ask ("most active developer in X"): that has a
+      // structured answer (the project-count leaderboard) we want, and only the
+      // structured path attaches firm_ranking for the LLM. Stripping it to the
+      // freeform path makes the LLM rank by narrative prominence (the flashiest
+      // project) instead of by tracked-project count — the wrong "most active".
+      if (_answerOnly && !(smart && smart.firmRank)) smart = null;
       // NAMED-PROJECT OVERRIDE — a question that names a specific tracked
       // project ("when will hotel ORA tampa construction begin") must anchor on
       // THAT project. The structured parse reads it as a status browse (Tampa +
@@ -4565,7 +4573,7 @@
     // would render it, then swap it ~10s later for a near-identical one (the
     // confusing "answer, then a better answer" flash). No cache → the panel
     // shows the loader (never the deterministic draft) until the LLM lands once.
-    if ((rows.length || iconicHits.length) && !s._firmCityFallback && !cachedAnswer(q)) fireSmartIntelUpgrade(q, s, rows, iconicHits);
+    if ((rows.length || iconicHits.length) && !s._firmCityFallback && (!cachedAnswer(q) || s.firmRank)) fireSmartIntelUpgrade(q, s, rows, iconicHits);
 
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
