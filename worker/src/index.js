@@ -2594,6 +2594,32 @@ export async function handleDailyPulse(req, env, origin, url) {
     ).bind(midnight).all()).results || [];
     out.auto_emails = { total: erows.filter((r) => r.mode === 'live').length, list: erows };
   } catch (_) { out.auto_emails = { total: 0, list: [] }; }
+  // Pro trials STARTED today + real payments CAPTURED today (Stripe). Best-effort.
+  out.pro_trials = { total: 0, list: [] };
+  out.pro_payments = { total: 0, amount: 0, list: [] };
+  try {
+    if (env.STRIPE_SECRET_KEY) {
+      // Subscriptions created today that carry a trial = a Pro trial started.
+      const subs = await stripeGet(env, '/subscriptions?created[gte]=' + midnight + '&limit=100&expand[]=data.customer');
+      const tl = [];
+      for (const s of (((subs && subs.data) || []))) {
+        if (!s || !s.trial_start) continue;          // trials only
+        tl.push({ email: (s.customer && s.customer.email) || null, ts: s.created, status: s.status || null });
+      }
+      tl.sort((a, b) => b.ts - a.ts);
+      out.pro_trials = { total: tl.length, list: tl };
+      // Real money captured today (a trial converting, or a direct payment).
+      const ch = await stripeGet(env, '/charges?created[gte]=' + midnight + '&limit=100');
+      const pl = []; let amt = 0;
+      for (const c of (((ch && ch.data) || []))) {
+        if (!c || c.paid !== true || c.status !== 'succeeded' || (c.amount || 0) <= 0 || c.refunded) continue;
+        const dollars = (c.amount || 0) / 100; amt += dollars;
+        pl.push({ email: (c.billing_details && c.billing_details.email) || c.receipt_email || null, amount: dollars, ts: c.created });
+      }
+      pl.sort((a, b) => b.ts - a.ts);
+      out.pro_payments = { total: pl.length, amount: Math.round(amt), list: pl };
+    }
+  } catch (e) { out.pro_stripe_error = String(e.message || e); }
   return json(out, {}, env, origin);
 }
 
@@ -8247,14 +8273,88 @@ async function handleSocialSync(req, env, origin) {
 async function handleMorningData(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
   let last = [];
   try {
     const { results } = await env.DB.prepare(
       `SELECT account, MAX(ts) AS ts, COUNT(*) AS posts_90d FROM ig_posts WHERE ts > ?1 GROUP BY account`
-    ).bind(Math.floor(Date.now() / 1000) - 90 * 86400).all();
+    ).bind(now - 90 * 86400).all();
     last = results || [];
   } catch (_) {}
-  return json({ last_posts: last }, {}, env, origin);
+  const out = { last_posts: last };
+
+  // Reusable classifier: pro (Stripe trialing/active) > free (Memberstack) > anon.
+  let memberSet = new Set(), paidSet = new Set();
+  try { memberSet = await msMemberEmailSet(env); } catch (_) {}
+  try {
+    if (env.STRIPE_SECRET_KEY) {
+      for (const st of ['trialing', 'active']) {
+        const s = await stripeGet(env, '/subscriptions?status=' + st + '&limit=100&expand[]=data.customer');
+        for (const sub of (((s && s.data) || []))) {
+          const em = sub && sub.customer && sub.customer.email;
+          if (em) paidSet.add(String(em).trim().toLowerCase());
+        }
+      }
+    }
+  } catch (_) {}
+  const classify = (email) => {
+    const em = String(email || '').trim().toLowerCase();
+    if (em && paidSet.has(em)) return 'pro';
+    if (em && memberSet.has(em)) return 'free';
+    return 'anon';
+  };
+
+  // ── Weekly newsletter (Resend) — the most recent SENT broadcast + reach ──
+  // Resend's broadcast API returns send status but not always aggregate opens;
+  // 'directed_to_site' is our own first-party newsletter-surface click count,
+  // which is the reliable "how many came back to the site" signal.
+  try {
+    if (env.RESEND_API_KEY) {
+      const br = await fetch('https://api.resend.com/broadcasts', { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } });
+      if (br.ok) {
+        const list = (await br.json()).data || [];
+        const wk = list.find((b) => b.status === 'sent' && b.sent_at) || list[0] || null;
+        if (wk) {
+          let det = {};
+          try { const rr = await fetch('https://api.resend.com/broadcasts/' + wk.id, { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } }); if (rr.ok) det = await rr.json(); } catch (_) {}
+          const num = (v) => (typeof v === 'number' ? v : (v && typeof v.count === 'number' ? v.count : null));
+          const sentDay = new Date(wk.sent_at ? Date.parse(wk.sent_at) : Date.now()).toISOString().slice(0, 10);
+          let directed = 0;
+          try {
+            await ensurePlacementStatsTable(env);
+            const cr = await env.DB.prepare(`SELECT SUM(clicks) c FROM placement_stats WHERE surface='newsletter' AND day >= ?1`).bind(sentDay).first();
+            directed = (cr && cr.c) || 0;
+          } catch (_) {}
+          out.weekly_email = {
+            id: wk.id, name: wk.name || null, status: wk.status || null, sent_at: wk.sent_at || null,
+            sent: num(det.sent) || num(det.total_sent) || num(det.recipient_count) || null,
+            delivered: num(det.delivered) || null,
+            opened: num(det.opened) || num(det.open) || null,
+            clicked: num(det.clicked) || num(det.click) || null,
+            directed_to_site: directed,
+          };
+        }
+      } else { out.weekly_email_error = 'Resend /broadcasts HTTP ' + br.status; }
+    }
+  } catch (e) { out.weekly_email_error = String(e.message || e); }
+
+  // ── Subscribe-automation emails (wall-hit mailer), last 7d, by WHO + kind ──
+  try {
+    await ensureWallhitTable(env);
+    const rows = (await env.DB.prepare(`SELECT email, kind, mode FROM wallhit_sends WHERE ts >= ?1 AND mode='live'`).bind(now - 7 * 86400).all()).results || [];
+    let free = 0, pro = 0, anon = 0; const byKind = {};
+    for (const r of rows) {
+      byKind[r.kind] = (byKind[r.kind] || 0) + 1;
+      const c = classify(r.email);
+      if (c === 'pro') pro++; else if (c === 'free') free++; else anon++;
+    }
+    out.subscribe_emails = {
+      total: rows.length, free, pro, anon,
+      by_kind: Object.entries(byKind).map(([kind, c]) => ({ kind, c })).sort((a, b) => b.c - a.c),
+    };
+  } catch (e) { out.subscribe_emails_error = String(e.message || e); }
+
+  return json(out, {}, env, origin);
 }
 
 // POST /admin/jarvis — the Morning Desk's chat. Grounded two ways: the client
