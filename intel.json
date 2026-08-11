@@ -16701,17 +16701,78 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
+    },
+    "the-high-line": {
+      "estimate_years": 2.2,
+      "estimate_label": "~2.2 years",
+      "range_low": 1.7,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 13,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.46,
+      "avg_distance_km": 1275.3,
+      "avg_distance_mi": 792.4,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "ORE/Jebcore",
+        "count": 1,
+        "median_years": 2.04,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "Tampa Bay",
+      "comparables": [
+        {
+          "name": "Inscription",
+          "slug": "inscription",
+          "location": "West Palm Beach",
+          "years": 2.0,
+          "score": 0.64,
+          "distance_km": 251.7,
+          "distance_mi": 156.4
+        },
+        {
+          "name": "DELUX WeHo",
+          "slug": "delux-weho",
+          "location": "Nashville",
+          "years": 1.7,
+          "score": 0.64,
+          "distance_km": 1057.2,
+          "distance_mi": 656.9
+        },
+        {
+          "name": "AQUA at Westshore Yacht Club",
+          "slug": "aqua-at-westshore-yacht-club",
+          "location": "Tampa",
+          "years": 1.9,
+          "score": 0.58,
+          "distance_km": 61.0,
+          "distance_mi": 37.9
+        }
+      ],
+      "pattern_summary": "Among 13 comparable residences projects in TMW's data, the median build time is 2.4 years (range 1.7–4.3). Adjusted to ~2.2 years for ORE/Jebcore's own track record (~2-year typical pace across 1 prior project).",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
     }
   },
   "stats": {
     "high": 9,
     "medium": 25,
-    "low": 85,
+    "low": 86,
     "known_date": 550,
     "completed": 71,
     "skipped": 116,
     "no_type": 0,
-    "firm_boosted": 49,
+    "firm_boosted": 50,
     "speculative_softened": 226,
     "district": 13,
     "mixed_use_adjusted": 34
