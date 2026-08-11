@@ -7487,6 +7487,70 @@ function normalizeContactTags(v) {
   return [];
 }
 
+
+// ── /clients — the client directory (PR-agency rosters) ─────────────────────
+// Every client carries a type tag, a location tag, an area bucket (the primary
+// filter), and rep_firm = the agency that represents them (e.g. "Quinn").
+// The Contacts tab's Clients + Firms views drive this; clicking a client shows
+// the rep firm's people (GET /contacts?q=<firm>). Admin-only on every verb.
+async function ensureClientsTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS clients (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, website TEXT, type TEXT,
+    location TEXT, area TEXT, rep_firm TEXT, notes TEXT,
+    created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+  )`).run();
+  try { await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_clients_firm ON clients(rep_firm)`).run(); } catch (_) {}
+}
+function clientClean(b) {
+  const s = (v, n) => { const t = String(v == null ? '' : v).trim(); return t ? t.slice(0, n) : null; };
+  return {
+    name: s(b.name, 160), website: s(b.website, 300), type: s(b.type, 60),
+    location: s(b.location, 120), area: s(b.area, 60), rep_firm: s(b.rep_firm, 120), notes: s(b.notes, 600),
+  };
+}
+async function handleClientsList(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureClientsTable(env);
+  const where = [], params = [];
+  const add = (col, v) => { if (v) { params.push(v); where.push(col + ' = ?' + params.length); } };
+  add('rep_firm', url.searchParams.get('firm'));
+  add('area', url.searchParams.get('area'));
+  add('type', url.searchParams.get('type'));
+  const q = (url.searchParams.get('q') || '').trim();
+  if (q) { params.push('%' + q.toLowerCase() + '%'); where.push('(LOWER(name) LIKE ?' + params.length + ' OR LOWER(location) LIKE ?' + params.length + ')'); }
+  const sql = 'SELECT * FROM clients' + (where.length ? ' WHERE ' + where.join(' AND ') : '') + ' ORDER BY name COLLATE NOCASE ASC LIMIT 500';
+  const { results } = await env.DB.prepare(sql).bind(...params).all();
+  return json({ items: results || [], total: (results || []).length }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
+}
+async function handleClientsUpsert(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureClientsTable(env);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const c = clientClean(b);
+  if (!c.name) return json({ error: 'name required' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  let id = String(b.id || '').trim();
+  if (id) {
+    await env.DB.prepare(`UPDATE clients SET name=?1, website=?2, type=?3, location=?4, area=?5, rep_firm=?6, notes=?7, updated_at=?8 WHERE id=?9`)
+      .bind(c.name, c.website, c.type, c.location, c.area, c.rep_firm, c.notes, now, id).run();
+  } else {
+    id = 'cl-' + c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) + '-' + Math.random().toString(36).slice(2, 6);
+    await env.DB.prepare(`INSERT INTO clients (id, name, website, type, location, area, rep_firm, notes, created_at, updated_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?9)`)
+      .bind(id, c.name, c.website, c.type, c.location, c.area, c.rep_firm, c.notes, now).run();
+  }
+  const row = await env.DB.prepare(`SELECT * FROM clients WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, client: row }, {}, env, origin);
+}
+async function handleClientsDelete(req, env, origin, id) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureClientsTable(env);
+  await env.DB.prepare(`DELETE FROM clients WHERE id = ?1`).bind(String(id)).run();
+  return json({ ok: true }, {}, env, origin);
+}
+
 async function handleContactsList(req, env, origin, url) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
@@ -8989,6 +9053,10 @@ function rowToDesignSummary(r) {
   // is the first slide that actually has an image.url.
   const withImg = slides.find(s => s && s.image && s.image.url);
   const cover = withImg ? withImg.image.url : '';
+  // slide-1 headline so the Posts board can composite a text+image cover for
+  // unrendered drafts (rendered carousels have real slide PNGs)
+  const s0 = slides[0] || {};
+  const hl = (Array.isArray(s0.texts) ? s0.texts : []).find(t => t && t.role === 'headline' && t.content);
   return {
     id: r.id,
     slug: r.slug,
@@ -8997,6 +9065,7 @@ function rowToDesignSummary(r) {
     market: doc.market || '',
     carousel_slug: doc.carousel_slug || null,
     ready: !!doc.ready,
+    headline: hl ? String(hl.content).slice(0, 160) : '',
     cover,
     slides: slides.length,
     updated_at: r.updated_at,
@@ -17520,6 +17589,15 @@ export default {
       // drives the list + filter + edit flows; the post editor's Contact
       // picker hits GET /contacts?q=… for autocomplete and POST /contacts
       // for inline "create new".
+      // /clients — the client directory (see handlers above).
+      if (url.pathname === '/clients' || url.pathname === '/clients/') {
+        if (request.method === 'GET')  return await handleClientsList(request, env, origin, url);
+        if (request.method === 'POST') return await handleClientsUpsert(request, env, origin);
+      }
+      {
+        const mCl = url.pathname.match(/^\/clients\/([^/]+)$/);
+        if (mCl && request.method === 'DELETE') return await handleClientsDelete(request, env, origin, decodeURIComponent(mCl[1]));
+      }
       if (url.pathname === '/contacts' || url.pathname === '/contacts/') {
         if (request.method === 'GET')  return await handleContactsList(request, env, origin, url);
         if (request.method === 'POST') return await handleContactsCreate(request, env, origin);
