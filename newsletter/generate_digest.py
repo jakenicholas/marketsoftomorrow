@@ -34,6 +34,15 @@ ARCHIVE_DIR   = "newsletter/digest-archive"
 # dead after the migration off Wix). Articles live at www.oftmw.com/post/<slug>/.
 POSTS_API     = "https://tmw.jake-ab7.workers.dev/posts?limit=50&status=published"
 WORKER_URL    = "https://tmw.jake-ab7.workers.dev"   # first-party ad tracking: /r click redirect + /px impression pixel
+
+# TMW Pro house conversion module — tracked first-party exactly like a sponsor
+# slot. The id lives in journal/ads.json as an active:false house entry (never
+# enters the site banner carousel) so /r resolves the /pro/ destination and the
+# Studio Placements tab attributes newsletter clicks/impressions to it.
+PRO_PROMO = {
+    "click_url": f"{WORKER_URL}/r?id=tmw-pro-trial&s=newsletter",
+    "pixel_url": f"{WORKER_URL}/px?id=tmw-pro-trial&s=newsletter",
+}
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
@@ -861,7 +870,7 @@ def main():
             florida_articles=florida_articles,
             more_markets_articles=more_markets_articles,
             intel=intel,
-            app_updates=app_updates, ads=ads,
+            app_updates=app_updates, ads=ads, pro_promo=PRO_PROMO,
             site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
             app_image_url=cache_bust_image,
             archive=archive, art_cap=art_cap,

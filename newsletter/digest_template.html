@@ -496,6 +496,53 @@
       {{ render_ad(ads.slot3) }}
       {%- endif %}
 
+      <!-- TMW PRO — house conversion module. A dark panel (consistent in both
+           color modes) pitching the 14-day trial at the new $32/$300 pricing,
+           placed right before the database sections it unlocks. Tracked
+           first-party like a sponsor slot: the CTA routes through /r and a
+           1x1 /px pixel logs impressions (email build only), so clicks/views
+           land in the Studio Placements tab under "tmw-pro-trial". -->
+      {%- if pro_promo %}
+      <tr><td style="padding: 28px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0e0b16" style="background-color: #0e0b16; border: 1.5px solid #A78BFA; border-radius: 14px; box-shadow: 0 0 24px rgba(167, 139, 250, 0.35);">
+          <tr><td align="center" style="padding: 30px 30px 6px 30px;">
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #C4B5FD;">TMW Pro</div>
+            <div style="font-family: Georgia, 'Times New Roman', serif; color: #ffffff; font-size: 30px; line-height: 1.15; margin: 14px 0 10px 0;">Try everything, free for 2&nbsp;weeks</div>
+            <div style="color: #c9c3da; font-size: 14.5px; line-height: 1.6; max-width: 440px; margin: 0 auto;">The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.</div>
+          </td></tr>
+          <tr><td style="padding: 20px 30px 0 30px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout: fixed;">
+              <tr>
+                <td class="feat-col" valign="top" width="50%" style="width: 50%; padding: 0 5px 0 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.14); border: 1.5px solid #A78BFA; border-radius: 12px;">
+                    <tr><td style="padding: 14px 16px;">
+                      <div style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #C4B5FD;">Annual &middot; Save 22%</div>
+                      <div style="color: #ffffff; font-size: 24px; font-weight: 700; margin-top: 6px;">$300<span style="font-size: 13px; font-weight: 500; color: #b7aed2;">/yr</span></div>
+                      <div style="font-size: 11.5px; color: #b7aed2; margin-top: 5px;">$25/month &middot; 14 days free</div>
+                    </td></tr>
+                  </table>
+                </td>
+                <td class="feat-col" valign="top" width="50%" style="width: 50%; padding: 0 0 0 5px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 12px;">
+                    <tr><td style="padding: 14px 16px;">
+                      <div style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9a92b5;">Monthly</div>
+                      <div style="color: #ffffff; font-size: 24px; font-weight: 700; margin-top: 6px;">$32<span style="font-size: 13px; font-weight: 500; color: #b7aed2;">/mo</span></div>
+                      <div style="font-size: 11.5px; color: #b7aed2; margin-top: 5px;">14 days free</div>
+                    </td></tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+          <tr><td align="center" style="padding: 18px 30px 26px 30px;">
+            <a href="{{ pro_promo.click_url }}" target="_blank" rel="noopener" style="display: block; background-color: #A78BFA; color: #0e0b16 !important; padding: 15px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; letter-spacing: 0.02em; text-align: center;">Start my 14-day free trial &rarr;</a>
+            <div style="font-size: 11px; color: #8d85a8; margin-top: 12px;">No charge for 14 days. Cancel anytime in your account.</div>
+            {%- if not archive and pro_promo.pixel_url %}<img src="{{ pro_promo.pixel_url }}" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">{% endif %}
+          </td></tr>
+        </table>
+      </td></tr>
+      {%- endif %}
+
       <!-- NEW ON THE MAP — combined, 2-col grid -->
       {%- if map_items %}
       <tr><td>
