@@ -2227,6 +2227,10 @@ const WALLHIT_COPY = {
   pro:   { subject: 'Your 2 free weeks of TMW Pro are still here',
            headline: 'Two weeks of everything, free',
            body: 'You looked at TMW Pro but did not start the trial. It is 14 days of the full Map and Atlas, unlimited Onyx with Deep mode, watchlists and the weekly brief, and it costs nothing to try.' },
+  // the one-time launch blast to every free account — no wall implied
+  blast: { subject: 'Your 2 free weeks of TMW Pro',
+           headline: 'Two weeks of everything, free',
+           body: 'You have a free TMW account, which means you have seen the edges of what we track. TMW Pro opens all of it for 14 days at no charge: the full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief.' },
 };
 const WALLHIT_CTA = 'https://tmw.jake-ab7.workers.dev/r?id=tmw-pro-wallhit&s=newsletter';
 // The full pitch under the wall-specific opener — mirrors the /pro page:
@@ -2279,6 +2283,59 @@ function wallhitEmail(kind) {
     '</div></div>';
   const text = `${c.headline}\n\n${c.body}\n\nEverything TMW Pro opens:\n${WALLHIT_FEATURES.map((f) => '- ' + f.replace(/&amp;/g, '&')).join('\n')}\n\nAnnual $300/yr ($25/month, save 22%) or $32/mo. 14 days free either way.\nStart my 14-day free trial: ${WALLHIT_CTA}\n\nYou are getting this one-time note because you are a TMW member and bumped into a Pro feature. Reply to opt out.`;
   return { subject: c.subject, html, text };
+}
+// One-shot launch blast (Jake approved 2026-08-10): the generic-Pro variant
+// to EVERY Memberstack account that is not paying/trialing. Guarded three
+// ways: env WALLHIT_BLAST must be '1', a done-marker event blocks re-runs
+// forever, and every send is recorded in wallhit_sends (kind 'blast') so the
+// daily automation's 14-day suppression covers blast recipients too.
+async function maybeWallhitBlast(env) {
+  if (env.WALLHIT_BLAST !== '1') return;
+  if (!env.DB || !env.RESEND_API_KEY || !env.MEMBERSTACK_SECRET_KEY) return;
+  try {
+    const done = await env.DB.prepare("SELECT ts FROM events WHERE event_name='wallhit_blast_done' LIMIT 1").first();
+    if (done) return;
+    const now = Math.floor(Date.now() / 1000);
+    // Marker FIRST — the minutely cron must never start this twice.
+    await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
+      .bind(now, 'system:wallhit-mailer', 'wallhit_blast_done', '{"status":"running"}').run();
+    await ensureWallhitTable(env);
+    const members = await msFetchAllMembers(env);
+    const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+    const msg = wallhitEmail('blast');
+    let sent = 0, skippedPaying = 0, skippedDup = 0, failed = 0;
+    for (const m of members) {
+      const email = String((m.auth && m.auth.email) || m.email || '').trim().toLowerCase();
+      if (!email) continue;
+      // Paying or trialing per Memberstack: an active/trialing/past_due
+      // non-FREE connection carrying a payment object.
+      const conns = Array.isArray(m.planConnections) ? m.planConnections : [];
+      const pays = conns.some((c) =>
+        (c.active === true || /^(active|trialing|past_due)$/i.test(String(c.status || ''))) &&
+        !!c.payment && String(c.type || '').toUpperCase() !== 'FREE');
+      if (pays) { skippedPaying++; continue; }
+      // Belt and braces: live Stripe check catches connections MS hasn't synced.
+      try {
+        const sub = await findSubByEmail(env, email);
+        if (sub && ['active', 'trialing', 'past_due'].includes(sub.status)) { skippedPaying++; continue; }
+      } catch (_) { failed++; continue; }   // can't verify → don't email
+      const dup = await env.DB.prepare(`SELECT ts FROM wallhit_sends WHERE email = ?1 AND ts > ?2 LIMIT 1`)
+        .bind(email, now - 14 * 86400).first();
+      if (dup) { skippedDup++; continue; }
+      try {
+        const r = await fetch('https://api.resend.com/emails', {
+          method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: FROM, to: [email], subject: msg.subject, html: msg.html, text: msg.text }),
+        });
+        await env.DB.prepare(`INSERT INTO wallhit_sends (member_id, email, kind, mode, ts) VALUES (?,?,?,?,?)`)
+          .bind(m.id || 'ms:unknown', email, 'blast', r.ok ? 'live' : 'error', now).run();
+        if (r.ok) sent++; else failed++;
+      } catch (_) { failed++; }
+    }
+    await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
+      .bind(Math.floor(Date.now() / 1000), 'system:wallhit-mailer', 'wallhit_blast_report',
+            JSON.stringify({ sent, skippedPaying, skippedDup, failed, members: members.length })).run();
+  } catch (_) {}
 }
 async function ensureWallhitTable(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wallhit_sends (
@@ -8028,6 +8085,53 @@ async function handleSocialSync(req, env, origin) {
   const res = await syncSocialPosts(env, { days, maxPer });
   if (!res.ok) return json(res, { status: 500 }, env, origin);
   return json(res, {}, env, origin);
+}
+
+// ── Morning Desk feeds ──────────────────────────────────────────────────────
+// GET /admin/morning → real last-post-per-account from the daily IG archive
+// sync (ig_posts), so the desk's accounts board reflects actual Instagram
+// activity, not just this publisher's own receipts.
+async function handleMorningData(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let last = [];
+  try {
+    const { results } = await env.DB.prepare(
+      `SELECT account, MAX(ts) AS ts, COUNT(*) AS posts_90d FROM ig_posts WHERE ts > ?1 GROUP BY account`
+    ).bind(Math.floor(Date.now() / 1000) - 90 * 86400).all();
+    last = results || [];
+  } catch (_) {}
+  return json({ last_posts: last }, {}, env, origin);
+}
+
+// POST /admin/jarvis — the Morning Desk's chat. Grounded two ways: the client
+// sends the SAME live snapshot the desk renders (so answers match what Jake
+// sees), and the shared brand brain supplies business knowledge. Suggest-first:
+// Jarvis is a copilot, not a chatbot.
+async function handleJarvisChat(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  let body = {}; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const q = String(body.q || '').slice(0, 2000);
+  if (!q) return json({ error: 'q required' }, { status: 400 }, env, origin);
+  const context = String(body.context || '').slice(0, 6000);
+  const history = (Array.isArray(body.history) ? body.history : []).slice(-10)
+    .map(m => (m && m.content ? ((m.role === 'assistant' ? 'Jarvis: ' : 'Jake: ') + String(m.content).slice(0, 1200)) : ''))
+    .filter(Boolean).join('\n');
+  let brainText = '';
+  try {
+    const brain = await assembleBrain(env, { topic: q.slice(0, 120), surface: 'studio', maxKnowledge: 6, maxFacts: 6 });
+    brainText = (brain && (brain.text || brain.voice)) || '';
+  } catch (_) {}
+  const sys = 'You are Jarvis, the private Studio copilot for Jake Nicholas, founder of Markets of Tomorrow (TMW) — a real-estate/hospitality news network + data platform. '
+    + 'You see his live business dashboard. Answer in plain, direct prose (2-6 sentences unless he asks for more). NEVER use em dashes. '
+    + 'Be a copilot: when the data suggests an action (stale account, unposted queue, billed-but-unpaid money, draft pileup), say so and suggest the next move. '
+    + 'If asked about something outside the snapshot, say what you would need rather than guessing numbers.';
+  const user = (context ? 'LIVE DASHBOARD SNAPSHOT:\n' + context + '\n\n' : '')
+    + (brainText ? 'BRAND BRAIN NOTES:\n' + brainText.slice(0, 2500) + '\n\n' : '')
+    + (history ? 'CONVERSATION SO FAR:\n' + history + '\n\n' : '')
+    + 'Jake: ' + q;
+  const answer = await fableGenerate(env, { system: sys, user, maxTokens: 900 });
+  return json({ answer: answer || 'The model did not return an answer. Try again.' }, {}, env, origin);
 }
 
 async function handlePublish(req, env, origin) {
@@ -16294,6 +16398,12 @@ export default {
         if (fm && request.method === 'DELETE') return await handleAdminFlowDelete(env, origin, decodeURIComponent(fm[1]));
       }
       // ── TMW Pro income series (Stripe, admin) ──
+      if (url.pathname === '/admin/morning') {
+        return await handleMorningData(request, env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/admin/jarvis') {
+        return await handleJarvisChat(request, env, origin);
+      }
       if (url.pathname === '/admin/pro-income') {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
@@ -16742,6 +16852,7 @@ export default {
     ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
     ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro
     ctx.waitUntil(maybeWallHitMailer(env));      // daily wall-hit upgrade email (DRY-RUN until WALLHIT_LIVE='1')
+    ctx.waitUntil(maybeWallhitBlast(env));       // one-shot launch blast to free accounts (WALLHIT_BLAST='1', self-marking)
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
