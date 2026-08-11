@@ -18,6 +18,25 @@
   if (window.__tmwChrome) return;
   window.__tmwChrome = true;
 
+  // ── Loading-veil handoff stub ──────────────────────────────────────────
+  // When the previous page navigated through the Departure Board veil, it
+  // stamps tmwl_t0 in sessionStorage. Cover this page in site-black RIGHT NOW
+  // (chrome runs well before images/fonts settle) so the arrival never
+  // flashes; tmw-loader.js then takes over with the full board and lifts it
+  // once the page is loaded AND the 2s budget is spent. The stub self-clears
+  // after 8s even if the loader script never arrives.
+  (function () {
+    try {
+      var t0 = +sessionStorage.getItem('tmwl_t0') || 0;
+      if (!t0 || Date.now() - t0 > 8000 || document.getElementById('tmwl-stub')) return;
+      var d = document.createElement('div');
+      d.id = 'tmwl-stub';
+      d.style.cssText = 'position:fixed;inset:0;z-index:99989;background:#070807';
+      (document.body || document.documentElement).appendChild(d);
+      setTimeout(function () { try { if (d.parentNode) d.parentNode.removeChild(d); } catch (e) {} }, 8000);
+    } catch (e) {}
+  })();
+
   var HEX =
     '<div class="tmw-hex-badge"><svg viewBox="0 0 100 100">' +
     '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>' +
@@ -694,7 +713,7 @@
 (function () {
   if (window.__tmwLoader || document.querySelector('script[data-tmw-loader]')) return;
   var s = document.createElement('script');
-  s.src = '/_shared/tmw-loader.js?v=20260811d';
+  s.src = '/_shared/tmw-loader.js?v=20260811e';
   s.defer = true;
   s.setAttribute('data-tmw-loader', '1');
   document.head.appendChild(s);

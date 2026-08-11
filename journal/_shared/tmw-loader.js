@@ -112,22 +112,58 @@
     flapTimers.forEach(function (t) { clearInterval(t.iv); clearTimeout(t.to); });
     flapTimers = [];
     el.classList.remove('on');
+    var stub = document.getElementById('tmwl-stub');
+    if (stub && stub.parentNode) stub.parentNode.removeChild(stub);
   }
-  // Programmatic full-page redirects (the dock, any JS nav) come through here:
-  // same show → 2s board settle → navigate, exactly like link clicks.
-  // Reduced-motion navigates immediately.
+  // Programmatic full-page redirects (the dock, any JS nav) come through here.
+  // TRUE loading screen: stamp the handoff, show the board, navigate almost
+  // immediately (120ms lets the veil paint) — the DESTINATION page re-shows
+  // the board via the chrome stub + the arrival block below, and lifts it
+  // only when the new page is fully loaded AND the 2s budget is spent. The
+  // 2s is load time now, not a toll on top of it.
   function go(url){
     if (!url) return;
     if (reduced()) { location.href = url; return; }
+    try { sessionStorage.setItem('tmwl_t0', String(Date.now())); } catch (_) {}
     show();
     navigated = false;
-    setTimeout(function () { navigated = true; location.href = url; }, 2000);
+    setTimeout(function () { navigated = true; location.href = url; }, 120);
+    // If the navigation gets canceled (Esc / stop) the old page would keep the
+    // veil forever — lift it after 10s; a real navigation kills this timer
+    // with the whole document anyway.
+    setTimeout(hide, 10000);
   }
   window.tmwLoader = { show: show, hide: hide, go: go };
 
+  // ── Arrival: continue the board on the destination page ────────────────
+  // The origin page stamped tmwl_t0 right before navigating; the chrome stub
+  // already covered this page in site-black. Take over with the full board
+  // and lift it when the document is COMPLETE and at least 2s have passed
+  // since the click (hard cap 6s so a slow third-party image can't trap it).
+  var handoffT0 = 0;
+  try {
+    handoffT0 = +sessionStorage.getItem('tmwl_t0') || 0;
+    sessionStorage.removeItem('tmwl_t0');
+  } catch (_) {}
+  if (handoffT0 && Date.now() - handoffT0 < 8000 && !reduced()) {
+    mount();
+    runFlaps();
+    el.classList.add('on');
+    var stub0 = document.getElementById('tmwl-stub');
+    if (stub0 && stub0.parentNode) stub0.parentNode.removeChild(stub0);
+    var arrivalCheck = function () {
+      var elapsed = Date.now() - handoffT0;
+      if ((document.readyState === 'complete' && elapsed >= 2000) || elapsed >= 6000) { hide(); return; }
+      setTimeout(arrivalCheck, 100);
+    };
+    arrivalCheck();
+    window.addEventListener('load', arrivalCheck);
+  }
+
   // bfcache restore (Safari/Chrome back-forward) resurrects the old page WITH
-  // the veil up — always drop it when a page becomes visible again.
-  window.addEventListener('pageshow', hide);
+  // the veil up — always drop it when a page becomes visible again. (persisted
+  // restores only — the initial pageshow must not kill the arrival board)
+  window.addEventListener('pageshow', function (e) { if (e.persisted) hide(); });
 
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented) return;                        // an overlay/JS handled it
