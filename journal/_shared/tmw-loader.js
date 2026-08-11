@@ -18,9 +18,11 @@
   window.__tmwLoader = true;
 
   var css = [
-    '.tmwl{position:fixed;inset:0;z-index:99990;background:#131316;display:none;align-items:center;justify-content:center}',
+    '.tmwl{position:fixed;inset:0;z-index:99990;background:#070807;display:none;align-items:center;justify-content:center}',
+    /* the passport's faint market-code field, dropped behind the mark */
+    '.tmwl-codes{position:absolute;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;font-family:\'JetBrains Mono\',ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.045)}',
     '.tmwl.on{display:flex}',
-    '.tmwl-logo{position:relative;width:min(150px,36vw);aspect-ratio:382.2/419;background:#fff;overflow:hidden;',
+    '.tmwl-logo{position:relative;z-index:1;width:min(150px,36vw);aspect-ratio:382.2/419;background:#fff;overflow:hidden;',
     '-webkit-mask:url(/_shared/futureishere.svg) center/contain no-repeat;mask:url(/_shared/futureishere.svg) center/contain no-repeat}',
     /* the rising water — loops like the cup refilling */
     '.tmwl-water{position:absolute;left:0;right:0;bottom:0;height:0;background:#A78BFA;animation:tmwlRise 1.9s ease-in-out forwards}',
@@ -36,10 +38,20 @@
   var st = document.createElement('style'); st.textContent = css;
   document.head.appendChild(st);
 
+  // The member-passport's market-code wallpaper (same seeded field).
+  var CODES = ['LAX','WPB','LON','MIA','NYC','TYO','CHI','SLC','AUS','BNA','PAR','DXB','HKG','SIN','MIL','ASP','SFO','BOS','SEA','DFW','ATL','DEN','LAS','GVA','ZRH','MAD','ROM','SYD','DOH','SJD','JFK','LHR','CDG','HND','ORD','PBI','NAS','PHX','SAN','AUH','IST','BCN','VCE','MUC','AMS','VIE','CPH','DUB','MEX','SCL','BOM','DEL','BKK','ICN','PEK','MEL','CPT','TLV','RUH','JED','YYZ','YVR','HNL','MCO','NCE','LIS','ATH','PRG','KEF','NAP','MNL'];
+  var codeField = (function(){
+    var seed = 7, out = '';
+    function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+    for (var r = 0; r < 60; r++) { var ln = ''; for (var c = 0; c < 100; c++) ln += CODES[Math.floor(rnd() * CODES.length)] + ' '; out += ln + '\n'; }
+    return out;
+  })();
+
   var el = document.createElement('div');
   el.className = 'tmwl';
   el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = '<div class="tmwl-logo"><div class="tmwl-water"><div class="tmwl-wave w1"></div><div class="tmwl-wave w2"></div></div></div>';
+  el.innerHTML = '<pre class="tmwl-codes"></pre><div class="tmwl-logo"><div class="tmwl-water"><div class="tmwl-wave w1"></div><div class="tmwl-wave w2"></div></div></div>';
+  el.querySelector('.tmwl-codes').textContent = codeField;
   function mount(){ if (!el.parentNode && document.body) document.body.appendChild(el); }
   if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
 
