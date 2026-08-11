@@ -294,6 +294,28 @@
     + '.tmw-ov-teach-foot{padding:16px 14px 0;margin-top:10px;'
     + 'font-size:12px;color:#9AA39C;text-align:center}'
 
+    /* Direction A — quiet invitation. One warm serif prompt replaces the
+       "Try asking" label; suggestions are hairline rows, not tiles. */
+    + '.tmw-ov-prompt{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:26px;line-height:1.14;'
+    + 'letter-spacing:-.01em;color:#ECEAE5;text-align:center;margin:24px 0 0;text-wrap:balance}'
+    + '.tmw-ov-prompt-sub{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;'
+    + 'font-weight:400;font-size:13px;letter-spacing:.01em;color:#9AA39C;margin-top:10px}'
+    + '.tmw-ov-qlist{margin-top:26px;display:flex;flex-direction:column}'
+    + '.tmw-ov-qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;'
+    + 'width:100%;text-align:left;cursor:pointer;font-family:inherit;color:inherit;'
+    + 'background:transparent;border:0;border-top:1px solid rgba(255,255,255,.08);'
+    + 'padding:15px 4px;transition:padding-left .18s ease}'
+    + '.tmw-ov-qrow:last-child{border-bottom:1px solid rgba(255,255,255,.08)}'
+    + '.tmw-ov-qrow-t{flex:1;font-family:"Fraunces",Georgia,serif;font-size:16.5px;line-height:1.25;color:#ECEAE5}'
+    + '.tmw-ov-qrow-ar{flex:0 0 auto;width:16px;height:16px;color:#6c706c;transition:color .18s,transform .18s}'
+    + '.tmw-ov-qrow-ar svg{width:100%;height:100%}'
+    + '.tmw-ov-qrow:hover{padding-left:10px}'
+    + '.tmw-ov-qrow:hover .tmw-ov-qrow-ar{color:#B9A6FF;transform:translateX(2px)}'
+    /* Starter-only: give the search bar a soft purple wash so it reads as the
+       clear next step. Gated via :has() so it reverts to neutral in a thread. */
+    + '.tmw-ov-lb:has(.tmw-ov-starter:not(.tmw-ov-hidden)) .tmw-ov-bar{'
+    + 'background:rgba(167,139,250,.07);border-color:rgba(167,139,250,.34);box-shadow:0 0 0 3px rgba(167,139,250,.05)}'
+
     /* "Or jump to" quick-jump pill grid beneath the teach lines.
        Forced 2 rows of 3 via grid-template-columns:repeat(3,1fr). Cells
        stretch so each row's pills align cleanly even when their text
@@ -315,11 +337,12 @@
 
     + '@media(max-width:640px){'
     +   '.tmw-ov-starter{padding:16px 16px 28px;min-height:calc(100vh - 200px)}'
-    +   '.tmw-ov-teach-qt{font-size:15px;line-height:1.3}'
     +   '.tmw-ov-teach-ttl{font-size:11px;letter-spacing:.18em}'
-    +   '.tmw-ov-teach-ex{padding:11px 12px;gap:12px}'
-    +   '.tmw-ov-teach-ex .tmw-ov-teach-i{width:30px;height:30px}'
-    +   '.tmw-ov-teach-foot{font-size:11px;padding:12px 10px 0}'
+    +   '.tmw-ov-prompt{font-size:23px;margin-top:20px}'
+    +   '.tmw-ov-prompt-sub{font-size:12.5px}'
+    +   '.tmw-ov-qlist{margin-top:22px}'
+    +   '.tmw-ov-qrow{padding:14px 2px}'
+    +   '.tmw-ov-qrow-t{font-size:15px}'
     + '}'
 
     /* Thinking spinner */
@@ -1326,6 +1349,16 @@
       +  '</button>';
   }).join('');
 
+  // Direction A starter — three quiet hairline suggestion rows (serif text +
+  // a faint arrow). Reuses the generic [data-q] click handler that runs a query.
+  var STARTER_ROW_AR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  var STARTER_ROWS_HTML = STARTER_CHIPS.slice(0, 3).map(function(q){
+    return '<button class="tmw-ov-qrow" type="button" data-q="' + esc(q) + '">'
+      +    '<span class="tmw-ov-qrow-t">' + esc(q) + '</span>'
+      +    '<span class="tmw-ov-qrow-ar">' + STARTER_ROW_AR + '</span>'
+      +  '</button>';
+  }).join('');
+
   // "Or jump to" quick-jump pills — curated firm names + cities the user
   // wants to surface as one-click entry points below the question chips.
   // Same data-q click handler as the teach rows: typing in the value and
@@ -1436,17 +1469,16 @@
     +     '<div class="tmw-ov-wrap">'
 
     +       '<div class="tmw-ov-starter" data-state="starter">'
-    +         '<div class="tmw-ov-teach" role="region" aria-label="TMW Intelligence — try asking">'
+    +         '<div class="tmw-ov-teach" role="region" aria-label="TMW Intelligence">'
     +           '<div class="tmw-ov-teach-h">'
     +             '<div class="tmw-ov-teach-hex">' + ICON_HEX + '</div>'
     +             '<span class="tmw-ov-teach-ttl">TMW Intelligence</span>'
     +             '<span class="tmw-ov-pill" data-pill-slot></span>'
     +           '</div>'
-    +           '<div class="tmw-ov-teach-sec">Try asking</div>'
-    +           STARTER_CHIPS_HTML
-    +           '<div class="tmw-ov-chip-sep">Or jump to</div>'
-    +           '<div class="tmw-ov-chips">' + QUICK_CHIPS_HTML + '</div>'
-    +           '<div class="tmw-ov-teach-foot">Type a name for instant results, or ask a full question.</div>'
+    +           '<h2 class="tmw-ov-prompt">What do you want to know?'
+    +             '<span class="tmw-ov-prompt-sub">Ask about any project, firm, or place we track.</span>'
+    +           '</h2>'
+    +           '<div class="tmw-ov-qlist">' + STARTER_ROWS_HTML + '</div>'
     +         '</div>'
     +       '</div>'
 
