@@ -103,12 +103,28 @@
 
   // ── Step 1: email + password in ONE step → creates the account ───────────
   // The auto-funnel is just two slides: (1) email + password (this), (2) Go-Pro.
+  // Ambient-gate cooldown: the auto-triggered anon capture shows at most once
+  // per minute per device (stamped when it ACTUALLY shows), so browsing free
+  // pages isn't a gate on every single load. ONLY the ambient auto path reads
+  // this — user-initiated opens (header Join, footer Subscribe, CTAs) and
+  // every feature/hard gate (map, Atlas, Onyx quota, watch, checkout) call
+  // their own paths and always show.
+  var GATE_COOLDOWN_KEY = 'tmw_gate_last_shown';
+  var GATE_COOLDOWN_MS = 60000;
+  function gateCooldownActive() {
+    try { return (Date.now() - (+localStorage.getItem(GATE_COOLDOWN_KEY) || 0)) < GATE_COOLDOWN_MS; } catch (e) { return false; }
+  }
+  function stampGateShown() {
+    try { localStorage.setItem(GATE_COOLDOWN_KEY, String(Date.now())); } catch (e) {}
+  }
+
   function build() {
     // Full-screen welcome (tmw-welcome.js, loaded by journal-chrome.js) is the
     // elevated experience; the slide-up panel below survives only as the
     // fallback when that module hasn't loaded.
-    if (window.tmwWelcome && !document.querySelector('.tmww') && window.tmwWelcome.gate({ source: SOURCE })) return;
+    if (window.tmwWelcome && !document.querySelector('.tmww') && window.tmwWelcome.gate({ source: SOURCE })) { stampGateShown(); return; }
     if (document.querySelector('.tmw-sub')) return;     // max one at a time
+    stampGateShown();
     var el = document.createElement('div');
     el.className = 'tmw-sub';
     el.innerHTML =
@@ -261,13 +277,19 @@
   }
 
   // ── Auto-trigger — same decision tree as the article funnel ──────────────
-  function run() {
+  // `auto` marks the ambient page-load invocation, which respects the 60s
+  // cooldown. Manual opens (window.tmwSignupFunnel.open from a CTA) pass no
+  // flag and always show.
+  function run(auto) {
     checkAuth(function (signedIn, paid) {
       if (paid) return;                              // Pro members are done
       var subEmail = subscribedEmail();
-      // Anonymous with no account yet → email capture. Shows on most pages,
-      // every visit, until they have an account (then signedIn flips true).
-      if (!signedIn && !subEmail) { build(); return; }
+      // Anonymous with no account yet → email capture. Ambient shows at most
+      // once per minute per device (cooldown), until they have an account.
+      if (!signedIn && !subEmail) {
+        if (auto === true && gateCooldownActive()) return;
+        build(); return;
+      }
       // Already a lead (email on file) or a signed-in free member → the TMW Pro
       // trial upsell, once per session. On the FIRST session after signup we let
       // the user breathe — the upsell waits 2 minutes instead of popping right
@@ -283,7 +305,7 @@
     });
   }
 
-  var t = setTimeout(run, DELAY_MS);
+  var t = setTimeout(function () { run(true); }, DELAY_MS);
   window.addEventListener('pagehide', function () { clearTimeout(t); });
 
   // Expose for manual invocation (e.g. a future CTA on the page).
