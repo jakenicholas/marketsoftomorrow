@@ -12649,6 +12649,97 @@ async function handlePlacementPixel(req, env, origin, url) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Tracked links — first-party redirects for CLIENT-supplied UTM URLs. A client
+// hands us their own UTM tracker (e.g. a Mandarin Oriental campaign link); we
+// wrap it in a go.oftmw.com/l/<id> link we can hand out and count ourselves.
+// The destination lives in D1 (never in the link) so /l can't be an open
+// redirect. Clicks land in placement_stats under surface='link' so they share
+// the same daily rollup + sparkline infra as the ad/partner placements.
+// ---------------------------------------------------------------------------
+const TRACKED_LINK_HOST = 'https://go.oftmw.com';
+let _linksTableReady = false;
+async function ensureTrackedLinksTable(env) {
+  if (_linksTableReady) return;
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS tracked_links (id TEXT PRIMARY KEY, url TEXT NOT NULL, ' +
+    'label TEXT, note TEXT, created_at INTEGER, retired INTEGER NOT NULL DEFAULT 0)'
+  ).run();
+  _linksTableReady = true;
+}
+
+// GET /l/<id> — public. Look up the client's destination, log a click (bot-
+// filtered, same as /r), then 302. Unknown/blank ids fall back to the homepage.
+async function handleTrackedLinkRedirect(req, env, origin, url) {
+  const id = decodeURIComponent((url.pathname.split('/l/')[1] || '').split(/[/?#]/)[0]).trim();
+  let dest = 'https://www.oftmw.com/';
+  try {
+    if (env.DB && PLACEMENT_ID_RE.test(id)) {
+      await ensureTrackedLinksTable(env);
+      const row = await env.DB.prepare('SELECT url, label FROM tracked_links WHERE id = ?1').bind(id).first();
+      if (row && row.url && /^https?:\/\//i.test(row.url)) {
+        dest = row.url;
+        const isBot = isScannerHit(req, true);   // full network filter, same as newsletter /r
+        try { await bumpPlacement(env, id, 'link', 'click', 'link', row.label, isBot); } catch (_) {}
+      }
+    }
+  } catch (_) {}
+  return Response.redirect(dest, 302);
+}
+
+// POST /links — admin CRUD for tracked links. { action: 'create' | 'retire' |
+// 'delete', ... }. create returns the shareable go.oftmw.com/l/<id> URL.
+function slugifyLinkId(s) {
+  return String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '').slice(0, 48);
+}
+async function handleTrackedLinks(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureTrackedLinksTable(env);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const action = String(body.action || 'create');
+
+  if (action === 'create') {
+    const dest = String(body.url || '').trim();
+    if (!/^https?:\/\//i.test(dest)) return json({ error: 'Destination must be a full http(s) URL.' }, { status: 400 }, env, origin);
+    const label = (String(body.label || '').trim().slice(0, 160)) || null;
+    const note = (String(body.note || '').trim().slice(0, 300)) || null;
+    let id = slugifyLinkId(body.id || label || '');
+    if (!id) id = 'link';
+    if (!PLACEMENT_ID_RE.test(id)) return json({ error: 'Could not build a valid link id.' }, { status: 400 }, env, origin);
+    // Ensure uniqueness — append a short suffix on collision (or if caller gave no explicit id).
+    const taken = async (x) => !!(await env.DB.prepare('SELECT id FROM tracked_links WHERE id = ?1').bind(x).first());
+    if (await taken(id)) {
+      let base = id, tries = 0, next = id;
+      do { next = (base + '-' + Math.random().toString(36).slice(2, 6)).slice(0, 60); tries++; }
+      while (tries < 8 && await taken(next));
+      id = next;
+    }
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare('INSERT INTO tracked_links (id, url, label, note, created_at, retired) VALUES (?1, ?2, ?3, ?4, ?5, 0)')
+      .bind(id, dest, label, note, now).run();
+    return json({ ok: true, id, url: dest, label, note, short: TRACKED_LINK_HOST + '/l/' + id, created_at: now }, {}, env, origin);
+  }
+
+  if (action === 'retire') {
+    const id = String(body.id || '').trim();
+    if (!PLACEMENT_ID_RE.test(id)) return json({ error: 'bad id' }, { status: 400 }, env, origin);
+    const retired = body.retired ? 1 : 0;
+    await env.DB.prepare('UPDATE tracked_links SET retired = ?2 WHERE id = ?1').bind(id, retired).run();
+    return json({ ok: true, id, retired }, {}, env, origin);
+  }
+
+  if (action === 'delete') {
+    const id = String(body.id || '').trim();
+    if (!PLACEMENT_ID_RE.test(id)) return json({ error: 'bad id' }, { status: 400 }, env, origin);
+    await env.DB.prepare('DELETE FROM tracked_links WHERE id = ?1').bind(id).run();
+    return json({ ok: true, id, deleted: true }, {}, env, origin);
+  }
+
+  return json({ error: 'unknown action' }, { status: 400 }, env, origin);
+}
+
 // Advertiser roster — the dashboard's list of who we run (or have run). Seeded
 // once from the Linkly export (historical clicks = a baseline to compare our
 // first-party numbers against). `active` = "live" (shown on top in the Studio);
@@ -12778,6 +12869,24 @@ export async function handlePlacementStats(req, env, origin) {
     for (const r of (serRows.results || [])) {
       (series[r.id] || (series[r.id] = [])).push({ day: r.day, views: r.views || 0, clicks: r.clicks || 0 });
     }
+    // Tracked links (client UTM redirects via /l/<id>) — a separate group, kept
+    // out of the advertiser roster below. Clicks come from placement_stats
+    // surface='link' (already folded into byId + series above).
+    await ensureTrackedLinksTable(env);
+    const linkRows = await env.DB.prepare(
+      'SELECT id, url, label, note, created_at, retired FROM tracked_links ORDER BY retired ASC, created_at DESC'
+    ).all();
+    const linkIds = new Set((linkRows.results || []).map(r => r.id));
+    const links = (linkRows.results || []).map(r => {
+      const t = byId[r.id] || { clicks: 0, clicks_bot: 0 };
+      return {
+        id: r.id, url: r.url, label: r.label || r.id, note: r.note || '',
+        retired: r.retired ? 1 : 0, created_at: r.created_at || 0,
+        clicks: t.clicks || 0, clicks_bot: t.clicks_bot || 0,
+        short: TRACKED_LINK_HOST + '/l/' + r.id,
+      };
+    });
+
     // Merge the advertiser roster (live/off flag + Linkly baseline) with the
     // live tracking, so past advertisers with no first-party data still appear.
     await ensureAdvertisersTable(env);
@@ -12787,6 +12896,7 @@ export async function handlePlacementStats(req, env, origin) {
     const ids = new Set([...Object.keys(roster), ...Object.keys(byId)]);
     const advertisers = [];
     ids.forEach(id => {
+      if (linkIds.has(id)) return;   // tracked links live in their own group
       const a = roster[id] || null;
       const t = byId[id] || { views: 0, clicks: 0, clicks_bot: 0, surfaces: {}, label: null, type: null };
       advertisers.push({
@@ -12805,7 +12915,7 @@ export async function handlePlacementStats(req, env, origin) {
     });
     // Live first; within each group by our clicks, then the Linkly baseline.
     advertisers.sort((x, y) => (y.active - x.active) || (y.clicks - x.clicks) || (y.linkly_all - x.linkly_all));
-    return json({ days, since: sinceDay, advertisers, series },
+    return json({ days, since: sinceDay, advertisers, links, series },
       { headers: { 'Cache-Control': 'private, max-age=20' } }, env, origin);
   } catch (e) {
     return json({ totals: [], series: {}, error: String(e && e.message || e) }, {}, env, origin);
@@ -16285,6 +16395,14 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/placements') {
         return await handlePlacementStats(request, env, origin);
+      }
+      // Tracked links — client UTM redirects. /l/<id> is a public 302 that logs
+      // a click; /links is the admin CRUD (create/retire/delete), gated inside.
+      if (request.method === 'GET' && url.pathname.startsWith('/l/')) {
+        return await handleTrackedLinkRedirect(request, env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/links') {
+        return await handleTrackedLinks(request, env, origin);
       }
       if (request.method === 'POST' && url.pathname === '/advertisers/toggle') {
         return await handleAdvertiserToggle(request, env, origin);
