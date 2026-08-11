@@ -8608,15 +8608,17 @@ async function handleMorningData(req, env, origin) {
   const out = { last_posts: last };
 
   // Reusable classifier: pro (Stripe trialing/active) > free (Memberstack) > anon.
-  let memberSet = new Set(), paidSet = new Set();
+  let memberSet = new Set(), paidSet = new Set(), trialingSet = new Set(), activeSet = new Set();
   try { memberSet = await msMemberEmailSet(env); } catch (_) {}
   try {
     if (env.STRIPE_SECRET_KEY) {
-      for (const st of ['trialing', 'active']) {
+      for (const st of ['trialing', 'active', 'past_due']) {
         const s = await stripeGet(env, '/subscriptions?status=' + st + '&limit=100&expand[]=data.customer');
         for (const sub of (((s && s.data) || []))) {
-          const em = sub && sub.customer && sub.customer.email;
-          if (em) paidSet.add(String(em).trim().toLowerCase());
+          const em = sub && sub.customer && sub.customer.email; if (!em) continue;
+          const e = String(em).trim().toLowerCase();
+          paidSet.add(e);
+          if (st === 'trialing') trialingSet.add(e); else activeSet.add(e);
         }
       }
     }
@@ -8628,14 +8630,14 @@ async function handleMorningData(req, env, origin) {
     return 'anon';
   };
 
-  // Master counts: pro = members on a Pro plan (trialing+active), free = the
-  // rest of the accounts, anon = newsletter subscribers who never registered.
+  // Master counts: trialing (on a Pro trial), pro (paying: active/past_due),
+  // free (accounts with neither), anon (subscribers who never registered).
   try {
-    let mcFree = 0; memberSet.forEach((e) => { if (!paidSet.has(e)) mcFree++; });
-    const mcPro = memberSet.size - mcFree;
+    let mcTrial = 0, mcPro = 0, mcFree = 0;
+    memberSet.forEach((e) => { if (trialingSet.has(e)) mcTrial++; else if (activeSet.has(e)) mcPro++; else mcFree++; });
     const subs = await resendAudienceCount(env);
     const mcAnon = (subs != null) ? Math.max(0, subs - memberSet.size) : null;
-    out.member_counts = { anon: mcAnon, free: mcFree, pro: mcPro, members: memberSet.size, subscribers: subs };
+    out.member_counts = { anon: mcAnon, free: mcFree, trial: mcTrial, pro: mcPro, members: memberSet.size, subscribers: subs };
   } catch (e) { out.member_counts_error = String(e && e.message || e); }
 
   // ── Weekly newsletter (Resend) — the most recent SENT broadcast + reach ──
@@ -15852,9 +15854,26 @@ async function handleGetComments(env, origin, url) {
   if (!slug) return json({ error: 'post required' }, { status: 400 }, env, origin);
   try {
     await ensureCommentsTable(env);
-    const rs = await env.DB.prepare(`SELECT id, member_name, body, ts FROM comments WHERE post_slug = ? AND status = 'visible' ORDER BY ts DESC LIMIT 200`).bind(slug).all();
-    return json({ comments: (rs.results || []).map(r => ({ id: r.id, name: r.member_name || 'Member', body: r.body, ts: r.ts })) }, {}, env, origin);
+    const rs = await env.DB.prepare(`SELECT id, member_id, member_name, body, ts FROM comments WHERE post_slug = ? AND status = 'visible' ORDER BY ts DESC LIMIT 200`).bind(slug).all();
+    return json({ comments: (rs.results || []).map(r => ({ id: r.id, member_id: r.member_id || null, name: r.member_name || 'Member', body: r.body, ts: r.ts })) }, {}, env, origin);
   } catch (e) { return json({ error: 'comments: ' + e.message }, { status: 500 }, env, origin); }
+}
+// DELETE /comment { member_id, id } — soft-delete a comment. A member can only
+// remove their OWN comment (server checks ownership against member_id).
+async function handleDeleteComment(request, env, origin) {
+  if (!env.DB) return json({ error: 'no db' }, { status: 500 }, env, origin);
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const id = String((b && b.member_id) || '').slice(0, 120);
+  const cid = parseInt((b && b.id), 10);
+  if (!id || !cid) return json({ error: 'member_id and id required' }, { status: 400 }, env, origin);
+  try {
+    await ensureCommentsTable(env);
+    const row = await env.DB.prepare(`SELECT member_id FROM comments WHERE id = ?`).bind(cid).first();
+    if (!row) return json({ ok: true, deleted: false }, {}, env, origin);
+    if (String(row.member_id) !== id) return json({ error: 'not_owner', message: 'You can only delete your own comment.' }, { status: 403 }, env, origin);
+    await env.DB.prepare(`UPDATE comments SET status = 'deleted' WHERE id = ?`).bind(cid).run();
+    return json({ ok: true, deleted: true }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
 }
 // POST /comment { member_id, post, body, member_name? } — publish a comment.
 // Server gate: Reader level (lvl≥2) — open to ANY member, free or paid. XP is
@@ -17100,6 +17119,9 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/comment') {
         return await handlePostComment(request, env, origin);
+      }
+      if (request.method === 'DELETE' && url.pathname === '/comment') {
+        return await handleDeleteComment(request, env, origin);
       }
       // ── Giveaways: public list + enter ──
       if (request.method === 'GET' && url.pathname === '/giveaways') {

@@ -1119,6 +1119,11 @@ function initComments(slug, post) {
     +'.tmw-cmt-list{display:flex;flex-direction:column;gap:13px}'
     +'.tmw-cmt-item{display:flex;gap:13px;padding:15px 16px;border-radius:15px;background:rgba(255,255,255,.018);border:1px solid rgba(255,255,255,.06);transition:border-color .2s,background .2s}'
     +'.tmw-cmt-item:hover{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.03)}'
+    +'.tmw-cmt-del{opacity:0;flex:0 0 auto;align-self:flex-start;background:none;border:0;color:#6f766f;cursor:pointer;padding:5px;margin:-3px -3px 0 0;border-radius:8px;transition:opacity .15s,color .15s,background .15s}'
+    +'.tmw-cmt-item:hover .tmw-cmt-del,.tmw-cmt-del:focus-visible{opacity:1}'
+    +'.tmw-cmt-del:hover{color:#ff8a8a;background:rgba(255,107,107,.1)}'
+    +'.tmw-cmt-del svg{width:16px;height:16px;display:block}'
+    +'@media (hover:none){.tmw-cmt-del{opacity:.55}}'
     +'.tmw-cmt-bd{flex:1;min-width:0}'
     +'.tmw-cmt-meta{display:flex;align-items:center;gap:9px;margin-bottom:5px}'
     +'.tmw-cmt-meta b{font-size:13.5px;font-weight:600;color:#fff}'
@@ -1150,12 +1155,25 @@ function initComments(slug, post) {
   if(rn&&rn.parentNode){ rn.parentNode.insertBefore(wrap, rn); }
   else { var art=document.querySelector('article')||document.getElementById('article-root'); if(art&&art.parentNode){ art.parentNode.insertBefore(wrap, art.nextSibling); } else { document.body.appendChild(wrap); } }
   var listEl=wrap.querySelector('#tmw-cmt-list'), nEl=wrap.querySelector('#tmw-cmt-n'), composeEl=wrap.querySelector('#tmw-cmt-compose');
+  var myId=null, lastItems=null;   // current member id + last-rendered list (so we can add delete buttons once the member resolves)
+  var DEL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>';
 
-  function itemHTML(c,when){return '<div class="tmw-cmt-av">'+esc((c.name||'M').slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-bd"><div class="tmw-cmt-meta"><b>'+esc(c.name||'Member')+'</b><span class="t">'+(when||ago(c.ts))+'</span></div><div class="tmw-cmt-txt">'+esc(c.body)+'</div></div>';}
+  function itemHTML(c,when,mine){return '<div class="tmw-cmt-av">'+esc((c.name||'M').slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-bd"><div class="tmw-cmt-meta"><b>'+esc(c.name||'Member')+'</b><span class="t">'+(when||ago(c.ts))+'</span></div><div class="tmw-cmt-txt">'+esc(c.body)+'</div></div>'+(mine?'<button class="tmw-cmt-del" type="button" data-id="'+esc(String(c.id||''))+'" title="Delete your comment" aria-label="Delete your comment">'+DEL_SVG+'</button>':'');}
   function setCount(n){ nEl.textContent=n||''; nEl.style.display=n?'':'none'; }
+  // Delegated delete — only the member's own comments carry a delete button.
+  listEl.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest?e.target.closest('.tmw-cmt-del'):null; if(!btn)return;
+    var cid=btn.getAttribute('data-id'); if(!cid||!myId)return;
+    if(!window.confirm('Delete your comment? This can’t be undone.'))return;
+    btn.disabled=true;
+    fetch(WORKER+'/comment',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:myId,id:+cid})})
+      .then(function(r){return r.json().catch(function(){return {};});})
+      .then(function(j){ if(j&&(j.ok||j.deleted)){ var item=btn.closest('.tmw-cmt-item'); if(item&&item.parentNode)item.parentNode.removeChild(item); if(lastItems)lastItems=lastItems.filter(function(x){return String(x.id)!==String(cid);}); var _n=listEl.querySelectorAll('.tmw-cmt-item').length; setCount(_n); setCmtCountBtn(_n); if(!_n)listEl.innerHTML=EMPTY; } else { btn.disabled=false; } })
+      .catch(function(){ btn.disabled=false; });
+  });
   var EMPTY='<div class="tmw-cmt-empty"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><b>Start the conversation</b><span>Be the first to share a take on this story — your comment is public and joins the conversation.</span></div>';
-  function renderList(items){ setCmtCountBtn(items.length); if(!items.length){listEl.innerHTML=EMPTY;setCount(0);return;} setCount(items.length); listEl.innerHTML=items.map(function(c){return '<div class="tmw-cmt-item">'+itemHTML(c)+'</div>';}).join(''); }
-  function prepend(c){ var e=listEl.querySelector('.tmw-cmt-empty'); if(e)listEl.innerHTML=''; var div=document.createElement('div'); div.className='tmw-cmt-item'; div.innerHTML=itemHTML(c,'just now'); listEl.insertBefore(div,listEl.firstChild); var _n=listEl.querySelectorAll('.tmw-cmt-item').length; setCount(_n); setCmtCountBtn(_n); }
+  function renderList(items){ lastItems=items; setCmtCountBtn(items.length); if(!items.length){listEl.innerHTML=EMPTY;setCount(0);return;} setCount(items.length); listEl.innerHTML=items.map(function(c){var mine=myId&&String(c.member_id)===String(myId); return '<div class="tmw-cmt-item">'+itemHTML(c,null,mine)+'</div>';}).join(''); }
+  function prepend(c){ if(myId)c.member_id=myId; var e=listEl.querySelector('.tmw-cmt-empty'); if(e)listEl.innerHTML=''; var div=document.createElement('div'); div.className='tmw-cmt-item'; div.innerHTML=itemHTML(c,'just now',!!myId); listEl.insertBefore(div,listEl.firstChild); var _n=listEl.querySelectorAll('.tmw-cmt-item').length; setCount(_n); setCmtCountBtn(_n); }
 
   fetch(WORKER+'/comments?post='+encodeURIComponent(slug),{cache:'no-store'}).then(function(r){return r.ok?r.json():{comments:[]}}).then(function(d){renderList((d&&d.comments)||[]);}).catch(function(){listEl.innerHTML='<div class="tmw-cmt-empty">Couldn’t load comments.</div>';});
 
@@ -1179,6 +1197,7 @@ function initComments(slug, post) {
     setTimeout(function(){resolveMember(t);},250);
   })();
   function gate(m){
+    myId=m.id; if(lastItems)renderList(lastItems);   // now that we know who's reading, show delete on their own comments
     var cf=m.customFields||{}; var name=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||(m.auth&&m.auth.email)||'Member';
     // Commenting is open to ANY member at Reader level (lvl>=2) — not PRO-gated.
     // Everyone earns XP and climbs regardless of plan, so a free account that
