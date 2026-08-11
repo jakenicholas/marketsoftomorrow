@@ -100,7 +100,8 @@
     golf: '<path d="M12 18v-15l7 4-7 4"/><path d="M5 21c1.5-1.4 4-2.2 7-2.2s5.5.8 7 2.2"/>',
     hotel: '<path d="M3 21V7l9-4 9 4v14"/><path d="M3 21h18"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M11 21v-4h2v4"/>',
     dining: '<path d="M5 3v7a2 2 0 0 0 2 2v9"/><path d="M5 3v5M9 3v5M9 3v7"/><path d="M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9"/>',
-    comment: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'
+    comment: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+    compare: '<rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/>'
   };
 
   /* page-aware selected states */
@@ -119,6 +120,13 @@
     CTX = { label: 'This map', tools: [
       { ic: 'search', t: 'Search map', act: mapSearch, cls: 'hero' },
       { ic: 'watch', t: 'Watch', act: contractWatch('#pmLikeBtn'), cls: 'act' },
+      /* Compare lived in the map's bottom-right rail; moved here 2026-08-10.
+         compare.js owns the builder (and its own Pro gate). */
+      { ic: 'compare', t: 'Compare', act: function () {
+        closeNow();
+        if (window.comparisons && typeof window.comparisons.openBuilder === 'function') { window.comparisons.openBuilder(); return; }
+        try { var u = new URL(location.href); u.searchParams.set('view', 'compare'); location.href = u.toString(); } catch (e) {}
+      } },
       { ic: 'share', t: 'Share', act: share }
     ] };
   } else if (/^\/projects?\/[^/]+/.test(path)) {
@@ -248,6 +256,10 @@
     /* custom hover tooltips — DESKTOP ONLY (hover-capable, fine pointer) */
     '@media (hover:hover) and (pointer:fine){',
     '.tmwx-pbtn,.tmwx-fab{position:relative}',
+    /* gray highlight circle on hover — same treatment the tray tools already
+       have. Skips .on (already brighter at .16) and .smart (purple hover). */
+    '.tmwx-pbtn:not(.on):not(.smart):hover{background:rgba(255,255,255,.1)}',
+    'html:not(.tmwx-open) .tmwx-fab:hover{background:rgba(36,39,36,.88);border-color:rgba(255,255,255,.24)}',
     '.tmwx-pbtn[data-tip]::after,.tmwx-fab[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 11px);left:50%;',
     'transform:translateX(-50%) translateY(5px);white-space:nowrap;padding:8px 12px;border-radius:10px;',
     'background:rgba(9,11,9,.94);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.5);',

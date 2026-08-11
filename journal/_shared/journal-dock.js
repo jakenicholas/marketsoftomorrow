@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------
-   Markets of Tomorrow — pinned journal dock
-   Injects a fixed bottom-center pill on every public journal page:
-     [ map ]   [ search input ]   [ home ]
-   - map icon  → the interactive map (map.oftmw.com)
-   - search    → submits to the journal search page (/search/?q=)
-   - home icon → journal home (www.oftmw.com; domain moving soon)
-   Self-contained, no dependencies. Include once per page:
+   Markets of Tomorrow — journal boot script (GA, tracking, chrome finishing,
+   search overlay loader) + the LEGACY bottom pill.
+   The pill ([toggle][search input]) is retired as visible UI — the expandable
+   action dock (tmw-mobile-dock.js, loaded from here) replaced it. It still
+   mounts hidden (display:none in its base CSS) because the map wires its
+   spatial search onto its input; desktop "Search map" reveals just that field
+   via html.tmwx-mapsearch. Include once per page:
      <script src="/_shared/journal-dock.js" defer></script>
 -------------------------------------------------------------------*/
 (function () {
@@ -639,8 +639,15 @@
 
   // ── Styles ──
   var css = [
+    /* The pill is RETIRED as visible UI (the expandable action dock replaced
+       it) — display:none from birth so it never flashes before the new dock
+       loads and its infinite Ask-TMW animations never run. It still mounts
+       because the map's spatial search lives on its input: desktop "Search
+       map" (html.tmwx-mapsearch, set by tmw-mobile-dock.js) reveals just the
+       search field. The overlay's bar only borrows the .tmw-dock-search
+       styles — it lives in .tmw-ov-bar, so this display rule can't touch it. */
     '.tmw-dock{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9000;',
-    'display:flex;align-items:center;gap:8px;padding:8px;',
+    'display:none;align-items:center;gap:8px;padding:8px;',
     'background:rgba(9,11,9,.82);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);',
     'border:1px solid rgba(255,255,255,.13);border-radius:999px;',
     'box-shadow:0 16px 50px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.25);',
@@ -651,6 +658,9 @@
        in — if `transform` were transitioned, each recompute would animate, making
        the dock visibly slide in from the side on a (cached) load. Fade only. */
     '.tmw-dock.ready{opacity:1;transform:translateX(-50%) translateY(0)}',
+    /* Desktop map-search mode is the ONE state that still shows the pill
+       (tmw-mobile-dock.js hides every child except the search field). */
+    'html.tmwx-mapsearch .tmw-dock{display:flex}',
     '.tmw-dock-btn{width:46px;height:46px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;',
     'border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);',
     'color:#ECEAE5;transition:background .2s,color .2s,border-color .2s,transform .2s;cursor:pointer;text-decoration:none}',
@@ -1052,7 +1062,7 @@
       // BUMP DOCK_V whenever tmw-mobile-dock.js changes — same reason as
       // SEARCH_V: aggressive mobile caches (and any zone-level Browser Cache
       // TTL) hold the old file for hours otherwise.
-      var DOCK_V = '20260810q';
+      var DOCK_V = '20260810r';
       var d = document.createElement('script');
       d.src = '/_shared/tmw-mobile-dock.js?v=' + DOCK_V;
       d.defer = true;

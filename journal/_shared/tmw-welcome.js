@@ -110,6 +110,11 @@
       '.tmww .tk .v{font-family:"Fraunces",Georgia,serif;font-size:clamp(22px,2.6vw,34px);font-weight:600;color:#fff;line-height:1}',
       '.tmww .tk .k{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#9AA39C;margin-top:5px}',
       '@media(max-width:760px){',
+      /* phones: the busy architecture sits in each photo's lower half and
+         portrait cover-fit shows the full height (sky on top). Double the
+         img box and pin it to the bottom so the viewport sees only the
+         bottom 50% — the top half is cropped away, busy part moved up. */
+      '.tmww .bg img{height:200%;top:auto;bottom:0}',
       '.tmww .g-ticker{display:none}',
       '.tmww .g-row{flex-direction:column}',
       '.tmww .g-inner{padding:16px 22px 26px}',

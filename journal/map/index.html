@@ -26520,8 +26520,7 @@
       // (The journal header carries the toggle + account/Join itself.)
       // The journal chrome now owns the header, so the map's own #header is
       // hidden. We still run the rest: the old toggle/account just reparent into
-      // the hidden #header harmlessly, and crucially the Compare button below
-      // still gets added to the bottom-right rail.
+      // the hidden #header harmlessly.
       if (header.querySelector('.v2-desktop-header-group')) return;
 
       // ‚îÄ‚îÄ Surface toggle ‚Üí header left side ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
@@ -26535,41 +26534,9 @@
         header.appendChild(modeToggle);
       }
 
-      // ‚îÄ‚îÄ Compare ‚Üí bottom-right rail (.v2-right-rail) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      // Pulse already lives in the rail as #v2PulseQuickBtn (now revealed
-      // on desktop), so we only add Compare here. Styled as .v2-action-btn
-      // to match the rest of the rail.
-      const rail = document.getElementById('v2RightRail');
-      if (rail && !document.getElementById('v2HeaderCompare')) {
-        const compare = document.createElement('button');
-        compare.id = 'v2HeaderCompare';
-        compare.className = 'v2-action-btn';
-        compare.setAttribute('aria-label', 'Open comparison view');
-        compare.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-        `;
-        compare.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (window.comparisons && typeof window.comparisons.openBuilder === 'function') {
-            window.comparisons.openBuilder();
-            return;
-          }
-          try {
-            const url = new URL(window.location.href);
-            url.searchParams.set('view', 'compare');
-            window.location.href = url.toString();
-          } catch (_) {}
-        });
-        // Place Compare just after the Pulse button so the rail reads:
-        // [Pulse] [Compare] [Layers] [zoom] [geolocate]. insertBefore with a
-        // null reference (no Pulse, or Pulse is last) appends to the end.
-        const pulseBtn = document.getElementById('v2PulseQuickBtn');
-        if (pulseBtn) {
-          rail.insertBefore(compare, pulseBtn.nextSibling);
-        } else {
-          rail.insertBefore(compare, rail.firstChild);
-        }
-      }
+      // Compare moved OUT of the bottom-right rail (2026-08-10, Jake) — it now
+      // lives in the action dock's "This map" row (tmw-mobile-dock.js), right
+      // before Share. The rail reads: [Pulse] [Layers] [zoom] [geolocate].
 
       // Reparent the TMW profile widget INTO the actual #header bar so
       // it's part of the chrome's DOM (not a position:fixed overlay).
