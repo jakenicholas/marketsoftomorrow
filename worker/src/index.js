@@ -8365,7 +8365,11 @@ async function handleMorningData(req, env, origin) {
       const br = await fetch('https://api.resend.com/broadcasts', { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } });
       if (br.ok) {
         const list = (await br.json()).data || [];
-        const wk = list.find((b) => b.status === 'sent' && b.sent_at) || list[0] || null;
+        // Pick the MOST RECENTLY sent broadcast (Resend list order isn't
+        // guaranteed), so a newsletter shows here the moment its send completes.
+        const sent = list.filter((b) => b.status === 'sent' && b.sent_at)
+          .sort((a, b) => Date.parse(b.sent_at) - Date.parse(a.sent_at));
+        const wk = sent[0] || list[0] || null;
         if (wk) {
           let det = {};
           try { const rr = await fetch('https://api.resend.com/broadcasts/' + wk.id, { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } }); if (rr.ok) det = await rr.json(); } catch (_) {}
