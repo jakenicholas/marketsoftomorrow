@@ -8994,6 +8994,7 @@ function rowToDesignSummary(r) {
     status: r.status || 'draft',
     market: doc.market || '',
     carousel_slug: doc.carousel_slug || null,
+    ready: !!doc.ready,
     cover,
     slides: slides.length,
     updated_at: r.updated_at,
