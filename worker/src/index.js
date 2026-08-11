@@ -2623,6 +2623,86 @@ export async function handleDailyPulse(req, env, origin, url) {
   return json(out, {}, env, origin);
 }
 
+// Custom timeline annotations for the Morning Desk sign-up chart ("full-screen
+// signup pages added", etc.) so Jake can correlate a change with a spike.
+async function ensureDeskEventsTable(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS desk_events (id TEXT PRIMARY KEY, day TEXT NOT NULL, label TEXT NOT NULL, created_at INTEGER)').run();
+}
+
+// GET /admin/signups?days=N — daily free vs pro sign-ups + the event markers.
+// Free sign-ups come from the events table (deduped by email/member per day);
+// pro sign-ups are Stripe subscriptions bucketed by their created date.
+export async function handleSignups(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let days = parseInt(url.searchParams.get('days'), 10) || 365;
+  if (!(days > 0)) days = 365; if (days > 730) days = 730;
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  // Free sign-ups per day (dedupe by email/member within each day).
+  const freeByDay = {}; const seen = {};
+  try {
+    const frows = (await env.DB.prepare(
+      `SELECT date(ts,'unixepoch') day, ts, member_id, email, props_json FROM events
+       WHERE ts >= ?1 AND event_name IN ('free_account_created','funnel:free_account_created')`
+    ).bind(since).all()).results || [];
+    for (const r of frows) {
+      let email = r.email || ''; if (!email) { try { email = (JSON.parse(r.props_json || '{}').email) || ''; } catch (_) {} }
+      const key = (email || r.member_id || String(r.ts)).toLowerCase();
+      const day = r.day; if (!day) continue;
+      (seen[day] = seen[day] || new Set());
+      if (seen[day].has(key)) continue; seen[day].add(key);
+      freeByDay[day] = (freeByDay[day] || 0) + 1;
+    }
+  } catch (_) {}
+  // Pro sign-ups per day = Stripe subscriptions by created date (trials + paid).
+  const proByDay = {};
+  try {
+    if (env.STRIPE_SECRET_KEY) {
+      let startingAfter = null, guard = 0;
+      while (guard++ < 12) {
+        const q = '/subscriptions?status=all&limit=100&created[gte]=' + since + (startingAfter ? '&starting_after=' + startingAfter : '');
+        const s = await stripeGet(env, q);
+        const data = (s && s.data) || [];
+        for (const sub of data) { const d = new Date((sub.created || 0) * 1000).toISOString().slice(0, 10); proByDay[d] = (proByDay[d] || 0) + 1; }
+        if (!s || !s.has_more || !data.length) break;
+        startingAfter = data[data.length - 1].id;
+      }
+    }
+  } catch (e) { /* pro line just stays flat if Stripe is unreachable */ }
+  // Dense daily series (oldest → newest) so the client can slice any range.
+  const series = [];
+  const midnightMs = Math.floor(Date.now() / 86400000) * 86400000;
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(midnightMs - i * 86400000).toISOString().slice(0, 10);
+    series.push({ day: d, free: freeByDay[d] || 0, pro: proByDay[d] || 0 });
+  }
+  let events = [];
+  try { await ensureDeskEventsTable(env); events = (await env.DB.prepare('SELECT id, day, label FROM desk_events ORDER BY day ASC').all()).results || []; } catch (_) {}
+  return json({ days, series, events }, { headers: { 'Cache-Control': 'private, max-age=30' } }, env, origin);
+}
+
+// POST /admin/desk-events {day,label} add · DELETE ?id= remove — chart markers.
+async function handleDeskEvents(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDeskEventsTable(env);
+  if (req.method === 'POST') {
+    let b = {}; try { b = await req.json(); } catch (_) {}
+    const day = String(b.day || '').slice(0, 10);
+    const label = String(b.label || '').trim().slice(0, 120);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !label) return json({ error: 'day (YYYY-MM-DD) and label are required' }, { status: 400 }, env, origin);
+    const id = 'ev_' + Math.random().toString(36).slice(2, 10);
+    await env.DB.prepare('INSERT INTO desk_events (id, day, label, created_at) VALUES (?1,?2,?3,?4)').bind(id, day, label, Math.floor(Date.now() / 1000)).run();
+    return json({ ok: true, id, day, label }, {}, env, origin);
+  }
+  if (req.method === 'DELETE') {
+    const u = new URL(req.url); const id = String(u.searchParams.get('id') || '');
+    if (id) await env.DB.prepare('DELETE FROM desk_events WHERE id = ?1').bind(id).run();
+    return json({ ok: true, id }, {}, env, origin);
+  }
+  return json({ error: 'method not allowed' }, { status: 405 }, env, origin);
+}
+
 // GET /funnel-stats?weeks=12 — article-to-Pro funnel by week.
 // Reads the `events` table for event_name LIKE 'funnel:%' (the funnel
 // beacon prefix journal-auth.js writes), buckets by ISO week, and
@@ -16660,6 +16740,8 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/wallhit-preview')     return await handleWallhitPreview(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/email-stats')         return await handleEmailStats(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/daily-pulse')         return await handleDailyPulse(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/admin/signups')             return await handleSignups(request, env, origin, url);
+      if ((request.method === 'POST' || request.method === 'DELETE') && url.pathname === '/admin/desk-events') return await handleDeskEvents(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/wallhit-test')        return await handleWallhitTest(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
