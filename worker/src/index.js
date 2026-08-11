@@ -2337,23 +2337,38 @@ async function maybeWallhitBlast(env) {
             JSON.stringify({ sent, skippedPaying, skippedDup, failed, members: members.length })).run();
   } catch (_) {}
 }
-// Retry pass for blast/daily sends that errored (Resend rate-limits burst
-// sends — the launch blast hit 429s partway). Paced at ~1.5/sec, runs at most
-// every 10 minutes, flips rows error → live on success so it self-drains.
+// Resend TRANSACTIONAL quota guard. The Tuesday newsletter is a BROADCAST on
+// the Pro marketing plan (unlimited) — but the automation sends go through the
+// transactional API, which is on the FREE tier: 100/day, 3,000/month. The
+// launch blast blew through the daily cap (200%), so every transactional
+// automation send now checks a shared daily budget of 80 (headroom for the
+// worker's other transactional emails) counted from UTC midnight.
+const WALLHIT_DAILY_BUDGET = 80;
+async function wallhitSentToday(env) {
+  const midnight = Math.floor(Date.now() / 86400000) * 86400;
+  const r = await env.DB.prepare(`SELECT COUNT(*) c FROM wallhit_sends WHERE mode='live' AND ts >= ?1`).bind(midnight).first();
+  return (r && r.c) || 0;
+}
+// Retry pass for sends that errored (the launch blast's daily-quota
+// rejections). Runs at most every 2 hours, paced ~1.4/sec, budget-guarded;
+// flips rows error → live on success so it self-drains once quota resets.
 async function maybeWallhitRetry(env) {
   if (!env.DB || !env.RESEND_API_KEY) return;
   if (env.WALLHIT_LIVE !== '1') return;
   try {
     const now = Math.floor(Date.now() / 1000);
     const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='wallhit_retry_run' ORDER BY ts DESC LIMIT 1").first();
-    if (last && last.ts && (now - last.ts) < 600) return;
+    if (last && last.ts && (now - last.ts) < 7200) return;
+    if ((await wallhitSentToday(env)) >= WALLHIT_DAILY_BUDGET) return;
     await ensureWallhitTable(env);
     const rows = (await env.DB.prepare(`SELECT email, kind FROM wallhit_sends WHERE mode='error' LIMIT 60`).all()).results || [];
     if (!rows.length) return;
     await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
       .bind(now, 'system:wallhit-mailer', 'wallhit_retry_run', JSON.stringify({ pending: rows.length })).run();
     const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+    let budget = WALLHIT_DAILY_BUDGET - (await wallhitSentToday(env));
     for (const row of rows) {
+      if (budget-- <= 0) break;
       const msg = wallhitEmail(row.kind);
       try {
         const r = await fetch('https://api.resend.com/emails', {
@@ -2417,6 +2432,7 @@ async function maybeWallHitMailer(env) {
     let sent = 0;
     for (const cand of await wallhitCandidates(env, since)) {
       if (sent >= 25) break;
+      if ((await wallhitSentToday(env)) >= WALLHIT_DAILY_BUDGET) break;   // shared transactional daily budget
       const dup = await env.DB.prepare(
         `SELECT ts FROM wallhit_sends WHERE (member_id = ?1 OR email = ?2) AND ts > ?3 LIMIT 1`
       ).bind(cand.member_id, cand.email, now - 14 * 86400).first();
@@ -16935,11 +16951,11 @@ export default {
     ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro
     ctx.waitUntil(maybeWallHitMailer(env));      // daily wall-hit upgrade email (DRY-RUN until WALLHIT_LIVE='1')
     ctx.waitUntil(maybeWallhitBlast(env));       // one-shot launch blast to free accounts (WALLHIT_BLAST='1', self-marking)
-    // Retry pass PAUSED (2026-08-10 night): the 54 'error' rows are Resend
-    // DAILY-QUOTA rejections (free plan = 100/day; the launch blast hit 200%),
-    // not rate limits — retrying now just burns quota the Tuesday newsletter
-    // needs. Re-enable after the Resend plan upgrade and the rows self-drain.
-    // ctx.waitUntil(maybeWallhitRetry(env));
+    // Re-enabled with the daily-budget guard: the Tuesday newsletter is a
+    // BROADCAST (Pro plan, unlimited) and untouched by this; the transactional
+    // free tier resets daily, so the quota-errored blast rows drain themselves
+    // within the 80/day budget starting at the next UTC midnight.
+    ctx.waitUntil(maybeWallhitRetry(env));       // 2-hourly, budget-guarded, self-draining
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
