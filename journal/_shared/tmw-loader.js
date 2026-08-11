@@ -26,7 +26,7 @@
   window.__tmwLoader = true;
 
   var css = [
-    '.tmwl{position:fixed;inset:0;z-index:99990;background:#070807;display:none;align-items:center;justify-content:center}',
+    '.tmwl{position:fixed;inset:0;z-index:99990;background:#070807;display:none;align-items:center;justify-content:center;touch-action:none;overscroll-behavior:contain}',
     '.tmwl.on{display:flex}',
     /* the passport's faint market-code field, dropped behind the board */
     '.tmwl-codes{position:absolute;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;font-family:\'JetBrains Mono\',ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.045)}',
@@ -102,9 +102,15 @@
 
   var hideTimer = null;
   var navigated = false;
+  // While the veil holds, the page underneath must not scroll: swipes during
+  // the 2s hold made mobile Chrome collapse/shift its bottom toolbar, leaving
+  // the browser buttons unreachable after navigation (Jake, 2026-08-11).
+  function lockScroll(){ try { document.documentElement.style.overflow = 'hidden'; if (document.body) document.body.style.overflow = 'hidden'; } catch (_) {} }
+  function unlockScroll(){ try { document.documentElement.style.overflow = ''; if (document.body) document.body.style.overflow = ''; } catch (_) {} }
   function show(){
     mount();
     runFlaps();
+    lockScroll();
     el.classList.add('on');
     clearTimeout(hideTimer);
     // failsafe: a show that never became a navigation must not trap the page
@@ -114,6 +120,7 @@
     clearTimeout(hideTimer);
     flapTimers.forEach(function (t) { clearInterval(t.iv); clearTimeout(t.to); });
     flapTimers = [];
+    unlockScroll();
     el.classList.remove('on');
     var stub = document.getElementById('tmwl-stub');
     if (stub && stub.parentNode) stub.parentNode.removeChild(stub);
@@ -151,6 +158,8 @@
   if (handoffT0 && Date.now() - handoffT0 < 8000 && !reduced()) {
     mount();
     runFlaps(true);
+    lockScroll();
+    try { window.scrollTo(0, 0); } catch (_) {}
     el.classList.add('on');
     var stub0 = document.getElementById('tmwl-stub');
     if (stub0 && stub0.parentNode) stub0.parentNode.removeChild(stub0);
