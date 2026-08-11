@@ -2654,8 +2654,11 @@ export async function handleSignups(req, env, origin, url) {
       freeByDay[day] = (freeByDay[day] || 0) + 1;
     }
   } catch (_) {}
-  // Pro sign-ups per day = Stripe subscriptions by created date (trials + paid).
-  const proByDay = {};
+  // Pro sign-ups per day from Stripe subscriptions, bucketed by created date and
+  // split by CURRENT status: trialing → trial line, active/past_due → pro line.
+  // As a trial converts, it moves from the trial count to the pro count for its
+  // signup day. (incomplete/canceled subs are dropped — not current members.)
+  const trialByDay = {}, proByDay = {};
   try {
     if (env.STRIPE_SECRET_KEY) {
       let startingAfter = null, guard = 0;
@@ -2663,18 +2666,23 @@ export async function handleSignups(req, env, origin, url) {
         const q = '/subscriptions?status=all&limit=100&created[gte]=' + since + (startingAfter ? '&starting_after=' + startingAfter : '');
         const s = await stripeGet(env, q);
         const data = (s && s.data) || [];
-        for (const sub of data) { const d = new Date((sub.created || 0) * 1000).toISOString().slice(0, 10); proByDay[d] = (proByDay[d] || 0) + 1; }
+        for (const sub of data) {
+          const d = new Date((sub.created || 0) * 1000).toISOString().slice(0, 10);
+          const st = sub.status;
+          if (st === 'trialing') trialByDay[d] = (trialByDay[d] || 0) + 1;
+          else if (st === 'active' || st === 'past_due') proByDay[d] = (proByDay[d] || 0) + 1;
+        }
         if (!s || !s.has_more || !data.length) break;
         startingAfter = data[data.length - 1].id;
       }
     }
-  } catch (e) { /* pro line just stays flat if Stripe is unreachable */ }
+  } catch (e) { /* pro/trial lines just stay flat if Stripe is unreachable */ }
   // Dense daily series (oldest → newest) so the client can slice any range.
   const series = [];
   const midnightMs = Math.floor(Date.now() / 86400000) * 86400000;
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(midnightMs - i * 86400000).toISOString().slice(0, 10);
-    series.push({ day: d, free: freeByDay[d] || 0, pro: proByDay[d] || 0 });
+    series.push({ day: d, free: freeByDay[d] || 0, trial: trialByDay[d] || 0, pro: proByDay[d] || 0 });
   }
   let events = [];
   try { await ensureDeskEventsTable(env); events = (await env.DB.prepare('SELECT id, day, label FROM desk_events ORDER BY day ASC').all()).results || []; } catch (_) {}
@@ -8951,6 +8959,7 @@ function rowToDesignSummary(r) {
     title: r.title || 'Untitled design',
     status: r.status || 'draft',
     market: doc.market || '',
+    carousel_slug: doc.carousel_slug || null,
     cover,
     slides: slides.length,
     updated_at: r.updated_at,
