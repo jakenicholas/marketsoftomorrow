@@ -2654,11 +2654,13 @@ export async function handleSignups(req, env, origin, url) {
       freeByDay[day] = (freeByDay[day] || 0) + 1;
     }
   } catch (_) {}
-  // Pro sign-ups per day from Stripe subscriptions, bucketed by created date and
-  // split by CURRENT status: trialing → trial line, active/past_due → pro line.
-  // As a trial converts, it moves from the trial count to the pro count for its
-  // signup day. (incomplete/canceled subs are dropped — not current members.)
+  // Trial + pro EVENTS per day: a trial counts on the day it STARTED
+  // (trial_start); a member counts as pro on the day they became PAYING — the
+  // trial_end for a converted trial, or the created date for a direct (no-trial)
+  // paid sub. So a trial converting today lands on the pro line today, even
+  // though the subscription was created weeks earlier.
   const trialByDay = {}, proByDay = {};
+  const _dayOf = (t) => (t ? new Date(t * 1000).toISOString().slice(0, 10) : null);
   try {
     if (env.STRIPE_SECRET_KEY) {
       let startingAfter = null, guard = 0;
@@ -2667,10 +2669,14 @@ export async function handleSignups(req, env, origin, url) {
         const s = await stripeGet(env, q);
         const data = (s && s.data) || [];
         for (const sub of data) {
-          const d = new Date((sub.created || 0) * 1000).toISOString().slice(0, 10);
           const st = sub.status;
-          if (st === 'trialing') trialByDay[d] = (trialByDay[d] || 0) + 1;
-          else if (st === 'active' || st === 'past_due') proByDay[d] = (proByDay[d] || 0) + 1;
+          // Trial STARTED event → the day the trial began.
+          if (sub.trial_start) { const d = _dayOf(sub.trial_start); if (d) trialByDay[d] = (trialByDay[d] || 0) + 1; }
+          // Became PAYING event → trial_end (a converted trial) or created (direct paid).
+          if (st === 'active' || st === 'past_due') {
+            const d = (sub.trial_start && sub.trial_end) ? _dayOf(sub.trial_end) : _dayOf(sub.created);
+            if (d) proByDay[d] = (proByDay[d] || 0) + 1;
+          }
         }
         if (!s || !s.has_more || !data.length) break;
         startingAfter = data[data.length - 1].id;
@@ -8500,6 +8506,24 @@ async function deskConfigSet(env, key, value) {
   const now = Math.floor(Date.now() / 1000);
   await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES (?1,?2,?3) ON CONFLICT(key) DO UPDATE SET value=?2, updated_at=?3").bind(key, value, now).run();
 }
+// Total newsletter subscribers (Resend audience), cached 6h — the audience list
+// can be large, so we don't paginate it on every desk load.
+async function resendAudienceCount(env) {
+  if (!env.RESEND_API_KEY || !env.RESEND_AUDIENCE_ID) return null;
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    const cached = await deskConfigGet(env, 'resend_audience_count');
+    const at = parseInt(await deskConfigGet(env, 'resend_audience_count_at') || '0', 10);
+    if (cached != null && (now - at) < 6 * 3600) return parseInt(cached, 10);
+  } catch (_) {}
+  let total = null;
+  try {
+    const r = await fetch(`https://api.resend.com/audiences/${env.RESEND_AUDIENCE_ID}/contacts`, { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } });
+    if (r.ok) { const d = await r.json(); total = ((d && d.data) || []).filter((c) => !c.unsubscribed).length; }
+  } catch (_) {}
+  if (total != null) { try { await deskConfigSet(env, 'resend_audience_count', String(total)); await deskConfigSet(env, 'resend_audience_count_at', String(now)); } catch (_) {} }
+  return total;
+}
 async function ensureResendEventsTable(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS resend_events (
     svix_id TEXT PRIMARY KEY, type TEXT, email TEXT, email_id TEXT, broadcast_id TEXT, ts INTEGER, created_at INTEGER)`).run();
@@ -8603,6 +8627,16 @@ async function handleMorningData(req, env, origin) {
     if (em && memberSet.has(em)) return 'free';
     return 'anon';
   };
+
+  // Master counts: pro = members on a Pro plan (trialing+active), free = the
+  // rest of the accounts, anon = newsletter subscribers who never registered.
+  try {
+    let mcFree = 0; memberSet.forEach((e) => { if (!paidSet.has(e)) mcFree++; });
+    const mcPro = memberSet.size - mcFree;
+    const subs = await resendAudienceCount(env);
+    const mcAnon = (subs != null) ? Math.max(0, subs - memberSet.size) : null;
+    out.member_counts = { anon: mcAnon, free: mcFree, pro: mcPro, members: memberSet.size, subscribers: subs };
+  } catch (e) { out.member_counts_error = String(e && e.message || e); }
 
   // ── Weekly newsletter (Resend) — the most recent SENT broadcast + reach ──
   // Resend's broadcast API returns send status but not always aggregate opens;
