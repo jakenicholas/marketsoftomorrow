@@ -45,6 +45,14 @@ routes = [
 # Non-secret config. Edit if your GA4 property changes.
 GA4_PROPERTY_ID = "467692471"
 
+# Wall-hit upgrade mailer (Jake approved live 2026-08-10). WALLHIT_LIVE='1'
+# sends the daily wall-hit emails for real (any other value = dry-run rows
+# only). WALLHIT_BLAST='1' arms the ONE-TIME launch blast to all free
+# non-trialing accounts — it self-marks done in D1 and never repeats, so
+# this can stay '1' harmlessly after it runs.
+WALLHIT_LIVE = "1"
+WALLHIT_BLAST = "1"
+
 # Public host for client-facing carousel preview links (branded; workers.dev
 # links already in the wild keep working — this only changes NEW links).
 CAROUSEL_PUBLIC_HOST = "https://go.oftmw.com"

@@ -106,6 +106,12 @@
       '.tmww .g-row{display:flex;gap:10px}',
       '.tmww .g-row .in{flex:1;min-width:0}',
       '.tmww .g-fine{margin-top:10px}',
+      /* the "or / Continue with Google" row on the gate */
+      '.tmww .g-or{display:flex;align-items:center;gap:12px;margin:2px 0}',
+      '.tmww .g-or span{flex:1;height:1px;background:rgba(255,255,255,.16)}',
+      '.tmww .g-or i{font-style:normal;font-size:11px;color:#9AA39C;letter-spacing:.08em;text-transform:uppercase}',
+      '.tmww .g-google{display:flex;align-items:center;justify-content:center;gap:10px}',
+      '.tmww .g-google svg{flex:0 0 auto}',
       '.tmww .g-ticker{position:absolute;right:clamp(22px,5vw,58px);bottom:44px;z-index:3;text-align:right;display:flex;flex-direction:column;gap:16px}',
       '.tmww .tk .v{font-family:"Fraunces",Georgia,serif;font-size:clamp(22px,2.6vw,34px);font-weight:600;color:#fff;line-height:1}',
       '.tmww .tk .k{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#9AA39C;margin-top:5px}',
@@ -114,7 +120,8 @@
          portrait cover-fit shows the full height (sky on top). Double the
          img box and pin it to the bottom so the viewport sees only the
          bottom 50% — the top half is cropped away, busy part moved up. */
-      '.tmww .bg img{height:200%;top:auto;bottom:0}',
+      /* 150% (crop the top third) — 200% cut too much context away */
+      '.tmww .bg img{height:150%;top:auto;bottom:0}',
       '.tmww .g-ticker{display:none}',
       '.tmww .g-row{flex-direction:column}',
       '.tmww .g-inner{padding:16px 22px 26px}',
@@ -232,31 +239,91 @@
   }
 
   // ── GATE ───────────────────────────────────────────────────────────────
+  // opts.intent: 'checkout:<priceId>' turns the gate into the TRIAL signup
+  // step — after the account exists we go straight to Stripe checkout instead
+  // of the member celebration. This is the full-screen replacement for the
+  // old "Create your account" lightbox that used to pop over the Pro screen.
+  function ensurePaywall(cb) {
+    if (window.tmwProCheckout || window.tmwShowPaywall) { cb(); return; }
+    var sc = document.createElement('script');
+    sc.src = '/_shared/journal-paywall.js';
+    sc.onload = cb;
+    document.body.appendChild(sc);
+  }
+  function afterSignup(email, source, intent) {
+    try { fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) }); } catch (e2) {}
+    try { localStorage.setItem(KEY, 'subscribed'); localStorage.setItem(SUB_EMAIL_KEY, email); } catch (e2) {}
+    track('subscribe_article', { email: email, source: source });
+    track('free_account_created', { email: email, source: source });
+    if (intent && intent.indexOf('checkout:') === 0) {
+      var priceId = intent.slice(9);
+      track('welcome_trial_signup_checkout', { price_id: priceId });
+      ensurePaywall(function () {
+        if (typeof window.tmwProCheckout === 'function') { close(true); window.tmwProCheckout(priceId); }
+        else { member(); }
+      });
+    } else {
+      member();
+    }
+  }
   function gate(opts) {
     opts = opts || {};
     if (window._tmwSignedIn === true) return false;
     var source = opts.source || 'welcome_gate';
+    var intent = opts.intent || '';
+    var trial = intent.indexOf('checkout:') === 0;
     var s = screen(
       (hardMode ? '' : '<button class="skip" data-w="close">Not now</button>') +
       '<div class="g-inner">' +
         '<div class="wm">' + LOGO_IMG + '</div>' +
-        '<h2 class="g-h">The world of tomorrow, <em>tracked live.</em></h2>' +
-        '<p class="g-sub">1,600+ verified developments, the interactive Map and Atlas, and Onyx, our intelligence engine. Create a free account to continue.</p>' +
+        (trial
+          ? '<h2 class="g-h">One step from <em>everything.</em></h2>' +
+            '<p class="g-sub">Create your account and your 14-day free trial starts right after. No charge for 14 days, cancel anytime.</p>'
+          : '<h2 class="g-h">The world of tomorrow, <em>tracked live.</em></h2>' +
+            '<p class="g-sub">1,600+ verified developments, the interactive Map and Atlas, and Onyx, our intelligence engine. Create a free account to continue.</p>') +
         '<form class="g-form" novalidate>' +
           '<div class="g-row">' +
             '<input class="in" type="email" name="email" placeholder="you@example.com" autocomplete="email" value="' + esc(opts.email || '') + '" required>' +
             '<input class="in" type="password" name="password" placeholder="Create a password" autocomplete="new-password" minlength="8" required>' +
           '</div>' +
-          '<button class="cta" type="submit">Create free account</button>' +
+          '<button class="cta" type="submit">' + (trial ? 'Create account &amp; start my trial' : 'Create free account') + '</button>' +
+          '<div class="g-or"><span></span><i>or</i><span></span></div>' +
+          '<button class="cta alt g-google" type="button" data-w="google">' +
+            '<svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.5 13.2l7.8 6.1C12.2 13.5 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.8C43.9 38 46.5 31.8 46.5 24.5z"/><path fill="#FBBC05" d="M10.3 28.7a14.5 14.5 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.3-5.6l-7.4-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.4 0-11.8-4-13.7-9.7l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>' +
+            'Continue with Google</button>' +
           '<p class="fine g-fine">Already a member? <a data-w="login">Sign in</a></p>' +
           '<div class="msg" aria-live="polite"></div>' +
         '</form>' +
       '</div>' +
       TICKER
     );
-    track('welcome_gate_shown', { source: source });
+    track('welcome_gate_shown', { source: source, trial: trial ? 1 : 0 });
     var form = s.querySelector('form'), msg = s.querySelector('.msg');
     (opts.email ? form.password : form.email).focus();
+    // Google — Memberstack's provider flow (its own OAuth window; on success
+    // we resume the same finish path as email signup, incl. trial checkout).
+    s.querySelector('[data-w="google"]').addEventListener('click', function () {
+      var gb = s.querySelector('.g-google');
+      msg.className = 'msg'; msg.textContent = '';
+      var m = window.$memberstackDom;
+      if (!m || (!m.signupWithProvider && !m.loginWithProvider)) {
+        msg.className = 'msg err'; msg.textContent = 'Still loading — try again in a moment.'; return;
+      }
+      gb.disabled = true;
+      var call = m.signupWithProvider
+        ? m.signupWithProvider({ provider: 'google', allowLogin: true })
+        : m.loginWithProvider({ provider: 'google', allowSignup: true });
+      call.then(function (res) {
+        var email = '';
+        try { email = (res && res.data && res.data.member && res.data.member.auth && res.data.member.auth.email) || ''; } catch (e2) {}
+        if (!email) { try { return m.getCurrentMember().then(function (cm) { afterSignup((cm && cm.data && cm.data.auth && cm.data.auth.email) || '', source + '_google', intent); }); } catch (e3) {} }
+        afterSignup(email, source + '_google', intent);
+      }).catch(function (err) {
+        gb.disabled = false;
+        msg.className = 'msg err';
+        msg.textContent = (err && (err.message || (err.data && err.data.message))) || 'Google sign-in did not complete.';
+      });
+    });
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       var email = (form.email.value || '').trim();
@@ -268,11 +335,7 @@
       btn.disabled = true; btn.textContent = 'Creating…';
       var res = window.tmwCreateFreeAccount ? await window.tmwCreateFreeAccount(email, password) : { ok: false, message: 'Accounts are still loading — try again in a moment.' };
       if (res && res.ok) {
-        try { fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) }); } catch (e2) {}
-        try { localStorage.setItem(KEY, 'subscribed'); localStorage.setItem(SUB_EMAIL_KEY, email); } catch (e2) {}
-        track('subscribe_article', { email: email, source: source });
-        track('free_account_created', { email: email, source: source });
-        member();
+        afterSignup(email, source, intent);
       } else if (res && res.code === 'exists') {
         btn.disabled = false; btn.textContent = orig;
         msg.className = 'msg err';
@@ -419,17 +482,20 @@
       var sel = s.querySelector('.plan.sel');
       var priceId = (sel && sel.getAttribute('data-price')) || PRICE_ANNUAL;
       track('welcome_pro_checkout', { price_id: priceId });
+      // Signed OUT: checkout needs an account first. The old path let
+      // journal-paywall pop the "Create your account" lightbox over this
+      // screen — replaced with the full-screen gate in trial mode, which
+      // hands off to checkout the moment the account exists.
+      if (window._tmwSignedIn !== true) {
+        gate({ source: 'pro_checkout', intent: 'checkout:' + priceId });
+        return;
+      }
       // journal-paywall.js owns checkout (trial eligibility, grandfathered
-      // no-trial pricing, the signup fallback). Load it if it isn't up yet.
-      function go() {
+      // no-trial pricing). Load it if it isn't up yet.
+      ensurePaywall(function () {
         if (typeof window.tmwProCheckout === 'function') { close(true); window.tmwProCheckout(priceId); }
         else if (typeof window.tmwShowPaywall === 'function') { close(true); window.tmwShowPaywall('go-pro'); }
-      }
-      if (window.tmwProCheckout || window.tmwShowPaywall) { go(); return; }
-      var sc = document.createElement('script');
-      sc.src = '/_shared/journal-paywall.js';
-      sc.onload = go;
-      document.body.appendChild(sc);
+      });
     });
     return true;
   }

@@ -423,30 +423,33 @@
            summary of the whole issue and the three stats recap the counts. -->
       {%- if intel %}
       <tr><td style="padding: 28px 0 28px 0; border-top: 1px solid #d8cef0;">
-        <table role="presentation" class="intel-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #d8cef0; border-radius: 12px;">
+        <!-- Dark panel matching the Intelligence section + Pro module (Jake:
+             the three "money" boxes share one look). Dark in BOTH color
+             modes, so no force-* classes needed. -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0e0b16" style="background-color: #0e0b16; border: 1px solid rgba(167, 139, 250, 0.45); border-radius: 14px;">
           <tr><td style="padding: 22px 24px 6px 24px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
-                <td align="left" style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #7C5CFC;">
+                <td align="left" style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #C4B5FD;">
                   <span style="color:#A78BFA;">&#11041;</span>&nbsp; TMW Intelligence
                 </td>
-                <td align="right" style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;" class="force-muted-text">
+                <td align="right" style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9a92b5;">
                   <span style="color:#A78BFA;">&bull;</span> This week
                 </td>
               </tr>
             </table>
           </td></tr>
           <tr><td style="padding: 6px 24px 20px 24px;">
-            <div class="intel-body force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 17px; line-height: 1.55;">{{ intel.body }}</div>
+            <div style="color: #ffffff; font-family: Georgia, 'Times New Roman', serif; font-size: 17px; line-height: 1.55;">{{ intel.body }}</div>
           </td></tr>
-          <tr><td style="padding: 0 24px;"><div style="border-top: 1px solid #ece6fb; font-size: 0; line-height: 0;">&nbsp;</div></td></tr>
+          <tr><td style="padding: 0 24px;"><div style="border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0; line-height: 0;">&nbsp;</div></td></tr>
           <tr><td style="padding: 16px 24px 22px 24px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout: fixed;">
               <tr>
               {%- for s in intel.stats %}
                 <td align="left" valign="top" width="33%" style="width: 33.33%;">
-                  <div class="intel-stat-value force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; line-height: 1;">{{ s.value }}</div>
-                  <div class="intel-stat-label force-muted-text" style="color:#6b5b8a; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px;">{{ s.label }}</div>
+                  <div style="color: #ffffff; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; line-height: 1;">{{ s.value }}</div>
+                  <div style="color: #9a92b5; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px;">{{ s.label }}</div>
                 </td>
               {%- endfor %}
               </tr>
@@ -454,6 +457,27 @@
           </td></tr>
         </table>
       </td></tr>
+      {%- endif %}
+
+      <!-- FROM THE JOURNAL: FLORIDA -->
+      {%- if florida_articles %}
+      <tr><td>
+        <div class="section-header force-accent-text">From the journal · Florida ({{ florida_articles|length }})</div>
+        {#- Cap the EMAIL at a few cards so a heavy week stays under Gmail's ~102KB
+            clip limit (the rest fold into a "+N more" link); the ARCHIVE web copy
+            shows every article. -#}
+        {%- set fa_cap = florida_articles|length if archive else (art_cap|default(6)) %}
+        {%- for a in florida_articles[:fa_cap] %}
+        {{ render_article(a) }}
+        {%- endfor %}
+        {%- if not archive and florida_articles|length > fa_cap %}
+        <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ florida_articles|length - fa_cap }} more in the journal →</a>
+        {%- endif %}
+      </td></tr>
+      {%- endif %}
+
+      {%- if ads.slot2 %}
+      {{ render_ad(ads.slot2) }}
       {%- endif %}
 
       <!-- TMW INTELLIGENCE — the homepage "Not a map" section, emailified.
@@ -472,7 +496,7 @@
           <tr><td style="padding: 20px 28px 0 28px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout: fixed;">
               <tr>
-                <td width="33%" style="width: 33.33%;"><div style="font-family: Georgia, serif; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1;">{{ intel_board.count }}</div><div style="color: #9a92b5; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 6px;">Projects tracked</div></td>
+                <td width="33%" style="width: 33.33%;"><div style="font-family: Georgia, serif; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1;">1,600+</div><div style="color: #9a92b5; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 6px;">Projects tracked</div></td>
                 <td width="33%" style="width: 33.33%;"><div style="font-family: Georgia, serif; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1;">40+</div><div style="color: #9a92b5; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 6px;">Live markets</div></td>
                 <td width="33%" style="width: 33.33%;"><div style="font-family: Georgia, serif; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1;">Daily</div><div style="color: #9a92b5; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 6px;">Synced</div></td>
               </tr>
@@ -501,26 +525,6 @@
       </td></tr>
       {%- endif %}
 
-      <!-- FROM THE JOURNAL: FLORIDA -->
-      {%- if florida_articles %}
-      <tr><td>
-        <div class="section-header force-accent-text">From the journal · Florida ({{ florida_articles|length }})</div>
-        {#- Cap the EMAIL at a few cards so a heavy week stays under Gmail's ~102KB
-            clip limit (the rest fold into a "+N more" link); the ARCHIVE web copy
-            shows every article. -#}
-        {%- set fa_cap = florida_articles|length if archive else (art_cap|default(6)) %}
-        {%- for a in florida_articles[:fa_cap] %}
-        {{ render_article(a) }}
-        {%- endfor %}
-        {%- if not archive and florida_articles|length > fa_cap %}
-        <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ florida_articles|length - fa_cap }} more in the journal →</a>
-        {%- endif %}
-      </td></tr>
-      {%- endif %}
-
-      {%- if ads.slot2 %}
-      {{ render_ad(ads.slot2) }}
-      {%- endif %}
 
       <!-- FROM THE JOURNAL: MORE MARKETS -->
       {%- if more_markets_articles %}

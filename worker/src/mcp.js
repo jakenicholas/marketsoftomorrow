@@ -25,7 +25,7 @@ import { ONTOLOGY } from './ontology.js';
 import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
 // Studio-admin read bridge: the connector reuses the SAME handler functions the
 // Access-gated admin pages hit, so the numbers can never drift from the Studio.
-import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome } from './index.js';
+import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -1061,6 +1061,11 @@ const TOOLS = [
   {
     name: 'get_social_overview',
     description: 'Social distribution state: the connected social accounts roster (7 accounts × 6 platforms) + follower-count snapshots per account over time (the Studio Followers page).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_email_stats',
+    description: 'Email operations rollup for the morning brief: wall-hit/blast automation sends (24h + 7d by kind and mode, pending quota-errored sends, live flag, launch-blast report), the latest Resend newsletter broadcasts (id/status/sent_at), and the newsletter\'s first-party placement performance (views/clicks per creative, last 7 days). One call answers "how many automated emails went out and how did the newsletter do".',
     inputSchema: { type: 'object', properties: {} },
   },
   {
@@ -4684,6 +4689,9 @@ const IMPL = {
     try { out.followers = await bridgeJson(await handleFollowersGet(bridgeReq(env, '/followers'), env, BRIDGE_ORIGIN)); }
     catch (e) { out.followers_error = String(e.message || e); }
     return out;
+  },
+  async get_email_stats(args, env) {
+    return bridgeJson(await handleEmailStats(bridgeReq(env, '/admin/email-stats'), env, BRIDGE_ORIGIN));
   },
   async list_brain_proposals(args, env) {
     return bridgeJson(await handleBrainProposed(bridgeReq(env, '/brain/proposed'), env, BRIDGE_ORIGIN));

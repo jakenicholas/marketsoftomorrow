@@ -2337,6 +2337,38 @@ async function maybeWallhitBlast(env) {
             JSON.stringify({ sent, skippedPaying, skippedDup, failed, members: members.length })).run();
   } catch (_) {}
 }
+// Retry pass for blast/daily sends that errored (Resend rate-limits burst
+// sends — the launch blast hit 429s partway). Paced at ~1.5/sec, runs at most
+// every 10 minutes, flips rows error → live on success so it self-drains.
+async function maybeWallhitRetry(env) {
+  if (!env.DB || !env.RESEND_API_KEY) return;
+  if (env.WALLHIT_LIVE !== '1') return;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='wallhit_retry_run' ORDER BY ts DESC LIMIT 1").first();
+    if (last && last.ts && (now - last.ts) < 600) return;
+    await ensureWallhitTable(env);
+    const rows = (await env.DB.prepare(`SELECT email, kind FROM wallhit_sends WHERE mode='error' LIMIT 60`).all()).results || [];
+    if (!rows.length) return;
+    await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
+      .bind(now, 'system:wallhit-mailer', 'wallhit_retry_run', JSON.stringify({ pending: rows.length })).run();
+    const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+    for (const row of rows) {
+      const msg = wallhitEmail(row.kind);
+      try {
+        const r = await fetch('https://api.resend.com/emails', {
+          method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: FROM, to: [row.email], subject: msg.subject, html: msg.html, text: msg.text }),
+        });
+        if (r.ok) {
+          await env.DB.prepare(`UPDATE wallhit_sends SET mode='live', ts=?1 WHERE email=?2 AND mode='error'`)
+            .bind(Math.floor(Date.now() / 1000), row.email).run();
+        }
+      } catch (_) {}
+      await new Promise((res) => setTimeout(res, 700));
+    }
+  } catch (_) {}
+}
 async function ensureWallhitTable(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wallhit_sends (
     member_id TEXT NOT NULL, email TEXT NOT NULL, kind TEXT NOT NULL,
@@ -2442,6 +2474,55 @@ async function handleWallhitTest(req, env, origin) {
     results.push({ kind, ok: r.ok });
   }
   return json({ ok: results.every(x => x.ok), to, results }, {}, env, origin);
+}
+
+// GET /admin/email-stats — one read for the morning brief: what the email
+// automations did (wallhit_sends rollup + blast report), the latest Resend
+// broadcasts (the weekly newsletter), and the newsletter's first-party
+// placement performance (/r clicks + /px views). Admin-gated.
+export async function handleEmailStats(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  const out = { generated_at: new Date().toISOString() };
+  const now = Math.floor(Date.now() / 1000);
+  // Automation sends (wall-hit + blast)
+  try {
+    await ensureWallhitTable(env);
+    const roll = (since) => env.DB.prepare(
+      `SELECT kind, mode, COUNT(*) c FROM wallhit_sends WHERE ts >= ?1 GROUP BY kind, mode`
+    ).bind(since).all().then((r) => r.results || []);
+    out.automation = {
+      live: env.WALLHIT_LIVE === '1',
+      last_24h: await roll(now - 86400),
+      last_7d: await roll(now - 7 * 86400),
+      pending_errors: (await env.DB.prepare(`SELECT COUNT(*) c FROM wallhit_sends WHERE mode='error'`).first() || {}).c || 0,
+    };
+    const blast = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='wallhit_blast_report' ORDER BY ts DESC LIMIT 1`).first();
+    if (blast) { try { out.automation.blast = JSON.parse(blast.props_json); } catch (_) {} }
+  } catch (e) { out.automation_error = String(e.message || e); }
+  // Latest Resend broadcasts (the weekly newsletter drafts/sends)
+  try {
+    if (env.RESEND_API_KEY) {
+      const r = await fetch('https://api.resend.com/broadcasts', { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } });
+      if (r.ok) {
+        const d = await r.json();
+        out.broadcasts = (d.data || []).slice(0, 6).map((b) => ({
+          id: b.id, name: b.name || null, status: b.status || null,
+          created_at: b.created_at || null, sent_at: b.sent_at || null, audience_id: b.audience_id || null,
+        }));
+      } else { out.broadcasts_error = 'Resend /broadcasts HTTP ' + r.status; }
+    }
+  } catch (e) { out.broadcasts_error = String(e.message || e); }
+  // First-party newsletter placement stats (views/clicks on newsletter surface)
+  try {
+    await ensurePlacementStatsTable(env);
+    const sinceDay = new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10);
+    const rows = (await env.DB.prepare(
+      `SELECT id, label, SUM(views) views, SUM(clicks) clicks, SUM(clicks_bot) clicks_bot
+       FROM placement_stats WHERE surface='newsletter' AND day >= ?1 GROUP BY id ORDER BY views DESC`
+    ).bind(sinceDay).all()).results || [];
+    out.newsletter_placements_7d = rows;
+  } catch (e) { out.placements_error = String(e.message || e); }
+  return json(out, {}, env, origin);
 }
 
 // GET /funnel-stats?weeks=12 — article-to-Pro funnel by week.
@@ -16231,6 +16312,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/admin/wallhit-preview')     return await handleWallhitPreview(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/email-stats')         return await handleEmailStats(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/wallhit-test')        return await handleWallhitTest(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
@@ -16853,6 +16935,11 @@ export default {
     ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro
     ctx.waitUntil(maybeWallHitMailer(env));      // daily wall-hit upgrade email (DRY-RUN until WALLHIT_LIVE='1')
     ctx.waitUntil(maybeWallhitBlast(env));       // one-shot launch blast to free accounts (WALLHIT_BLAST='1', self-marking)
+    // Retry pass PAUSED (2026-08-10 night): the 54 'error' rows are Resend
+    // DAILY-QUOTA rejections (free plan = 100/day; the launch blast hit 200%),
+    // not rate limits — retrying now just burns quota the Tuesday newsletter
+    // needs. Re-enable after the Resend plan upgrade and the rows self-drain.
+    // ctx.waitUntil(maybeWallhitRetry(env));
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
