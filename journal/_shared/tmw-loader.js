@@ -23,13 +23,13 @@
     '.tmwl-logo{position:relative;width:min(150px,36vw);aspect-ratio:382.2/419;background:#fff;overflow:hidden;',
     '-webkit-mask:url(/_shared/futureishere.svg) center/contain no-repeat;mask:url(/_shared/futureishere.svg) center/contain no-repeat}',
     /* the rising water — loops like the cup refilling */
-    '.tmwl-water{position:absolute;left:0;right:0;bottom:0;height:0;background:#A78BFA;animation:tmwlRise 2s ease-in-out infinite}',
+    '.tmwl-water{position:absolute;left:0;right:0;bottom:0;height:0;background:#A78BFA;animation:tmwlRise 1.9s ease-in-out forwards}',
     /* two drifting crests riding the waterline (only visible inside the mask) */
     '.tmwl-wave{position:absolute;bottom:100%;left:0;width:200%;height:12px;background-repeat:repeat-x;background-size:96px 12px;animation:tmwlDrift 1.15s linear infinite}',
     '.tmwl-wave.w1{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 96 12%27%3E%3Cpath d=%27M0 12V7C12 7 12 2 24 2s12 5 24 5 12-5 24-5 12 5 24 5v5z%27 fill=%27%23A78BFA%27/%3E%3C/svg%3E")}',
     '.tmwl-wave.w2{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 96 12%27%3E%3Cpath d=%27M0 12V6C16 6 16 10 32 10S48 4 64 4s16 6 32 6v2z%27 fill=%27%23C4B5FD%27 fill-opacity=%27.55%27/%3E%3C/svg%3E")',
     ';animation-duration:1.7s;animation-direction:reverse;height:10px}',
-    '@keyframes tmwlRise{0%{height:4%}55%{height:96%}82%{height:104%}100%{height:104%}}',
+    '@keyframes tmwlRise{0%{height:4%}70%{height:92%}100%{height:104%}}',
     '@keyframes tmwlDrift{to{transform:translateX(-96px)}}',
     '@media(prefers-reduced-motion:reduce){.tmwl-water{animation:none;height:55%}.tmwl-wave{animation:none}}'
   ].join('');
@@ -44,12 +44,16 @@
   if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
 
   var hideTimer = null;
+  var navigated = false;
   function show(){
     mount();
+    // restart the fill animation from empty on every show
+    var w = el.querySelector('.tmwl-water');
+    if (w) { w.style.animation = 'none'; void w.offsetHeight; w.style.animation = ''; }
     el.classList.add('on');
     clearTimeout(hideTimer);
     // failsafe: a click that never became a navigation must not trap the page
-    hideTimer = setTimeout(hide, 5000);
+    hideTimer = setTimeout(function () { if (!navigated) hide(); }, 6000);
   }
   function hide(){ clearTimeout(hideTimer); el.classList.remove('on'); }
   window.tmwLoader = { show: show, hide: hide };
@@ -72,6 +76,14 @@
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return;
     if (u.origin !== location.origin) return;
     if (u.pathname === location.pathname && u.search === location.search && u.hash) return;  // same-page anchor
+    // Reduced-motion users skip the held animation entirely — navigate natively.
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { show(); return; }
+    // Hold the veil for the FULL 2s fill, then navigate (Jake wants the cup
+    // to finish filling before the page swaps).
+    e.preventDefault();
     show();
+    var dest = u.href;
+    navigated = false;
+    setTimeout(function () { navigated = true; location.href = dest; }, 2000);
   });
 })();
