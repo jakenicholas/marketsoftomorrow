@@ -72,7 +72,7 @@
   var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   var flapTimers = [];
   function reduced(){ try { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } }
-  function runFlaps(){
+  function runFlaps(quick){
     flapTimers.forEach(function (t) { clearInterval(t.iv); clearTimeout(t.to); });
     flapTimers = [];
     var still = reduced();
@@ -88,8 +88,11 @@
         if (still) { f.textContent = ch; f.classList.add('done'); return; }
         f.textContent = GLYPHS[Math.floor(Math.random() * 26)];
         var iv = setInterval(function () { f.textContent = GLYPHS[Math.floor(Math.random() * 26)]; }, 55);
+        // Arrival runs get less runway (the loader script lands a few hundred
+        // ms into the 2s budget) — compress so every tile settles pre-lift.
         var to = setTimeout(function () { clearInterval(iv); f.textContent = ch; f.classList.add('done'); },
-          420 + ri * 250 + i * 120 + Math.random() * 150);
+          quick ? (240 + ri * 160 + i * 70 + Math.random() * 80)
+                : (420 + ri * 250 + i * 120 + Math.random() * 150));
         flapTimers.push({ iv: iv, to: to });
       });
     });
@@ -147,7 +150,7 @@
   } catch (_) {}
   if (handoffT0 && Date.now() - handoffT0 < 8000 && !reduced()) {
     mount();
-    runFlaps();
+    runFlaps(true);
     el.classList.add('on');
     var stub0 = document.getElementById('tmwl-stub');
     if (stub0 && stub0.parentNode) stub0.parentNode.removeChild(stub0);
