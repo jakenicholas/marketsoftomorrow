@@ -45,42 +45,44 @@ PRO_PROMO = {
 }
 
 
-def fetch_onyx_trending(limit=3):
-    """'This week people asked Onyx' — pull live trending member questions from
-    the worker and turn each into a deep link that opens the on-site Onyx
-    overlay WITH the question submitted (#search=<q>, handled by
-    journal-search-overlay.js). Clicking is a live product demo that flows
-    into the normal free-quota funnel. Returns [] on any failure so the
-    section simply drops out of that issue."""
+def fetch_intel_board():
+    """The homepage 'TMW Intelligence' section, emailified: live project count
+    plus the "Who's moving the pipeline right now" city leaderboard, computed
+    from projects-flat.json exactly like journal/_shared/intelligence.js does
+    (total per city; the purple ↑ delta = projects at announced/breaking
+    ground). Curated data we control — replaced the trending-questions block,
+    which surfaced whatever members happened to type. Returns None on failure
+    so the section drops out of that issue."""
+    PIPELINE = {"announced", "breaking ground"}
     try:
-        req = urllib.request.Request(f"{WORKER_URL}/trending-searches", headers={"User-Agent": "TMW-Digest/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        out, seen = [], set()
-        for row in data.get("searches") or []:
-            q = str(row.get("q") or "").strip()
-            if len(q) < 8 or q.lower() in seen:
+        req = urllib.request.Request("https://www.oftmw.com/map/projects-flat.json", headers={"User-Agent": "TMW-Digest/1.0"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            rows = json.loads(r.read().decode("utf-8"))
+        if not isinstance(rows, list) or not rows:
+            return None
+        counts, pipe = {}, {}
+        for p in rows:
+            c = str(p.get("City") or "").strip()
+            if not c:
                 continue
-            seen.add(q.lower())
-            display = q[0].upper() + q[1:]
-            if not display.endswith("?") and re.match(r"(?i)^(when|what|which|who|where|how|why|is|are|will|does|do|can)\b", display):
-                display += "?"
-            out.append({
-                "q": display,
-                "href": "https://www.oftmw.com/#search=" + urllib.parse.quote(q, safe=""),
-            })
-            if len(out) >= limit:
-                break
-        return out
+            counts[c] = counts.get(c, 0) + 1
+            if str(p.get("Delivery") or "").strip().lower() in PIPELINE:
+                pipe[c] = pipe.get(c, 0) + 1
+        cities = sorted(
+            ({"name": k, "total": v, "pipe": pipe.get(k, 0)} for k, v in counts.items()),
+            key=lambda x: (-x["total"], -x["pipe"], x["name"]),
+        )[:5]
+        return {"count": len(rows), "cities": cities}
     except Exception as e:
-        print(f"[warn] trending searches unavailable ({e}) — Onyx block skipped")
-        return []
+        print(f"[warn] projects-flat unavailable ({e}) — intelligence section skipped")
+        return None
 
 
-# Tracked like the Pro module but under its own id so newsletter→Onyx clicks
-# read separately from the trial CTA in the Placements tab.
-ONYX_PROMO = {
-    "click_url": f"{WORKER_URL}/r?id=tmw-pro-onyx&s=newsletter",
+# Section click tracking: database CTA and the Pro line carry separate house
+# ids so newsletter→map vs newsletter→Pro clicks read apart in Placements.
+INTEL_PROMO = {
+    "map_click_url": f"{WORKER_URL}/r?id=tmw-map-explore&s=newsletter",
+    "pro_click_url": f"{WORKER_URL}/r?id=tmw-pro-onyx&s=newsletter",
     "pixel_url": f"{WORKER_URL}/px?id=tmw-pro-onyx&s=newsletter",
 }
 SITE_URL      = "https://map.oftmw.com"
@@ -868,9 +870,9 @@ def main():
 
     app_updates = load_app_updates()
     ads         = load_ads()
-    onyx_trending = fetch_onyx_trending()
+    intel_board = fetch_intel_board()
 
-    print(f"[info] map_items={len(map_items)} app_updates={'yes' if app_updates else 'no'} onyx_trending={len(onyx_trending)}")
+    print(f"[info] map_items={len(map_items)} app_updates={'yes' if app_updates else 'no'} intel_board={'yes' if intel_board else 'no'}")
 
     if not (map_items or florida_articles or more_markets_articles or app_updates):
         print("[info] nothing to publish — skipping")
@@ -912,7 +914,7 @@ def main():
             more_markets_articles=more_markets_articles,
             intel=intel,
             app_updates=app_updates, ads=ads, pro_promo=PRO_PROMO,
-            onyx_trending=onyx_trending, onyx_promo=ONYX_PROMO,
+            intel_board=intel_board, intel_promo=INTEL_PROMO,
             site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
             app_image_url=cache_bust_image,
             archive=archive, art_cap=art_cap,

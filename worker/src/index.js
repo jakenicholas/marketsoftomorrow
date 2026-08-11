@@ -2229,18 +2229,55 @@ const WALLHIT_COPY = {
            body: 'You looked at TMW Pro but did not start the trial. It is 14 days of the full Map and Atlas, unlimited Onyx with Deep mode, watchlists and the weekly brief, and it costs nothing to try.' },
 };
 const WALLHIT_CTA = 'https://tmw.jake-ab7.workers.dev/r?id=tmw-pro-wallhit&s=newsletter';
+// The full pitch under the wall-specific opener — mirrors the /pro page:
+// feature checklist, both price chips (annual highlighted), the brand stats.
+const WALLHIT_FEATURES = [
+  'The full Map: every project, no daily cap',
+  'The Atlas: leaderboards &amp; momentum',
+  'Unlimited Onyx + Deep mode',
+  'Projected pricing &amp; supply pressure',
+  'Watchlist + your weekly Onyx Brief',
+  'Follow the Money: financings &amp; lenders',
+];
 function wallhitEmail(kind) {
   const c = WALLHIT_COPY[kind] || WALLHIT_COPY.pro;
+  const feats = WALLHIT_FEATURES.map((f) =>
+    `<tr><td width="18" valign="top" style="width:18px;color:#7C5CFC;font-weight:700;font-size:13px;padding:4px 0">&#10003;</td><td style="color:#4b3d6b;font-size:13px;line-height:1.5;padding:4px 0">${f}</td></tr>`
+  ).join('');
   const html =
     '<div style="background:#ede9fe;padding:36px 16px"><div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #d8cef0;border-radius:14px;padding:32px 30px;font-family:Inter,-apple-system,Arial,sans-serif">' +
     '<div style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#7C5CFC;margin-bottom:14px">Markets of Tomorrow</div>' +
     `<div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#1e0a3c;margin-bottom:12px">${c.headline}</div>` +
-    `<p style="font-size:14.5px;line-height:1.65;color:#4b3d6b;margin:0 0 22px">${c.body}</p>` +
+    `<p style="font-size:14.5px;line-height:1.65;color:#4b3d6b;margin:0 0 20px">${c.body}</p>` +
+    // everything Pro opens
+    '<div style="background:#faf8ff;border:1px solid #e4ddf6;border-radius:12px;padding:16px 18px;margin:0 0 18px">' +
+    '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7C5CFC;margin-bottom:8px">Everything TMW Pro opens</div>' +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">${feats}</table>` +
+    '</div>' +
+    // price chips — annual highlighted, matching the site and the digest module
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout:fixed;margin:0 0 16px"><tr>' +
+    '<td valign="top" width="50%" style="width:50%;padding:0 5px 0 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:rgba(167,139,250,0.1);border:1.5px solid #A78BFA;border-radius:12px"><tr><td style="padding:12px 14px">' +
+    '<div style="font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#7C5CFC">Annual &middot; Save 22%</div>' +
+    '<div style="color:#1e0a3c;font-size:22px;font-weight:700;margin-top:5px">$300<span style="font-size:12px;font-weight:500;color:#6b5b8a">/yr</span></div>' +
+    '<div style="font-size:11px;color:#6b5b8a;margin-top:4px">$25/month &middot; 14 days free</div>' +
+    '</td></tr></table></td>' +
+    '<td valign="top" width="50%" style="width:50%;padding:0 0 0 5px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#faf8ff;border:1px solid #e4ddf6;border-radius:12px"><tr><td style="padding:12px 14px">' +
+    '<div style="font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#9a8fb8">Monthly</div>' +
+    '<div style="color:#1e0a3c;font-size:22px;font-weight:700;margin-top:5px">$32<span style="font-size:12px;font-weight:500;color:#6b5b8a">/mo</span></div>' +
+    '<div style="font-size:11px;color:#6b5b8a;margin-top:4px">14 days free</div>' +
+    '</td></tr></table></td>' +
+    '</tr></table>' +
     `<a href="${WALLHIT_CTA}" target="_blank" rel="noopener" style="display:block;background-color:#A78BFA;color:#ffffff;padding:15px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;text-align:center">Start my 14-day free trial &rarr;</a>` +
-    '<p style="font-size:12px;color:#6b5b8a;margin:14px 0 0;text-align:center">$300/yr ($25/month) or $32/mo &middot; No charge for 14 days &middot; Cancel anytime</p>' +
-    '<p style="font-size:11px;color:#9a8fb8;margin:26px 0 0;line-height:1.6">You are getting this one-time note because you are a TMW member and bumped into a Pro feature. We will not send another like it for at least two weeks. Reply to this email to opt out of these notes entirely.</p>' +
+    '<p style="font-size:12px;color:#6b5b8a;margin:12px 0 0;text-align:center">No charge for 14 days &middot; Cancel anytime in your account</p>' +
+    // brand stats strip (same trio as the welcome screens)
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout:fixed;margin:22px 0 0;border-top:1px solid #ece6fb"><tr>' +
+    '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">1,600+</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Tracked projects</div></td>' +
+    '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">8.1M</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Monthly views</div></td>' +
+    '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">40+</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Markets</div></td>' +
+    '</tr></table>' +
+    '<p style="font-size:11px;color:#9a8fb8;margin:24px 0 0;line-height:1.6">You are getting this one-time note because you are a TMW member and bumped into a Pro feature. We will not send another like it for at least two weeks. Reply to this email to opt out of these notes entirely.</p>' +
     '</div></div>';
-  const text = `${c.headline}\n\n${c.body}\n\nStart my 14-day free trial: ${WALLHIT_CTA}\n$300/yr ($25/month) or $32/mo. No charge for 14 days. Cancel anytime.\n\nYou are getting this one-time note because you are a TMW member and bumped into a Pro feature. Reply to opt out.`;
+  const text = `${c.headline}\n\n${c.body}\n\nEverything TMW Pro opens:\n${WALLHIT_FEATURES.map((f) => '- ' + f.replace(/&amp;/g, '&')).join('\n')}\n\nAnnual $300/yr ($25/month, save 22%) or $32/mo. 14 days free either way.\nStart my 14-day free trial: ${WALLHIT_CTA}\n\nYou are getting this one-time note because you are a TMW member and bumped into a Pro feature. Reply to opt out.`;
   return { subject: c.subject, html, text };
 }
 async function ensureWallhitTable(env) {
