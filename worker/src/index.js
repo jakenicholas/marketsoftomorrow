@@ -8938,14 +8938,15 @@ async function handleDesignFromPost(req, env, origin) {
   const slides = [];
   for (let i = 0; i < nSlides; i++) {
     const headline = String(genLines[i] || (i === 0 ? (post.title || '') : '')).slice(0, 160);
-    // Cycle photos when the article has fewer than the slide count (cover
-    // repeats) — an image-less slide still renders with Replace media open.
-    const img = photos.length ? photos[i % photos.length] : null;
+    // NEVER reuse a photo (Jake 2026-08-11): each slide gets the next unique
+    // image; when the article runs out, the slide renders image-less with
+    // Replace media open instead of repeating the cover.
+    const img = i < photos.length ? photos[i] : null;
     if (i === 0) {
       const _seed = { headline };
       if (location) _seed.location = location;
       if (img) _seed.image = img;
-      slides.push({ template: 'first_bottom_center', _seed });
+      slides.push({ template: 'first_top_left', _seed });   // hero defaults top-left text + top-left gradient
     } else {
       const _seed = { headline };
       if (img) _seed.image = img;
