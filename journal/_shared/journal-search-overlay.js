@@ -138,7 +138,7 @@
     + 'font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#ECEAE5;font-size:15px;line-height:1.55}'
     + '.tmw-ov-root.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s ease,visibility 0s}'
 
-    + '.tmw-ov-scrim{position:absolute;inset:0;background:rgba(7,8,7,.82);'
+    + '.tmw-ov-scrim{position:absolute;inset:0;background:rgba(4,4,6,.93);'
     + '-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}'
     /* On the /map/ surface the scrim sits over a LIVE Mapbox WebGL canvas that
        keeps repainting (pulsing pins/glows). A full-screen backdrop blur over a
@@ -155,36 +155,32 @@
        the spotlight layout uses a floating close button in the top-right
        corner instead so nothing chrome-y competes with the centered
        starter content. */
-    + '.tmw-ov-close{position:absolute;top:18px;right:22px;width:38px;height:38px;border-radius:50%;'
-    + 'background:rgba(20,20,25,.6);border:1px solid rgba(255,255,255,.10);color:#C2C9C3;'
+    + '.tmw-ov-close{position:absolute;top:18px;right:22px;width:34px;height:34px;'
+    + 'background:transparent;border:0;color:#8b8f96;'
     + 'display:flex;align-items:center;justify-content:center;padding:0;'
-    + 'cursor:pointer;transition:all .2s;font-family:inherit;z-index:3;'
-    + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
-    + '.tmw-ov-close:hover{color:#fff;border-color:rgba(255,255,255,.22);background:rgba(20,20,25,.85)}'
+    + 'cursor:pointer;transition:color .2s,transform .2s;font-family:inherit;z-index:3}'
+    + '.tmw-ov-close:hover{color:#fff;transform:scale(1.1)}'
     /* SVG × instead of the &times; glyph -- that character is slightly off-
        baseline in most fonts (looks ~2px low and 1px right of the circle
        center). SVG geometry is symmetric so it sits dead-center. */
-    + '.tmw-ov-close svg{width:14px;height:14px;display:block}'
+    + '.tmw-ov-close svg{width:17px;height:17px;display:block}'
     /* "New chat" — anchored beside the close button, purple glow border. Clears
        the conversation and returns to the TMW Intelligence homescreen. */
-    + '.tmw-ov-newchat{position:absolute;top:18px;right:70px;z-index:3;display:inline-flex;align-items:center;gap:7px;'
-    + 'height:38px;padding:0 16px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;'
-    + 'letter-spacing:.02em;color:#D8CCFA;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.65);'
-    + 'box-shadow:0 0 12px rgba(167,139,250,.45);transition:all .18s;'
-    + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
-    + '.tmw-ov-newchat:hover{background:rgba(167,139,250,.26);box-shadow:0 0 16px rgba(167,139,250,.6);color:#fff}'
-    + '.tmw-ov-newchat svg{width:15px;height:15px;display:block}'
-    + '@media(max-width:640px){.tmw-ov-newchat{right:56px;top:14px;height:34px;padding:0 12px;font-size:11px}}'
+    + '.tmw-ov-newchat{position:absolute;top:18px;left:22px;z-index:3;display:inline-flex;align-items:center;gap:7px;'
+    + 'height:34px;padding:0;border:0;border-radius:0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;'
+    + 'letter-spacing:.02em;color:#B7ADC9;background:transparent;transition:color .18s}'
+    + '.tmw-ov-newchat:hover{color:#fff}'
+    + '.tmw-ov-newchat svg{width:16px;height:16px;display:block}'
+    + '@media(max-width:640px){.tmw-ov-newchat{left:16px;top:15px;font-size:12px}}'
     /* Past chats — button (left of New chat) + full-cover history panel */
-    + '.tmw-ov-history{position:absolute;top:18px;right:186px;z-index:3;display:inline-flex;align-items:center;gap:7px;'
-    + 'height:38px;padding:0 15px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;'
-    + 'letter-spacing:.02em;color:#C2C9C3;background:rgba(20,20,25,.62);border:1px solid rgba(255,255,255,.14);transition:all .18s;'
-    + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
-    + '.tmw-ov-history:hover{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(28,28,34,.85)}'
-    + '.tmw-ov-history svg{width:15px;height:15px;display:block;flex:0 0 auto}'
-    /* right:176px (not 154) — the New chat pill ends around 164px from the right
-       edge on mobile, so 154 overlapped it by ~10px. */
-    + '@media(max-width:640px){.tmw-ov-history{right:176px;top:14px;height:34px;padding:0;width:34px;justify-content:center;gap:0}.tmw-ov-history-lbl{display:none}}'
+    + '.tmw-ov-history{position:absolute;top:18px;left:132px;z-index:3;display:inline-flex;align-items:center;gap:7px;'
+    + 'height:34px;padding:0;border:0;border-radius:0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;'
+    + 'letter-spacing:.02em;color:#B7ADC9;background:transparent;transition:color .18s}'
+    + '.tmw-ov-history:hover{color:#fff}'
+    + '.tmw-ov-history svg{width:16px;height:16px;display:block;flex:0 0 auto}'
+    /* Mobile: New chat is icon+"New chat" from left:16 (~ends 104), so the clock
+       (icon-only) sits just past it. */
+    + '@media(max-width:640px){.tmw-ov-history{left:112px;top:15px;gap:0}.tmw-ov-history-lbl{display:none}}'
     /* Gemini-style recents: translucent purple-glow glass, roomy single-line
        rows (title left, quiet time right), no icon chips, NO monospace. */
     + '.tmw-ov-histpanel{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;border-radius:inherit;overflow:hidden;'
@@ -270,14 +266,15 @@
     + 'padding:0 0 8px;margin-bottom:6px}'
     + '.tmw-ov-teach-hex{width:20px;height:20px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
     + '.tmw-ov-teach-hex svg{width:100%;height:100%;overflow:visible}'
-    + '.tmw-ov-teach-ttl{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C2A8FF}'
+    + '.tmw-ov-teach-ttl{font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:#8B5CF6;text-shadow:0 0 18px rgba(139,92,246,.45)}'
     + '.tmw-ov-pill{display:flex;align-items:center;gap:8px;margin-left:14px}'
     + '.tmw-ov-quota{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9AA39C;white-space:nowrap}'
     + '.tmw-ov-quota.low{color:#f0d68a}'
-    + '.tmw-ov-pro{font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#f0d68a;'
-    + 'border:1px solid rgba(240,214,138,.6);border-radius:6px;padding:3px 8px;text-decoration:none;'
-    + 'box-shadow:0 0 10px rgba(230,197,116,.22);transition:background .15s}'
-    + '.tmw-ov-pro:hover{background:rgba(240,214,138,.14)}'
+    + '.tmw-ov-pro{font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#fff;'
+    + 'border:0;border-radius:6px;padding:4px 9px;text-decoration:none;'
+    + 'background:linear-gradient(135deg,#8B5CF6,#6D4BD6);'
+    + 'box-shadow:0 0 14px rgba(139,92,246,.5);transition:filter .15s}'
+    + '.tmw-ov-pro:hover{filter:brightness(1.12)}'
     + '.tmw-ov-pro.on{cursor:default}'
     + '.tmw-ov-teach-sec{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;'
     + 'color:rgba(255,255,255,.32);text-align:center;padding:8px 0 14px}'
@@ -860,7 +857,9 @@
        blurred radial blooms drift + pulse; screen-blended over the dark scrim so
        it reads as ambient light, not a shape. pointer-events:none — purely
        decorative, never intercepts a click. */
-    + '.tmw-ov-glow{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;overflow:hidden;transition:opacity .7s ease}'
+    /* Ambient purple drift — always faintly present so the dark ground has slow
+       motion; AMPLIFIES to full on Deep mode. */
+    + '.tmw-ov-glow{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;overflow:hidden;transition:opacity .7s ease}'
     + '.tmw-ov-root[data-deep="1"] .tmw-ov-glow{opacity:1}'
     + '.tmw-ov-glow b{position:absolute;border-radius:50%;filter:blur(72px);mix-blend-mode:screen;display:block}'
     + '.tmw-ov-glow b.a{width:66vw;height:66vw;left:4vw;bottom:-20vw;background:radial-gradient(circle,rgba(139,92,246,.58),rgba(139,92,246,0) 66%);animation:tmwOvGlowA 7s ease-in-out infinite}'
@@ -902,7 +901,7 @@
     /* MOBILE: swap the in-bar chip for the top-left one (aligned with New chat). */
     + '@media(max-width:640px){'
     +   '.tmw-ov-deep.in-bar{display:none}'
-    +   '.tmw-ov-deep.top{display:inline-flex;top:14px;left:16px;height:34px;padding:0 12px;font-size:11px}'
+    +   '.tmw-ov-deep.top{display:inline-flex;top:15px;right:50px;left:auto;height:34px;padding:0 12px;font-size:11px}'
     /* Dark gradient behind the top buttons (Deep / New chat / X) so chat scrolling
        behind them stays legible. */
     +   '.tmw-ov-lb::before{content:"";position:absolute;top:0;left:0;right:0;height:104px;pointer-events:none;z-index:2;background:linear-gradient(180deg,rgba(7,8,7,.96) 0%,rgba(7,8,7,.72) 46%,transparent 100%)}'
