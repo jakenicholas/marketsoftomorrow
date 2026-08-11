@@ -8253,6 +8253,58 @@ async function maybeSocialSync(env) {
   } catch (_) {}
   try { await syncSocialPosts(env, { days: 120, maxPer: 80 }); } catch (_) {}
 }
+// LIGHT sync — just the latest few posts per account (id + timestamp, NO
+// insights), so the Morning Desk's "last posted" reflects a post within a
+// minute or two instead of waiting for the ~daily deep sync. Runs on the
+// every-minute cron, self-throttled to ~90s. Deliberately does NOT overwrite
+// caption/metrics on existing rows (the deep sync owns those); it only lands a
+// fresh timestamp for brand-new media ids.
+async function syncSocialPostsLatest(env) {
+  if (!env.META_SYSTEM_TOKEN || !env.DB) return;
+  await ensureIgPosts(env);
+  const token = env.META_SYSTEM_TOKEN;
+  await ensureSocialAccountsTable(env);
+  const { results } = await env.DB.prepare(`SELECT key, ig_handle, page_id, ig_user_id FROM social_accounts ORDER BY sort_order ASC`).all();
+  const accts = results || [];
+  const norm = (s) => String(s || '').toLowerCase().replace(/^@/, '').trim();
+  const byIg = {}, byPage = {};
+  try {
+    const resp = await graphGet('me/accounts', { fields: 'name,instagram_business_account{id,username}', limit: '200', access_token: token });
+    for (const p of ((resp && resp.data) || [])) { if (p.id) byPage[String(p.id)] = p; const ig = p.instagram_business_account; if (ig && ig.username) byIg[norm(ig.username)] = p; }
+  } catch (_) {}
+  const now = Math.floor(Date.now() / 1000);
+  for (const a of accts) {
+    const page = byIg[norm(a.ig_handle)] || (a.page_id ? byPage[String(a.page_id)] : null);
+    const igid = String(a.ig_user_id || (page && page.instagram_business_account && page.instagram_business_account.id) || '').trim();
+    if (!igid) continue;
+    let media = null;
+    try { media = await graphGet(igid + '/media', { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count', limit: '3', access_token: token }); } catch (_) { continue; }
+    if (!media || media.error) continue;
+    for (const m of ((media.data) || [])) {
+      const ts = Math.floor(Date.parse(m.timestamp || '') / 1000) || 0;
+      if (!m.id || !ts) continue;
+      try {
+        await env.DB.prepare(`INSERT INTO ig_posts (id, account, caption, permalink, media_type, thumb, ts, likes, comments, fetched_at)
+          VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+          ON CONFLICT(id) DO UPDATE SET ts=excluded.ts, permalink=excluded.permalink,
+            thumb=COALESCE(NULLIF(ig_posts.thumb,''),excluded.thumb),
+            likes=COALESCE(excluded.likes,ig_posts.likes), comments=COALESCE(excluded.comments,ig_posts.comments), fetched_at=excluded.fetched_at`)
+          .bind(m.id, a.key, String(m.caption || '').slice(0, 4000), m.permalink || '', m.media_product_type || m.media_type || '', m.thumbnail_url || m.media_url || '', ts,
+            (m.like_count != null ? Number(m.like_count) : null), (m.comments_count != null ? Number(m.comments_count) : null), now).run();
+      } catch (_) {}
+    }
+  }
+  try { await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('social_latest_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run(); } catch (_) {}
+}
+async function maybeSocialSyncLatest(env) {
+  if (!env.META_SYSTEM_TOKEN || !env.DB) return;
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='social_latest_at'").first();
+    if (row && (now - (parseInt(row.value, 10) || 0)) < 90) return;   // ~90s cadence
+  } catch (_) {}
+  try { await syncSocialPostsLatest(env); } catch (_) {}
+}
 // POST /admin/social/sync — persist the Instagram archive on demand (also runs ~daily via cron).
 async function handleSocialSync(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
@@ -17233,6 +17285,7 @@ export default {
     ctx.waitUntil(maybeWallhitRetry(env));       // 2-hourly, budget-guarded, self-draining
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
+    ctx.waitUntil(maybeSocialSyncLatest(env));   // light latest-post sync (~90s) so "last posted" reflects fresh posts fast
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
     ctx.waitUntil(maybeGardenBrain(env));        // prune/merge the brain ~weekly (review-gated)
     ctx.waitUntil(maybeBrainAutopilot(env));     // AUTOPILOT: run the whole learn→optimize→clean→report pipeline automatically (one phase/tick, full cycle weekly)
