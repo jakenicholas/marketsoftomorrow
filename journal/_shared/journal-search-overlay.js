@@ -267,7 +267,7 @@
     + '.tmw-ov-teach-hex{width:20px;height:20px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
     + '.tmw-ov-teach-hex svg{width:100%;height:100%;overflow:visible}'
     + '.tmw-ov-teach-ttl{font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:#8B5CF6;text-shadow:0 0 18px rgba(139,92,246,.45)}'
-    + '.tmw-ov-pill{display:flex;align-items:center;gap:8px;margin-left:14px}'
+    + '.tmw-ov-pill{display:flex;align-items:center;gap:8px;margin-left:2px}'
     + '.tmw-ov-quota{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9AA39C;white-space:nowrap}'
     + '.tmw-ov-quota.low{color:#f0d68a}'
     + '.tmw-ov-pro{font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#fff;'
@@ -310,8 +310,10 @@
     + '.tmw-ov-qrow:hover .tmw-ov-qrow-ar{color:#B9A6FF;transform:translateX(2px)}'
     /* Starter-only: give the search bar a soft purple wash so it reads as the
        clear next step. Gated via :has() so it reverts to neutral in a thread. */
-    + '.tmw-ov-lb:has(.tmw-ov-starter:not(.tmw-ov-hidden)) .tmw-ov-bar{'
-    + 'background:rgba(167,139,250,.07);border-color:rgba(167,139,250,.34);box-shadow:0 0 0 3px rgba(167,139,250,.05)}'
+    /* Target the ROUNDED input, not the rectangular .tmw-ov-bar wrapper, so the
+       glow follows the pill shape instead of clipping to a hard square. */
+    + '.tmw-ov-lb:has(.tmw-ov-starter:not(.tmw-ov-hidden)) .tmw-ov-bar .tmw-dock-search input{'
+    + 'border-color:rgba(167,139,250,.5)!important;box-shadow:0 0 26px rgba(139,92,246,.26)}'
 
     /* "Or jump to" quick-jump pill grid beneath the teach lines.
        Forced 2 rows of 3 via grid-template-columns:repeat(3,1fr). Cells
@@ -338,7 +340,7 @@
     +   '.tmw-ov-prompt{font-size:23px;margin-top:20px}'
     +   '.tmw-ov-prompt-sub{font-size:12.5px}'
     +   '.tmw-ov-qlist{margin-top:22px}'
-    +   '.tmw-ov-qrow{padding:14px 2px}'
+    +   '.tmw-ov-qrow{padding:21px 2px}'
     +   '.tmw-ov-qrow-t{font-size:15px}'
     + '}'
 
@@ -1272,7 +1274,7 @@
        while the lightbox scrolls (same problem the /map/ surface had — see the
        .tmw-surf-map override above). Drop the blur on small screens and lean on a
        near-opaque fill so scrolling stays smooth. */
-    +   '.tmw-ov-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(7,8,7,.97)}'
+    +   '.tmw-ov-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,6,9,.995)}'
     + '}';
 
   // Inject styles once
