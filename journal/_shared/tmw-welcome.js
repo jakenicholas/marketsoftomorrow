@@ -74,9 +74,11 @@
       '.tmww .bg{position:absolute;inset:0}',
       '.tmww .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}',
       '.tmww .bg img.on{opacity:1}',
-      /* Center-weighted vignette: darkest band behind the member-number text,
-         fading to transparent at the top and bottom edges (Jake 2026-08-11). */
-      '.tmww .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,6,5,0) 0%,rgba(5,6,5,.6) 26%,rgba(5,6,5,.92) 44%,rgba(5,6,5,.92) 58%,rgba(5,6,5,.6) 76%,rgba(5,6,5,0) 100%)}',
+      /* Bottom-up scrim: transparent at the top so the hero photo reads, then
+         darkening into the bottom where every splash's content sits. Every
+         screen is now bottom-anchored, so one bottom-weighted gradient serves
+         all of them (Jake 2026-08-11 — the centered vignette hurt the gate). */
+      '.tmww .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,6,5,0) 0%,rgba(5,6,5,.14) 34%,rgba(5,6,5,.6) 68%,rgba(5,6,5,.9) 100%)}',
       '.tmww .skip{position:absolute;top:calc(16px + env(safe-area-inset-top));right:18px;z-index:6;font:600 11px/1 "Inter",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(8,8,8,.4);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:10px 16px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}',
       '.tmww .skip:hover{color:#fff}',
       '.tmww .scr{position:absolute;inset:0;z-index:2;display:none}',
@@ -141,7 +143,7 @@
       '.tmww .eyeb.gold{color:#f0d68a}',
       '.tmww .eyeb.purple{color:#C4B5FD;animation:tmwwGlow 2.4s ease-in-out infinite}',
       '@keyframes tmwwGlow{0%,100%{text-shadow:0 0 6px rgba(167,139,250,.4)}50%{text-shadow:0 0 16px rgba(167,139,250,.85)}}',
-      '.tmww .c-num{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:clamp(48px,8vw,88px);line-height:1;color:#fff;letter-spacing:-.02em}',
+      '.tmww .c-num{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:clamp(42px,6vw,72px);line-height:1.02;color:#fff;letter-spacing:-.02em;margin-top:2px}',
       '.tmww .c-num i{font-style:normal;color:#C4B5FD;text-shadow:0 0 34px rgba(167,139,250,.55)}',
       '.tmww .c-sub{font-size:15px;color:#C2C9C3;line-height:1.65;margin:18px 0 32px;max-width:48ch}',
       '.tmww .c-sub b{color:#fff;font-weight:600}',
@@ -398,8 +400,8 @@
   // ── MEMBER # ───────────────────────────────────────────────────────────
   function member() {
     var s = screen(
-      '<div class="ring"></div>' +
-      '<div class="c-wrap">' +
+      '<div class="g-inner">' +
+        '<div class="wm">' + LOGO_IMG + '</div>' +
         '<div class="eyeb gold">Welcome to the Blueprint</div>' +
         '<div class="c-num">Member <i data-w="num">#····</i></div>' +
         '<p class="c-sub">Your number is permanent, and it&rsquo;s yours. You&rsquo;re one of the members <b>shaping the map of what&rsquo;s next</b>. Watch projects, follow markets, and ask Onyx anything.</p>' +
@@ -407,7 +409,8 @@
           '<button class="cta purple" data-w="topro">See what Pro unlocks</button>' +
           '<button class="cta alt" data-w="close">Start exploring</button>' +
         '</div>' +
-      '</div>'
+      '</div>' +
+      TICKER
     );
     track('welcome_member_shown');
     try { window.tmwConfetti && window.tmwConfetti({ count: 140 }); } catch (e) {}
