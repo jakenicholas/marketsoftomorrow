@@ -43,6 +43,46 @@ PRO_PROMO = {
     "click_url": f"{WORKER_URL}/r?id=tmw-pro-trial&s=newsletter",
     "pixel_url": f"{WORKER_URL}/px?id=tmw-pro-trial&s=newsletter",
 }
+
+
+def fetch_onyx_trending(limit=3):
+    """'This week people asked Onyx' — pull live trending member questions from
+    the worker and turn each into a deep link that opens the on-site Onyx
+    overlay WITH the question submitted (#search=<q>, handled by
+    journal-search-overlay.js). Clicking is a live product demo that flows
+    into the normal free-quota funnel. Returns [] on any failure so the
+    section simply drops out of that issue."""
+    try:
+        req = urllib.request.Request(f"{WORKER_URL}/trending-searches", headers={"User-Agent": "TMW-Digest/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        out, seen = [], set()
+        for row in data.get("searches") or []:
+            q = str(row.get("q") or "").strip()
+            if len(q) < 8 or q.lower() in seen:
+                continue
+            seen.add(q.lower())
+            display = q[0].upper() + q[1:]
+            if not display.endswith("?") and re.match(r"(?i)^(when|what|which|who|where|how|why|is|are|will|does|do|can)\b", display):
+                display += "?"
+            out.append({
+                "q": display,
+                "href": "https://www.oftmw.com/#search=" + urllib.parse.quote(q, safe=""),
+            })
+            if len(out) >= limit:
+                break
+        return out
+    except Exception as e:
+        print(f"[warn] trending searches unavailable ({e}) — Onyx block skipped")
+        return []
+
+
+# Tracked like the Pro module but under its own id so newsletter→Onyx clicks
+# read separately from the trial CTA in the Placements tab.
+ONYX_PROMO = {
+    "click_url": f"{WORKER_URL}/r?id=tmw-pro-onyx&s=newsletter",
+    "pixel_url": f"{WORKER_URL}/px?id=tmw-pro-onyx&s=newsletter",
+}
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
@@ -828,8 +868,9 @@ def main():
 
     app_updates = load_app_updates()
     ads         = load_ads()
+    onyx_trending = fetch_onyx_trending()
 
-    print(f"[info] map_items={len(map_items)} app_updates={'yes' if app_updates else 'no'}")
+    print(f"[info] map_items={len(map_items)} app_updates={'yes' if app_updates else 'no'} onyx_trending={len(onyx_trending)}")
 
     if not (map_items or florida_articles or more_markets_articles or app_updates):
         print("[info] nothing to publish — skipping")
@@ -871,6 +912,7 @@ def main():
             more_markets_articles=more_markets_articles,
             intel=intel,
             app_updates=app_updates, ads=ads, pro_promo=PRO_PROMO,
+            onyx_trending=onyx_trending, onyx_promo=ONYX_PROMO,
             site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
             app_image_url=cache_bust_image,
             archive=archive, art_cap=art_cap,

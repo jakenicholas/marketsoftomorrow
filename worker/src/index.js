@@ -2192,6 +2192,164 @@ async function maybeSnapshotSubs(env) {
   } catch (_) {}
 }
 
+// ── Wall-hit upgrade mailer ─────────────────────────────────────────────────
+// Members who hit a Pro wall (the Onyx quota gate, a locked Atlas view, the
+// map cap, a blocked watch, or an abandoned Go-Pro screen) get ONE short
+// upgrade email naming the exact wall, within a day of hitting it. Runs daily
+// off the cron. DRY-RUN by default: candidate rows are recorded (mode 'dry')
+// but nothing sends until env var WALLHIT_LIVE is '1'. Hard rules either way:
+// signed-in members only, never paying/trialing/past_due (live Stripe check),
+// one upgrade email per member per 14 days, 25 sends per day.
+const WALLHIT_SIGNALS = {
+  'intel_gated':                       'onyx',
+  'funnel:atlas_intel_gated_member':   'atlas',
+  'funnel:atlas_intel_unlock_click':   'atlas',
+  'paywall_shown':                     'map',
+  'favorite_blocked':                  'watch',
+  'funnel:go_pro_clicked':             'pro',
+  'funnel:welcome_pro_shown':          'pro',
+};
+// Specific walls beat the generic "you looked at Pro" note when a member hit several.
+const WALLHIT_PRIORITY = ['onyx', 'atlas', 'map', 'watch', 'pro'];
+const WALLHIT_COPY = {
+  onyx:  { subject: 'You hit your free Onyx limit',
+           headline: 'Onyx had more to say',
+           body: 'You used up your free Onyx searches this month, and the questions you were asking are exactly what it does best. TMW Pro removes the limit entirely and adds Deep mode, which reads the whole database at once for the hard questions.' },
+  atlas: { subject: 'You found the locked part of the Atlas',
+           headline: 'The full Atlas is waiting',
+           body: 'You opened one of the Atlas views reserved for Pro members, where every tracked project sits on one canvas with projected pricing and supply pressure included.' },
+  map:   { subject: 'You hit the free map limit',
+           headline: 'The whole map, no meter',
+           body: 'Free accounts get a taste of the map each day, and you used yours. TMW Pro opens every project in every market with no daily cap.' },
+  watch: { subject: 'That watch button is a Pro thing',
+           headline: 'Watch projects, get the brief',
+           body: 'You tried to watch a project. Pro members build a watchlist, and when those projects move, it shows up in their weekly brief.' },
+  pro:   { subject: 'Your 2 free weeks of TMW Pro are still here',
+           headline: 'Two weeks of everything, free',
+           body: 'You looked at TMW Pro but did not start the trial. It is 14 days of the full Map and Atlas, unlimited Onyx with Deep mode, watchlists and the weekly brief, and it costs nothing to try.' },
+};
+const WALLHIT_CTA = 'https://tmw.jake-ab7.workers.dev/r?id=tmw-pro-wallhit&s=newsletter';
+function wallhitEmail(kind) {
+  const c = WALLHIT_COPY[kind] || WALLHIT_COPY.pro;
+  const html =
+    '<div style="background:#ede9fe;padding:36px 16px"><div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #d8cef0;border-radius:14px;padding:32px 30px;font-family:Inter,-apple-system,Arial,sans-serif">' +
+    '<div style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#7C5CFC;margin-bottom:14px">Markets of Tomorrow</div>' +
+    `<div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#1e0a3c;margin-bottom:12px">${c.headline}</div>` +
+    `<p style="font-size:14.5px;line-height:1.65;color:#4b3d6b;margin:0 0 22px">${c.body}</p>` +
+    `<a href="${WALLHIT_CTA}" target="_blank" rel="noopener" style="display:block;background-color:#A78BFA;color:#ffffff;padding:15px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;text-align:center">Start my 14-day free trial &rarr;</a>` +
+    '<p style="font-size:12px;color:#6b5b8a;margin:14px 0 0;text-align:center">$300/yr ($25/month) or $32/mo &middot; No charge for 14 days &middot; Cancel anytime</p>' +
+    '<p style="font-size:11px;color:#9a8fb8;margin:26px 0 0;line-height:1.6">You are getting this one-time note because you are a TMW member and bumped into a Pro feature. We will not send another like it for at least two weeks. Reply to this email to opt out of these notes entirely.</p>' +
+    '</div></div>';
+  const text = `${c.headline}\n\n${c.body}\n\nStart my 14-day free trial: ${WALLHIT_CTA}\n$300/yr ($25/month) or $32/mo. No charge for 14 days. Cancel anytime.\n\nYou are getting this one-time note because you are a TMW member and bumped into a Pro feature. Reply to opt out.`;
+  return { subject: c.subject, html, text };
+}
+async function ensureWallhitTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS wallhit_sends (
+    member_id TEXT NOT NULL, email TEXT NOT NULL, kind TEXT NOT NULL,
+    mode TEXT NOT NULL, ts INTEGER NOT NULL
+  )`).run();
+}
+async function wallhitCandidates(env, sinceTs) {
+  const sigs = Object.keys(WALLHIT_SIGNALS);
+  const marks = sigs.map((_, i) => '?' + (i + 2)).join(',');
+  const rows = (await env.DB.prepare(
+    `SELECT member_id, event_name FROM events
+     WHERE ts >= ?1 AND member_id LIKE 'mem_%' AND event_name IN (${marks})`
+  ).bind(sinceTs, ...sigs).all()).results || [];
+  const byMember = new Map();
+  for (const r of rows) {
+    const kind = WALLHIT_SIGNALS[r.event_name];
+    const cur = byMember.get(r.member_id);
+    if (!cur || WALLHIT_PRIORITY.indexOf(kind) < WALLHIT_PRIORITY.indexOf(cur)) byMember.set(r.member_id, kind);
+  }
+  const out = [];
+  for (const [memberId, kind] of byMember) {
+    // Wall-hit rows rarely carry the email — it lives on OTHER rows for the
+    // same member (same trick handlePeople uses).
+    const em = await env.DB.prepare(
+      `SELECT email, plan FROM events WHERE member_id = ?1 AND email IS NOT NULL AND email != '' ORDER BY ts DESC LIMIT 1`
+    ).bind(memberId).first();
+    if (!em || !em.email) continue;
+    if (em.plan === 'paid') continue;
+    out.push({ member_id: memberId, email: String(em.email).toLowerCase(), kind });
+  }
+  return out;
+}
+async function maybeWallHitMailer(env) {
+  if (!env.DB || !env.RESEND_API_KEY || !env.STRIPE_SECRET_KEY) return;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='wallhit_mailer_run' ORDER BY ts DESC LIMIT 1").first();
+    if (last && last.ts && (now - last.ts) < 86400 - 3600) return;   // ~daily
+    // Mark the run FIRST so overlapping cron ticks can't double-send.
+    await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
+      .bind(now, 'system:wallhit-mailer', 'wallhit_mailer_run', '{}').run();
+    await ensureWallhitTable(env);
+    const since = (last && last.ts) ? last.ts : now - 86400;
+    const live = env.WALLHIT_LIVE === '1';
+    const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+    let sent = 0;
+    for (const cand of await wallhitCandidates(env, since)) {
+      if (sent >= 25) break;
+      const dup = await env.DB.prepare(
+        `SELECT ts FROM wallhit_sends WHERE (member_id = ?1 OR email = ?2) AND ts > ?3 LIMIT 1`
+      ).bind(cand.member_id, cand.email, now - 14 * 86400).first();
+      if (dup) continue;
+      // Live Stripe check — the events `plan` can lag a fresh upgrade.
+      try {
+        const sub = await findSubByEmail(env, cand.email);
+        if (sub && ['active', 'trialing', 'past_due'].includes(sub.status)) continue;
+      } catch (_) { continue; }   // can't verify → don't email
+      const msg = wallhitEmail(cand.kind);
+      let mode = 'dry';
+      if (live) {
+        try {
+          const r = await fetch('https://api.resend.com/emails', {
+            method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: FROM, to: [cand.email], subject: msg.subject, html: msg.html, text: msg.text }),
+          });
+          mode = r.ok ? 'live' : 'error';
+        } catch (_) { mode = 'error'; }
+      }
+      await env.DB.prepare(`INSERT INTO wallhit_sends (member_id, email, kind, mode, ts) VALUES (?,?,?,?,?)`)
+        .bind(cand.member_id, cand.email, cand.kind, mode, now).run();
+      sent++;
+    }
+  } catch (_) {}
+}
+// GET /admin/wallhit-preview — what the mailer did (or would do, in dry-run)
+// plus a rendered sample of each wall email.
+async function handleWallhitPreview(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureWallhitTable(env);
+  const rows = (await env.DB.prepare(`SELECT member_id, email, kind, mode, ts FROM wallhit_sends ORDER BY ts DESC LIMIT 200`).all()).results || [];
+  const samples = {};
+  for (const kind of WALLHIT_PRIORITY) samples[kind] = wallhitEmail(kind);
+  return json({ live: env.WALLHIT_LIVE === '1', rows, samples }, {}, env, origin);
+}
+// POST /admin/wallhit-test {to, kind?} — send the sample email(s) to an
+// address (defaults to every wall type) so the copy can be reviewed in a real
+// inbox before flipping WALLHIT_LIVE.
+async function handleWallhitTest(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.RESEND_API_KEY) return json({ error: 'RESEND_API_KEY not configured' }, { status: 503 }, env, origin);
+  let b; try { b = await req.json(); } catch { b = {}; }
+  const to = String((b && b.to) || 'jake@oftmw.com').trim();
+  const kinds = (b && b.kind) ? [String(b.kind)] : WALLHIT_PRIORITY;
+  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+  const results = [];
+  for (const kind of kinds) {
+    const msg = wallhitEmail(kind);
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [to], subject: '[SAMPLE ' + kind + '] ' + msg.subject, html: msg.html, text: msg.text }),
+    });
+    results.push({ kind, ok: r.ok });
+  }
+  return json({ ok: results.every(x => x.ok), to, results }, {}, env, origin);
+}
+
 // GET /funnel-stats?weeks=12 — article-to-Pro funnel by week.
 // Reads the `events` table for event_name LIKE 'funnel:%' (the funnel
 // beacon prefix journal-auth.js writes), buckets by ISO week, and
@@ -15931,6 +16089,8 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/admin/wallhit-preview')     return await handleWallhitPreview(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/wallhit-test')        return await handleWallhitTest(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
@@ -16544,6 +16704,7 @@ export default {
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
     ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro
+    ctx.waitUntil(maybeWallHitMailer(env));      // daily wall-hit upgrade email (DRY-RUN until WALLHIT_LIVE='1')
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily

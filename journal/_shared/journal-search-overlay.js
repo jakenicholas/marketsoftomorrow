@@ -5931,20 +5931,30 @@
   // navigating off the page. Same for any explicit hash flip away from
   // #search (e.g. clicking an in-page anchor while overlay is up).
   window.addEventListener('popstate', function(){
-    if (root.classList.contains('open') && location.hash !== TMW_HASH){
+    if (root.classList.contains('open') && !isSearchHash()){
       close();
     }
   });
   // Deep link: if the page loads with #search already in the URL (someone
   // shared a spotlight link), open the lightbox automatically once the
-  // module is mounted.
-  if (location.hash === TMW_HASH){
-    setTimeout(function(){ open(''); }, 0);
+  // module is mounted. `#search=<encoded query>` (the newsletter's "people
+  // asked Onyx" links) opens AND submits that question — a live demo that
+  // flows straight into the normal quota/gate funnel.
+  function hashQuery(){
+    try {
+      var h = location.hash || '';
+      if (h.indexOf(TMW_HASH + '=') === 0) return decodeURIComponent(h.slice(TMW_HASH.length + 1).replace(/\+/g, '%20')).trim().slice(0, 200);
+    } catch(_){}
+    return '';
+  }
+  function isSearchHash(){ return location.hash === TMW_HASH || (location.hash || '').indexOf(TMW_HASH + '=') === 0; }
+  if (isSearchHash()){
+    setTimeout(function(){ open(hashQuery()); }, 0);
   }
   // Also open when the hash becomes #search at runtime (e.g. a dropdown link
   // sets it on the current page) — not just on initial load.
   window.addEventListener('hashchange', function(){
-    if (location.hash === TMW_HASH && !root.classList.contains('open')) open('');
+    if (isSearchHash() && !root.classList.contains('open')) open(hashQuery());
   });
 
   scrim.addEventListener('click', close);

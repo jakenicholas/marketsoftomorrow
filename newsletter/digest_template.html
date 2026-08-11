@@ -456,6 +456,46 @@
       </td></tr>
       {%- endif %}
 
+      <!-- ASK ONYX — weekly live demo. Real trending member questions; each
+           links to oftmw.com/#search=<q>, which auto-opens the on-site Onyx
+           overlay and submits the question (journal-search-overlay.js deep
+           link), flowing into the normal free-quota funnel. The "unlimited"
+           line routes through /r under its own id (tmw-pro-onyx) so
+           newsletter→Onyx conversion reads separately in Placements. -->
+      {%- if onyx_trending %}
+      <tr><td style="padding: 0 0 28px 0;">
+        <table role="presentation" class="intel-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #d8cef0; border-radius: 12px;">
+          <tr><td style="padding: 22px 24px 4px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="left" style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #7C5CFC;">
+                  <span style="color:#A78BFA;">&#11041;</span>&nbsp; Ask Onyx
+                </td>
+                <td align="right" style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;" class="force-muted-text">
+                  <span style="color:#A78BFA;">&bull;</span> Trending
+                </td>
+              </tr>
+            </table>
+            <div class="force-muted-text" style="color:#6b5b8a; font-size: 13px; line-height: 1.5; margin-top: 10px;">What members asked our intelligence engine this week. Tap a question and Onyx answers it live:</div>
+          </td></tr>
+          <tr><td style="padding: 10px 24px 6px 24px;">
+            {%- for t in onyx_trending %}
+            <a href="{{ t.href }}" style="display: block; text-decoration: none; border: 1px solid #e4ddf6; border-radius: 10px; padding: 13px 16px; margin: 0 0 8px 0; background-color: #faf8ff;" class="force-dark-panel force-border">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+                <td class="force-light-text" style="font-family: Georgia, 'Times New Roman', serif; color: #1e0a3c; font-size: 15.5px; line-height: 1.4;">&ldquo;{{ t.q }}&rdquo;</td>
+                <td align="right" valign="middle" width="30" style="width: 30px; color: #A78BFA; font-size: 16px; font-weight: 700;">&rarr;</td>
+              </tr></table>
+            </a>
+            {%- endfor %}
+          </td></tr>
+          <tr><td style="padding: 4px 24px 20px 24px;">
+            <div class="force-muted-text" style="color:#6b5b8a; font-size: 12px; line-height: 1.55;">Free members get 5 Onyx searches a month. <a href="{{ onyx_promo.click_url }}" target="_blank" rel="noopener" style="color:#7C5CFC; font-weight:700; text-decoration:none;">Pro is unlimited, plus Deep mode &rarr;</a></div>
+            {%- if not archive and onyx_promo.pixel_url %}<img src="{{ onyx_promo.pixel_url }}" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">{% endif %}
+          </td></tr>
+        </table>
+      </td></tr>
+      {%- endif %}
+
       <!-- FROM THE JOURNAL: FLORIDA -->
       {%- if florida_articles %}
       <tr><td>
