@@ -239,7 +239,7 @@ const TOOLS = [
             type: 'object',
             properties: {
               text:     { type: 'string', description: 'Headline copy for this slide.' },
-              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom.' },
+              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_top.' },
               image:    { type: 'string', description: 'Explicit photo URL — overrides the folder photo for this slide.' },
               tagline:  { type: 'string', description: 'Override the "MARKETS OF TOMORROW" tagline (rare).' },
               location: { type: 'string', description: 'City for the cover slide\'s location pin (e.g. "Miami", "West Palm Beach"). Set this on the first/cover slide (first_bl/first_tl/first_tr) so the pin shows the project\'s city instead of the placeholder.' },
@@ -415,7 +415,7 @@ const TOOLS = [
 
   {
     name: 'create_design_draft',
-    description: 'Create a NEW carousel DESIGN draft in the Studio "Design" editor — typesets carousel slide copy onto branded TMW templates (correct fonts, FLORIDA OF TMW logo, gradient) with a photo behind each slide, ready to review and export to PNG / push to Carousels. Make ONE design slide per carousel slide: the slide text becomes the headline and a photo sits behind it. Photos are pulled from a media FOLDER in upload order (one per slide, newest first) unless a slide passes its own image URL. Find folders with list_media_folders / list_media first. Default layout is centered_bottom (centered headline at the bottom over the photo). Returns the design slug + Studio edit URL — nothing publishes. ⚠️ Only for a brand-NEW design. If a design already exists for this post (you have its slug, or find it with list_design_drafts), EDIT it with update_design_draft instead of creating a duplicate.',
+    description: 'Create a NEW carousel DESIGN draft in the Studio "Design" editor — typesets carousel slide copy onto branded TMW templates (correct fonts, FLORIDA OF TMW logo, gradient) with a photo behind each slide, ready to review and export to PNG / push to Carousels. Make ONE design slide per carousel slide: the slide text becomes the headline and a photo sits behind it. Photos are pulled from a media FOLDER in upload order (one per slide, newest first) unless a slide passes its own image URL. Find folders with list_media_folders / list_media first. Default layout is centered_top (centered headline at the top over the photo). Returns the design slug + Studio edit URL — nothing publishes. ⚠️ Only for a brand-NEW design. If a design already exists for this post (you have its slug, or find it with list_design_drafts), EDIT it with update_design_draft instead of creating a duplicate.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -429,7 +429,7 @@ const TOOLS = [
             type: 'object',
             properties: {
               text:     { type: 'string', description: 'Headline copy for this slide.' },
-              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom. Use first_bl/first_tl/first_tr for a cover (title + location pin); photo_full for an image-only slide.' },
+              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_top. Use first_bl/first_tl/first_tr for a cover (title + location pin); photo_full for an image-only slide.' },
               image:    { type: 'string', description: 'Explicit photo URL (R2/CDN). Overrides the folder photo for this slide.' },
               tagline:  { type: 'string', description: 'Override the "MARKETS OF TOMORROW" tagline (rare).' },
               location: { type: 'string', description: 'City for the cover slide\'s location pin (e.g. "Miami", "West Palm Beach"). Set this on the first/cover slide (first_bl/first_tl/first_tr) so the pin shows the project\'s city instead of the placeholder.' },
@@ -481,7 +481,7 @@ const TOOLS = [
             type: 'object',
             properties: {
               text:     { type: 'string', description: 'Headline copy for this slide.' },
-              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom.' },
+              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_top.' },
               image:    { type: 'string', description: 'Explicit photo URL (overrides the folder photo for this slide).' },
               tagline:  { type: 'string', description: 'Override the tagline (rare).' },
               location: { type: 'string', description: 'City for the cover slide\'s location pin (first_bl/first_tl/first_tr).' },
@@ -2275,7 +2275,7 @@ const IMPL = {
     // sets it ONCE instead of remembering a per-slide field.
     const coverLoc = (args.location != null) ? String(args.location).slice(0, 60) : null;
     const slides = inSlides.slice(0, 20).map((s) => {
-      const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
+      const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_top';
       const seed = {};
       if (s && s.text != null)     seed.headline = String(s.text).slice(0, 800);
       if (s && s.tagline != null)  seed.tagline  = String(s.tagline).slice(0, 200);
@@ -2395,7 +2395,7 @@ const IMPL = {
       let photoIdx = 0;
       const coverLoc = (args.location != null) ? String(args.location).slice(0, 60) : null;
       doc.slides = args.slides.slice(0, 20).map((s) => {
-        const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
+        const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_top';
         const seed = {};
         if (s && s.text != null)     seed.headline = String(s.text).slice(0, 800);
         if (s && s.tagline != null)  seed.tagline  = String(s.tagline).slice(0, 200);

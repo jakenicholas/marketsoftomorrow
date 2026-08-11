@@ -8419,7 +8419,7 @@ async function handleDesignFromPost(req, env, origin) {
     } else {
       const _seed = { headline };
       if (img) _seed.image = img;
-      slides.push({ template: 'centered_bottom', _seed });
+      slides.push({ template: 'centered_top', _seed });   // text slides default TOP center (Jake 2026-08-10)
     }
   }
 
