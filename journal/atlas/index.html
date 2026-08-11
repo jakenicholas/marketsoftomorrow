@@ -3386,6 +3386,15 @@
         if (atlasMarkets.length) {
           const scored = atlasMarkets.map(c => mcSlug(c)).filter(k => supplyIntel.markets[k]);
           MC.set = scored.map((k, i) => ({ k: k, slot: i }));
+        } else if (currentStateFilter && currentStateFilter !== 'ALL') {
+          // A state is selected (e.g. California) → the compare chart shows that
+          // state as ONE synthesized market (its cities aggregated), replacing
+          // the default city trio. Without this, selecting a state fell through
+          // to the else branch and reset the chart to Miami/WPB/Nashville.
+          MC.set = [];
+          const s = (atlasData.available_states || []).find(x => x.code === currentStateFilter);
+          const key = mcSynthState(currentStateFilter, s ? s.label : currentStateFilter);
+          if (key) MC.set = [{ k: key, slot: 0 }];
         } else {
           MC.set = [];
           ['miami', 'west-palm-beach', 'nashville'].forEach(k => {
@@ -3737,6 +3746,13 @@
       var mt=q.get('metric');
       if(mt&&MC_METRICS.some(function(x){return x.id===mt;}))MC.metric=mt;
       if(MC.set.length)return;
+      // A ?state= link with no explicit ?m= (e.g. someone shares California) →
+      // seed the compare with that whole state, not the default city trio.
+      if(currentStateFilter&&currentStateFilter!=='ALL'){
+        var ss=(atlasData.available_states||[]).filter(function(z){return z.code===currentStateFilter;})[0];
+        var sk=mcSynthState(currentStateFilter,ss?ss.label:currentStateFilter);
+        if(sk){MC.set.push({k:sk,slot:0});return;}
+      }
       var seeds=[];
       try{var f=window.tmwFilters&&window.tmwFilters.get();
         if(f&&f.city&&supplyIntel.markets[f.city])seeds.push(f.city);}catch(e){}
