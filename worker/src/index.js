@@ -8869,8 +8869,12 @@ function onyxArtifacts(toolName, result) {
   if (r.edit_url) push(title || 'Open the draft', r.edit_url, 'Studio editor');
   if (r.preview_url) push(title || 'Share preview', r.preview_url, 'client preview link');
   if (r.studio_url) push(title || 'Open in Studio', r.studio_url, '');
-  if (!r.edit_url && r.slug && /post|article/i.test(toolName)) {
-    push(title || 'Open the draft', 'https://admin.oftmw.com/post.html?id=' + encodeURIComponent(r.slug), 'Studio editor');
+  // Prefer the real post ID. Building this URL off the SLUG produced a second,
+  // different-looking URL for the very same draft (one tool returns edit_url
+  // with the id, another returns only a slug), which is how two identical cards
+  // kept surviving dedupe.
+  if (!r.edit_url && (r.id || r.slug) && /post|article|rewrite/i.test(toolName)) {
+    push(title || 'Open the draft', 'https://admin.oftmw.com/post.html?id=' + encodeURIComponent(r.id || r.slug), 'Studio editor');
   }
   if (/map_draft/i.test(toolName) && (r.ok || r.slug)) push(title || 'Review the map draft', 'https://admin.oftmw.com/map/?drafts', 'Drafts tab');
   return out;
