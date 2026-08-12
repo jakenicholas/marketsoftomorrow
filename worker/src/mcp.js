@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
 // Studio-admin read bridge: the connector reuses the SAME handler functions the
 // Access-gated admin pages hit, so the numbers can never drift from the Studio.
 import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats, handleDailyPulse } from './index.js';
@@ -2618,16 +2618,35 @@ const IMPL = {
       if (!g) g = repairTruncatedJson(raw);   // salvage a max_tokens-truncated article
       return (g && g.body_markdown) ? g : null;
     };
-    let draws = (await Promise.all(TAKE_HINTS.map((h) =>
-      fableGenerate(env, { system: sys, user: usr + h, maxTokens: 4200 }).catch(() => '')
-    ))).map(parseGen).filter(Boolean);
+    // 9000, up from 4200: a rich evergreen feature (a golf-and-ski community with
+    // amenities, real estate AND a full claims ledger for every fact) overran the
+    // old budget, so all three takes came back as truncated JSON and the run died
+    // with a generic "no usable article". You only pay for tokens produced.
+    const GEN_TOKENS = 9000;
+    const rawDraws = await Promise.all(TAKE_HINTS.map((h) =>
+      fableGenerate(env, { system: sys, user: usr + h, maxTokens: GEN_TOKENS }).catch(() => '')
+    ));
+    let draws = rawDraws.map(parseGen).filter(Boolean);
+    const spoke = rawDraws.filter((r) => r && r.trim()).length;   // did the API answer at all?
     // The simultaneous burst can rate-limit siblings (observed: 1 of 3 landing).
     // One sequential top-up after the burst clears keeps the pick meaningful.
     if (draws.length === 1) {
-      const extra = parseGen(await fableGenerate(env, { system: sys, user: usr + TAKE_HINTS[1], maxTokens: 4200 }).catch(() => ''));
+      const extra = parseGen(await fableGenerate(env, { system: sys, user: usr + TAKE_HINTS[1], maxTokens: GEN_TOKENS }).catch(() => ''));
       if (extra) draws.push(extra);
     }
-    if (!draws.length) throw new Error('generation failed — the author model returned no usable article. Try again, or write the body manually with create_post_draft.');
+    // Nothing landed. Before giving up, try ONCE sequentially: the usual cause is
+    // transient overload on the parallel burst, which a lone retry clears.
+    if (!draws.length) {
+      const solo = parseGen(await fableGenerate(env, { system: sys, user: usr, maxTokens: GEN_TOKENS }).catch(() => ''));
+      if (solo) draws = [solo];
+    }
+    if (!draws.length) {
+      // Say WHICH failure this was, so the human is not guessing.
+      const why = spoke
+        ? spoke + ' model repl' + (spoke === 1 ? 'y' : 'ies') + ' came back but none parsed as a usable article (the JSON was truncated or malformed)'
+        : ('the author model never answered: ' + (fableLastError() || 'unknown reason'));
+      throw new Error('generation failed — ' + why + '. Try again; if it repeats, write the body manually with create_post_draft.');
+    }
     let gen = draws[0];
     let bestOf = { candidates: draws.length, picked: 0 };
     if (draws.length > 1) {
@@ -2671,7 +2690,7 @@ const IMPL = {
         const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Our QA flagged the draft below (style violations, measured-spec misses, and/or a forensic judge identified it as AI-written). Rewrite so a reader could not tell it from our published work — fix EVERY listed problem, change nothing else. Preserve every fact, number, name, date, and price exactly. Avoid em dashes. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.'
           + (fp ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp) : '');
         const fixUsr = 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
-        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: 4200 });
+        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: GEN_TOKENS });
         let fixed = null;
         const fm = fixedRaw && fixedRaw.match(/\{[\s\S]*\}/);
         if (fm) { try { fixed = JSON.parse(fm[0]); } catch (_) {} }
@@ -2740,7 +2759,7 @@ const IMPL = {
         const fixUsr2 = (bad.length ? 'ERRORS (with the verified correction):\n- ' + bad.map((v) => `"${v.claim}" is WRONG → ${v.note}${v.source ? ' (source: ' + v.source + ')' : ''}`).join('\n- ') + '\n\n' : '')
           + (unsup.length ? 'UNVERIFIABLE (searched, could not confirm — remove from the draft):\n- ' + unsup.map((v) => `"${v.claim}"${v.note ? ' (' + v.note + ')' : ''}`).join('\n- ') + '\n\n' : '')
           + 'DRAFT JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
-        const fRaw = await fableGenerate(env, { system: fixSys2, user: fixUsr2, maxTokens: 4200 });
+        const fRaw = await fableGenerate(env, { system: fixSys2, user: fixUsr2, maxTokens: GEN_TOKENS });
         const g3 = parseGen(fRaw);
         if (g3) { g3.claims = gen.claims; gen = g3; removedSet = new Set(unsup.map((v) => v.claim)); }
       }

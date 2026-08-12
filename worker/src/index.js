@@ -13672,6 +13672,112 @@ async function handleTrackedLinks(req, env, origin) {
   return json({ error: 'unknown action' }, { status: 400 }, env, origin);
 }
 
+// ── LEADS / referral engine ─────────────────────────────────────────────────
+// The point of TMW's audience is that it drives real transactions (condos, club
+// memberships, homes). This captures the buyer BEFORE they run straight to the
+// developer: a "Request info / Join the interest list" form on our own project
+// pages posts here. We store the lead (our first-party, timestamped record =
+// attribution evidence PR firms can't fake), notify the TMW backend, and email
+// the partner the referral. The admin Leads CRM works it through to a close.
+let _leadsTableReady = false;
+async function ensureLeadsTable(env) {
+  if (_leadsTableReady) return;
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS leads (id TEXT PRIMARY KEY, created_at INTEGER, ' +
+    'name TEXT, email TEXT, phone TEXT, project_slug TEXT, project_title TEXT, ' +
+    'partner TEXT, partner_email TEXT, intent TEXT, message TEXT, source TEXT, ' +
+    'source_url TEXT, utm TEXT, status TEXT NOT NULL DEFAULT ' + "'new'" + ', ' +
+    'notes TEXT, fee_type TEXT, fee_amount REAL, fee_status TEXT, updated_at INTEGER)'
+  ).run();
+  _leadsTableReady = true;
+}
+const LEAD_STATUSES = ['new', 'emailed', 'contacted', 'toured', 'under_contract', 'closed', 'dead'];
+function leadEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+// POST /lead — PUBLIC. The capture form on project pages posts here.
+async function handleLeadCreate(req, env, origin) {
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureLeadsTable(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  // Honeypot: bots fill hidden fields. Pretend success, store nothing.
+  if (String(b.hp || b.website || '').trim()) return json({ ok: true }, {}, env, origin);
+  const name = String(b.name || '').trim().slice(0, 120);
+  const email = String(b.email || '').trim().slice(0, 160);
+  const phone = String(b.phone || '').trim().slice(0, 40);
+  if (!name || (!email && !phone)) return json({ error: 'Name and an email or phone are required.' }, { status: 400 }, env, origin);
+  const rec = {
+    id: 'ld_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0, 16) : (Date.now().toString(36) + Math.random().toString(36).slice(2, 8))),
+    created_at: Math.floor(Date.now() / 1000),
+    name: name, email: email || null, phone: phone || null,
+    project_slug: String(b.project_slug || '').trim().slice(0, 120) || null,
+    project_title: String(b.project_title || '').trim().slice(0, 200) || null,
+    partner: String(b.partner || '').trim().slice(0, 200) || null,
+    partner_email: String(b.partner_email || '').trim().slice(0, 200) || null,
+    intent: String(b.intent || '').trim().slice(0, 60) || null,     // e.g. 'interest-list' | 'tour' | 'info'
+    message: String(b.message || '').trim().slice(0, 1200) || null,
+    source: String(b.source || '').trim().slice(0, 60) || null,     // e.g. 'instagram' | 'article' | 'map'
+    source_url: String(b.source_url || '').trim().slice(0, 400) || null,
+    utm: (b.utm && typeof b.utm === 'object') ? JSON.stringify(b.utm).slice(0, 600) : (String(b.utm || '').slice(0, 600) || null),
+  };
+  await env.DB.prepare(
+    'INSERT INTO leads (id, created_at, name, email, phone, project_slug, project_title, partner, partner_email, intent, message, source, source_url, utm, status, updated_at) ' +
+    "VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,'new',?2)"
+  ).bind(rec.id, rec.created_at, rec.name, rec.email, rec.phone, rec.project_slug, rec.project_title, rec.partner, rec.partner_email, rec.intent, rec.message, rec.source, rec.source_url, rec.utm).run();
+  try { await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)').bind(rec.created_at, 'lead:' + rec.id, 'lead_captured', JSON.stringify({ project: rec.project_title, source: rec.source, intent: rec.intent })).run(); } catch (_) {}
+  // Notify the TMW backend (always) + email the partner the referral (if we have
+  // their address) — the partner email is itself timestamped attribution evidence.
+  if (env.RESEND_API_KEY) {
+    const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+    const proj = rec.project_title || rec.project_slug || 'a project';
+    const rows = [['Name', rec.name], ['Email', rec.email], ['Phone', rec.phone], ['Project', proj], ['Interested in', rec.intent], ['From', rec.source], ['Message', rec.message]]
+      .filter(function (r) { return r[1]; })
+      .map(function (r) { return '<tr><td style="padding:4px 12px 4px 0;color:#888;font-size:13px">' + r[0] + '</td><td style="padding:4px 0;font-size:14px"><b>' + leadEsc(r[1]) + '</b></td></tr>'; }).join('');
+    const tmwHtml = '<div style="font-family:system-ui,sans-serif;max-width:520px"><h2 style="margin:0 0 4px">New lead · ' + leadEsc(proj) + '</h2><p style="color:#888;margin:0 0 14px">Captured via Markets of Tomorrow. It\'s in your admin Leads board.</p><table>' + rows + '</table></div>';
+    try {
+      await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: FROM, to: [env.LEADS_NOTIFY || 'jake@oftmw.com'], subject: 'New lead: ' + rec.name + ' — ' + proj, html: tmwHtml }) });
+    } catch (_) {}
+    if (rec.partner_email && /@/.test(rec.partner_email)) {
+      const pHtml = '<div style="font-family:system-ui,sans-serif;max-width:520px"><p>Hi,</p><p>A potential buyer just requested information about <b>' + leadEsc(proj) + '</b> through <b>Markets of Tomorrow</b>. Here are their details so your team can follow up:</p><table>' + rows + '</table><p style="color:#888;font-size:13px;margin-top:14px">Referred by Markets of Tomorrow · ' + new Date(rec.created_at * 1000).toISOString().slice(0, 10) + '. Please keep us posted as you work the lead.</p></div>';
+      try {
+        await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: FROM, to: [rec.partner_email], reply_to: (env.LEADS_NOTIFY || 'jake@oftmw.com'), subject: 'New buyer lead for ' + proj + ' (via Markets of Tomorrow)', html: pHtml }) });
+        await env.DB.prepare("UPDATE leads SET status='emailed', updated_at=?2 WHERE id=?1").bind(rec.id, Math.floor(Date.now() / 1000)).run();
+      } catch (_) {}
+    }
+  }
+  return json({ ok: true, id: rec.id }, {}, env, origin);
+}
+// GET /admin/leads — the CRM list. PATCH-style updates via POST /admin/lead-update.
+async function handleLeadsList(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureLeadsTable(env);
+  const { results } = await env.DB.prepare('SELECT * FROM leads ORDER BY created_at DESC LIMIT 500').all();
+  return json({ items: results || [], statuses: LEAD_STATUSES }, {}, env, origin);
+}
+async function handleLeadUpdate(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureLeadsTable(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const id = String(b.id || '').trim();
+  if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+  if (b.delete) { await env.DB.prepare('DELETE FROM leads WHERE id=?1').bind(id).run(); return json({ ok: true, deleted: true }, {}, env, origin); }
+  const sets = [], vals = [];
+  if (b.status != null) { if (LEAD_STATUSES.indexOf(String(b.status)) < 0) return json({ error: 'bad status' }, { status: 400 }, env, origin); sets.push('status=?'); vals.push(String(b.status)); }
+  if (b.notes != null) { sets.push('notes=?'); vals.push(String(b.notes).slice(0, 4000)); }
+  if (b.fee_type != null) { sets.push('fee_type=?'); vals.push(String(b.fee_type).slice(0, 40)); }
+  if (b.fee_amount != null) { sets.push('fee_amount=?'); vals.push(Number(b.fee_amount) || 0); }
+  if (b.fee_status != null) { sets.push('fee_status=?'); vals.push(String(b.fee_status).slice(0, 40)); }
+  if (b.partner_email != null) { sets.push('partner_email=?'); vals.push(String(b.partner_email).slice(0, 200)); }
+  if (!sets.length) return json({ error: 'nothing to update' }, { status: 400 }, env, origin);
+  sets.push('updated_at=?'); vals.push(Math.floor(Date.now() / 1000));
+  vals.push(id);   // WHERE id=? — all placeholders anonymous, bound in order
+  const stmt = env.DB.prepare('UPDATE leads SET ' + sets.join(', ') + ' WHERE id=?');
+  await stmt.bind.apply(stmt, vals).run();
+  return json({ ok: true, id: id }, {}, env, origin);
+}
+
 // Advertiser roster — the dashboard's list of who we run (or have run). Seeded
 // once from the Linkly export (historical clicks = a baseline to compare our
 // first-party numbers against). `active` = "live" (shown on top in the Studio);
@@ -14026,9 +14132,18 @@ const WRITE_FALLBACK_MODEL = 'claude-opus-4-8';
 // One-shot generation with the strong author + graceful fallback. Reads the TEXT
 // block (Fable thinking is always on, so content[0] may be a thinking block).
 // Returns the text, or '' if every model declines/errors.
-export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}) {
-  if (!env || !env.ANTHROPIC_API_KEY || !user) return '';
+// WHY the last fableGenerate came back empty. Every failure used to be
+// swallowed (`if (!r.ok) continue`), so a 429, a 400 and a truncated reply all
+// surfaced as the same useless "the author model returned no usable article".
+// Callers read this to tell the human what actually happened.
+let _fableLast = null;
+export function fableLastError() { return _fableLast; }
+const _napMs = (ms) => new Promise((r) => setTimeout(r, ms));
+export async function fableGenerate(env, { system, user, maxTokens = 2500, retries = 2 } = {}) {
+  if (!env || !env.ANTHROPIC_API_KEY || !user) { _fableLast = 'no API key, or an empty prompt'; return ''; }
+  _fableLast = null;
   for (const model of [WRITE_MODEL, WRITE_FALLBACK_MODEL]) {
+   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -14044,12 +14159,31 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
           system: system ? [{ type: 'text', text: String(system), cache_control: { type: 'ephemeral', ttl: '1h' } }] : undefined,
           messages: [{ role: 'user', content: String(user) }] }),
       });
-      if (!r.ok) continue;
+      // Transient overload (429 rate limit / 529 overloaded / 5xx): back off and
+      // retry the SAME model before falling through. A 3-way parallel burst plus
+      // an Onyx orchestrator on the same key makes this genuinely common.
+      if (r.status === 429 || r.status === 529 || r.status >= 500) {
+        const b = await r.text().catch(() => '');
+        _fableLast = model + ' HTTP ' + r.status + (b ? ' ' + b.slice(0, 160) : '');
+        if (attempt < retries) { await _napMs(1200 * (attempt + 1) + Math.floor(Math.random() * 500)); continue; }
+        break;                                     // give up on this model
+      }
+      if (!r.ok) {
+        const b = await r.text().catch(() => '');
+        _fableLast = model + ' HTTP ' + r.status + (b ? ' ' + b.slice(0, 220) : '');
+        break;                                     // a real 4xx: the fallback model won't fix it
+      }
       const d = await r.json();
-      if (d.stop_reason === 'refusal') continue;   // safety refusal → try the fallback model
+      if (d.stop_reason === 'refusal') { _fableLast = model + ' declined the request (safety refusal)'; break; }
       const txt = ((d.content || []).find(b => b && b.type === 'text') || {}).text || '';
       if (txt.trim()) return txt;
-    } catch (_) { /* try next model */ }
+      _fableLast = model + ' returned no text (stop_reason ' + (d.stop_reason || '?') + ')';
+      break;
+    } catch (e) {
+      _fableLast = model + ' threw: ' + ((e && e.message) || String(e));
+      if (attempt < retries) { await _napMs(1200 * (attempt + 1)); continue; }
+    }
+   }
   }
   return '';
 }
@@ -17352,6 +17486,17 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/links') {
         return await handleTrackedLinks(request, env, origin);
+      }
+      // Leads / referral engine — /lead is the PUBLIC capture (project-page forms);
+      // /admin/leads (read) + /admin/lead-update (write) are the CRM, gated inside.
+      if (request.method === 'POST' && url.pathname === '/lead') {
+        return await handleLeadCreate(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/admin/leads') {
+        return await handleLeadsList(request, env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/admin/lead-update') {
+        return await handleLeadUpdate(request, env, origin);
       }
       if (request.method === 'POST' && url.pathname === '/advertisers/toggle') {
         return await handleAdvertiserToggle(request, env, origin);
