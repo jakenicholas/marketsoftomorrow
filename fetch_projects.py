@@ -593,6 +593,21 @@ def main():
         json.dump(flat, f, indent=2, ensure_ascii=False)
     print(f"  ✓ Wrote {OUTPUT_PATH}")
 
+    # ── SINGLE SOURCE OF TRUTH for the sitewide "projects tracked" count ──
+    # Every surface (the /pro hero, paywalls, dock + account menus, the pulse
+    # fallback, the /media pitch) must show the SAME number. They all read this
+    # tiny file via window.tmwStats (journal-dock.js) instead of hardcoding a
+    # count that drifts. Markets stays the curated "40+" everywhere.
+    import datetime as _dt
+    stats = {
+        'projects': len(flat),
+        'markets': '40+',
+        'generated_at': _dt.datetime.now(_dt.timezone.utc).isoformat(),
+    }
+    with open('stats.json', 'w', encoding='utf-8') as f:
+        json.dump(stats, f, ensure_ascii=False)
+    print(f"  ✓ Wrote stats.json (projects={len(flat)})")
+
     # Also write the raw architect + developer records so the firm-page
     # generator (generate_firm_pages.py) doesn't have to re-fetch them.
     firms_payload = {

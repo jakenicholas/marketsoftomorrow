@@ -1754,7 +1754,7 @@ function renderPulseFromBlog(items) {
 // and no blog items have loaded. These loop the same lines, which is fine.
 function renderPulseFallback() {
   const lines = [
-    'Tracking 396 projects across 40+ markets',
+    'Tracking ' + (window.tmwProjectCountStr ? window.tmwProjectCountStr() : '965') + ' projects across 40+ markets',
     'Explore the Map of Tomorrow',
     'New developments added across every market',
     'Florida · New York · Tennessee · Caribbean · Rockies'

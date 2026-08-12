@@ -294,7 +294,7 @@
         <p class="lede">Behind every pin: timelines, developers, architects, units, milestones &mdash; and a <b>predictive engine</b> that forecasts completion and surfaces comparable developments. The cities and firms moving right now, broken down however you need to see them.</p>
       </div>
       <div class="headstats">
-        <div class="headstat"><div class="n">396</div><div class="l">Projects tracked</div></div>
+        <div class="headstat"><div class="n" data-tmw-projects>965</div><div class="l">Projects tracked</div></div>
         <div class="headstat"><div class="n">40+</div><div class="l">Live markets</div></div>
         <div class="headstat"><div class="n">Daily</div><div class="l">Synced</div></div>
       </div>
@@ -319,7 +319,7 @@
       <div class="cmd">
         <svg class="mag" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         <div class="ph">Search <span class="typed" id="tiTyped"></span><span class="cursor"></span></div>
-        <span class="resultcount" id="tiRcount">396 results</span>
+        <span class="resultcount" id="tiRcount"><span data-tmw-projects>965</span> results</span>
         <span class="kbd">&#8984;K</span>
       </div>
 
@@ -506,7 +506,7 @@
     <div class="cta">
       <div class="ctxt">
         <h3>The map is the front door. <em>Intelligence is the building.</em></h3>
-        <p>Explore all 396 projects free. Unlock forecasts, compare mode, and your watchlist with TMW Pro.</p>
+        <p>Explore all <span data-tmw-projects>965</span> projects free. Unlock forecasts, compare mode, and your watchlist with TMW Pro.</p>
       </div>
       <div class="cbtns">
         <a class="btn ghost" href="https://www.oftmw.com/pro/">Go Pro</a>
@@ -578,7 +578,9 @@
         {n:'REG Architects',c:9,d:6},{n:'Hart Howerton',c:9,d:0},{n:'Sieger Suarez Architects',c:7,d:2}]}
     };
     var curTab = 'cities';
-    var baseCount = 396;
+    // Seed from the shared source of truth (falls back to the current count);
+    // replaced with the exact projects-flat length once it loads below.
+    var baseCount = (window.tmwProjectCount ? window.tmwProjectCount() : 965);
 
     function renderBoard(key){
       curTab = key;
@@ -718,9 +720,11 @@
       renderBoard(curTab);
       // headstats + command-bar + CTA totals
       baseCount = rows.length;
-      var nEl = $('.headstats .headstat .n'); if(nEl) nEl.textContent = baseCount;   // "Projects tracked" live; "40+ markets" stays curated
-      if(rEl) rEl.textContent = baseCount+' results';
-      var ctaP = $('.cta .ctxt p'); if(ctaP) ctaP.textContent = ctaP.textContent.replace(/\b\d{2,4}\b/, baseCount);
+      // Feed the exact live length into the shared source of truth so every
+      // data-tmw-projects on the page (hero, CTA, result count) agrees.
+      try { window.tmwStats = window.tmwStats || {}; window.tmwStats.projects = baseCount; if(window.tmwFillCounts) window.tmwFillCounts(); } catch(_){}
+      var nEl = $('.headstats .headstat .n'); if(nEl) nEl.textContent = baseCount.toLocaleString('en-US');   // "Projects tracked" live; "40+ markets" stays curated
+      if(rEl) rEl.textContent = baseCount.toLocaleString('en-US')+' results';
       // live pin counts (by city) + size scaled to the busiest pin
       var cityCount = {}; DATA.cities.rows.forEach(function(r){ cityCount[r.n]=r.c; });
       rows.forEach(function(p){ var c=(p.City||'').trim(); if(c) cityCount[c]=(cityCount[c]||0); });

@@ -440,7 +440,7 @@
           row(SVG_EYE, 'Watchlist',        'Track projects, get notified the moment they move.') +
           row(SVG_CMP, 'Compare',          'Stack any projects side-by-side &mdash; units, timeline, firms.') +
           row(SVG_PUL, 'Pulse',            'Live feed of every new project hitting the database.') +
-          row(SVG_MAP, 'Interactive Map',  '396 projects across 40+ markets.') +
+          row(SVG_MAP, 'Interactive Map',  (window.tmwProjectCountStr ? window.tmwProjectCountStr() : '965') + ' projects across 40+ markets.') +
           row(SVG_ATL, 'The Atlas',        'Every tracked project on one canvas.') +
         '</ul>' +
         '<button class="tmw-fa-pro-cta" type="button">' +
