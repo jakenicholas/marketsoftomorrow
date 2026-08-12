@@ -13950,6 +13950,150 @@ async function handleLeadNotifyPartner(req, env, origin) {
   return json({ ok: true, partner_emailed_at: ts, partner_email: rec.partner_email }, {}, env, origin);
 }
 
+// ── ENTERPRISE / partner orgs (developer-sponsorship model) ──────────────────
+// One org (a developer or broker group) owns the projects it sponsors AND every
+// lead those projects generate — exclusive, one project → one org. Members are
+// the org's agents. The member-facing layer uses the same trust model as the
+// rest of TMW's member endpoints: first-party Origin (CORS) + a Memberstack
+// member_id (mem_…). We key access on member_id, not email, so it isn't
+// guessable; Jake provisions members by email and the id binds on first sight.
+let _orgsReady = false;
+async function ensureOrgsTables(env) {
+  if (_orgsReady) return;
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS orgs (id TEXT PRIMARY KEY, name TEXT, plan TEXT DEFAULT ' + "'enterprise'" + ', seats INTEGER DEFAULT 5, base_monthly REAL DEFAULT 750, per_seat REAL DEFAULT 75, per_project REAL DEFAULT 150, created_at INTEGER, updated_at INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS org_projects (project_slug TEXT PRIMARY KEY, org_id TEXT NOT NULL, added_at INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS org_members (org_id TEXT NOT NULL, email TEXT NOT NULL, member_id TEXT, name TEXT, role TEXT DEFAULT ' + "'agent'" + ', created_at INTEGER, PRIMARY KEY (org_id, email))').run();
+  try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_org_members_mid ON org_members(member_id)').run(); } catch (_) {}
+  _orgsReady = true;
+}
+function newOrgId(name) { return 'org_' + String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32) + '_' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 4) : Math.random().toString(36).slice(2, 6)); }
+
+// GET /admin/orgs — every org with its projects + members (the Studio admin UI).
+async function handleOrgsList(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureOrgsTables(env);
+  const orgs = (await env.DB.prepare('SELECT * FROM orgs ORDER BY created_at DESC').all()).results || [];
+  const projs = (await env.DB.prepare('SELECT * FROM org_projects').all()).results || [];
+  const mems = (await env.DB.prepare('SELECT * FROM org_members').all()).results || [];
+  const out = orgs.map(function (o) { return Object.assign({}, o, { projects: projs.filter(function (p) { return p.org_id === o.id; }).map(function (p) { return p.project_slug; }), members: mems.filter(function (m) { return m.org_id === o.id; }) }); });
+  return json({ orgs: out }, {}, env, origin);
+}
+async function handleOrgUpsert(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureOrgsTables(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const name = String(b.name || '').trim().slice(0, 120);
+  if (!name && !b.id) return json({ error: 'name required' }, { status: 400 }, env, origin);
+  const ts = Math.floor(Date.now() / 1000);
+  let id = String(b.id || '').trim();
+  if (id) {
+    const sets = [], vals = [];
+    if (b.name != null) { sets.push('name=?'); vals.push(name); }
+    if (b.seats != null) { sets.push('seats=?'); vals.push(Math.max(1, parseInt(b.seats) || 5)); }
+    if (b.plan != null) { sets.push('plan=?'); vals.push(String(b.plan).slice(0, 40)); }
+    if (b.base_monthly != null) { sets.push('base_monthly=?'); vals.push(Number(b.base_monthly) || 0); }
+    if (b.per_seat != null) { sets.push('per_seat=?'); vals.push(Number(b.per_seat) || 0); }
+    if (b.per_project != null) { sets.push('per_project=?'); vals.push(Number(b.per_project) || 0); }
+    if (!sets.length) return json({ error: 'nothing to update' }, { status: 400 }, env, origin);
+    sets.push('updated_at=?'); vals.push(ts); vals.push(id);
+    const stmt = env.DB.prepare('UPDATE orgs SET ' + sets.join(', ') + ' WHERE id=?');
+    await stmt.bind.apply(stmt, vals).run();
+  } else {
+    id = newOrgId(name);
+    await env.DB.prepare('INSERT INTO orgs (id,name,plan,seats,base_monthly,per_seat,per_project,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)')
+      .bind(id, name, String(b.plan || 'enterprise'), Math.max(1, parseInt(b.seats) || 5), Number(b.base_monthly) || 750, Number(b.per_seat) || 75, Number(b.per_project) || 150, ts, ts).run();
+  }
+  return json({ ok: true, id: id }, {}, env, origin);
+}
+// POST /admin/org-project { org_id, project_slug, remove? } — attach/detach.
+// One project → one org: INSERT OR REPLACE reassigns a project cleanly.
+async function handleOrgProject(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureOrgsTables(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const org_id = String(b.org_id || '').trim(), slug = String(b.project_slug || '').trim().toLowerCase().slice(0, 120);
+  if (!org_id || !slug) return json({ error: 'org_id and project_slug required' }, { status: 400 }, env, origin);
+  if (b.remove) { await env.DB.prepare('DELETE FROM org_projects WHERE project_slug=? AND org_id=?').bind(slug, org_id).run(); return json({ ok: true, removed: true }, {}, env, origin); }
+  await env.DB.prepare('INSERT OR REPLACE INTO org_projects (project_slug, org_id, added_at) VALUES (?,?,?)').bind(slug, org_id, Math.floor(Date.now() / 1000)).run();
+  return json({ ok: true }, {}, env, origin);
+}
+// POST /admin/org-member { org_id, email, name?, role?, member_id?, remove? }
+async function handleOrgMember(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureOrgsTables(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const org_id = String(b.org_id || '').trim(), email = String(b.email || '').trim().toLowerCase().slice(0, 160);
+  if (!org_id || !email) return json({ error: 'org_id and email required' }, { status: 400 }, env, origin);
+  if (b.remove) { await env.DB.prepare('DELETE FROM org_members WHERE org_id=? AND email=?').bind(org_id, email).run(); return json({ ok: true, removed: true }, {}, env, origin); }
+  const existing = await env.DB.prepare('SELECT member_id FROM org_members WHERE org_id=? AND email=?').bind(org_id, email).first();
+  const mid = String(b.member_id || '') || (existing && existing.member_id) || null;
+  await env.DB.prepare('INSERT OR REPLACE INTO org_members (org_id,email,member_id,name,role,created_at) VALUES (?,?,?,?,?,?)')
+    .bind(org_id, email, mid, String(b.name || '').slice(0, 120), String(b.role || 'agent').slice(0, 24), Math.floor(Date.now() / 1000)).run();
+  return json({ ok: true }, {}, env, origin);
+}
+
+// Resolve a member → their org + sponsored projects. Prefer member_id; fall back
+// to a provisioned email and bind the member_id to that row on first sight.
+async function orgForMember(env, memberId, email) {
+  memberId = String(memberId || ''); email = String(email || '').trim().toLowerCase();
+  let row = null;
+  if (memberId.indexOf('mem_') === 0) row = await env.DB.prepare('SELECT * FROM org_members WHERE member_id=?').bind(memberId).first();
+  if (!row && email) {
+    row = await env.DB.prepare('SELECT * FROM org_members WHERE email=?').bind(email).first();
+    if (row && memberId.indexOf('mem_') === 0 && !row.member_id) {
+      try { await env.DB.prepare('UPDATE org_members SET member_id=? WHERE org_id=? AND email=?').bind(memberId, row.org_id, row.email).run(); } catch (_) {}
+    }
+  }
+  if (!row) return null;
+  const org = await env.DB.prepare('SELECT * FROM orgs WHERE id=?').bind(row.org_id).first();
+  if (!org) return null;
+  const projects = ((await env.DB.prepare('SELECT project_slug FROM org_projects WHERE org_id=?').bind(org.id).all()).results || []).map(function (p) { return p.project_slug; });
+  return { org: org, member: row, projects: projects };
+}
+// GET /partner/context?member_id=&email= — is this member a partner? org + projects.
+async function handlePartnerContext(req, env, origin) {
+  if (!env.DB) return json({ org: null }, {}, env, origin);
+  await ensureOrgsTables(env);
+  const u = new URL(req.url);
+  const ctx = await orgForMember(env, u.searchParams.get('member_id'), u.searchParams.get('email'));
+  if (!ctx) return json({ org: null }, {}, env, origin);
+  return json({ org: ctx.org, projects: ctx.projects, role: ctx.member.role }, {}, env, origin);
+}
+// GET /partner/leads?member_id=&email= — every lead on the org's projects.
+async function handlePartnerLeads(req, env, origin) {
+  if (!env.DB) return json({ items: [] }, {}, env, origin);
+  await ensureOrgsTables(env); await ensureLeadsTable(env);
+  const u = new URL(req.url);
+  const ctx = await orgForMember(env, u.searchParams.get('member_id'), u.searchParams.get('email'));
+  if (!ctx) return json({ error: 'not a partner account' }, { status: 403 }, env, origin);
+  if (!ctx.projects.length) return json({ items: [], org: ctx.org.name, projects: [], statuses: LEAD_STATUSES }, {}, env, origin);
+  const ph = ctx.projects.map(function () { return '?'; }).join(',');
+  const stmt = env.DB.prepare('SELECT id,created_at,name,email,phone,project_slug,project_title,intent,message,source,surface,status,notes,updated_at FROM leads WHERE project_slug IN (' + ph + ') ORDER BY created_at DESC LIMIT 500');
+  const rows = (await stmt.bind.apply(stmt, ctx.projects).all()).results || [];
+  return json({ items: rows, org: ctx.org.name, projects: ctx.projects, statuses: LEAD_STATUSES }, {}, env, origin);
+}
+// POST /partner/lead-update { member_id, id, status?, notes? } — org-scoped: the
+// lead must belong to one of the member's projects.
+async function handlePartnerLeadUpdate(req, env, origin) {
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureOrgsTables(env); await ensureLeadsTable(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const ctx = await orgForMember(env, b.member_id, b.email);
+  if (!ctx) return json({ error: 'not a partner account' }, { status: 403 }, env, origin);
+  const id = String(b.id || '').trim(); if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+  const lead = await env.DB.prepare('SELECT project_slug FROM leads WHERE id=?').bind(id).first();
+  if (!lead || ctx.projects.indexOf(lead.project_slug) < 0) return json({ error: 'lead not in your projects' }, { status: 403 }, env, origin);
+  const sets = [], vals = [];
+  if (b.status != null) { if (LEAD_STATUSES.indexOf(String(b.status)) < 0) return json({ error: 'bad status' }, { status: 400 }, env, origin); sets.push('status=?'); vals.push(String(b.status)); }
+  if (b.notes != null) { sets.push('notes=?'); vals.push(String(b.notes).slice(0, 4000)); }
+  if (!sets.length) return json({ error: 'nothing to update' }, { status: 400 }, env, origin);
+  sets.push('updated_at=?'); vals.push(Math.floor(Date.now() / 1000)); vals.push(id);
+  const stmt = env.DB.prepare('UPDATE leads SET ' + sets.join(', ') + ' WHERE id=?');
+  await stmt.bind.apply(stmt, vals).run();
+  return json({ ok: true }, {}, env, origin);
+}
+
 // Advertiser roster — the dashboard's list of who we run (or have run). Seeded
 // once from the Linkly export (historical clicks = a baseline to compare our
 // first-party numbers against). `active` = "live" (shown on top in the Studio);
@@ -17673,6 +17817,14 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/lead-notify-partner') {
         return await handleLeadNotifyPartner(request, env, origin);
       }
+      // Enterprise orgs: admin provisioning + member-facing partner endpoints.
+      if (request.method === 'GET'  && url.pathname === '/admin/orgs')        return await handleOrgsList(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/org-upsert')  return await handleOrgUpsert(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/org-project') return await handleOrgProject(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/org-member')  return await handleOrgMember(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/partner/context')   return await handlePartnerContext(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/partner/leads')     return await handlePartnerLeads(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/partner/lead-update') return await handlePartnerLeadUpdate(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/advertisers/toggle') {
         return await handleAdvertiserToggle(request, env, origin);
       }
