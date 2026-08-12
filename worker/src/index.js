@@ -8812,12 +8812,41 @@ async function handleEmailWeeks(req, env, origin) {
 const ONYX_MODEL = 'claude-opus-4-8';
 const ONYX_MAX_ROUNDS = 18;
 
-function onyxSystem() {
+// Onyx carries the HOUSE BRAIN itself, not just instructions to go fetch it.
+// It is the thing choosing the topic and the ANGLE, and a flat angle produces
+// flat prose no matter how good the writer is: the first Martis Camp run framed
+// the story as a definition ("the private gated community in Martis Valley") and
+// got back an encyclopedia entry. Loaded topic-agnostically so the block is
+// identical every conversation and prompt-caches cleanly.
+let _onyxBrain = { text: '', at: 0 };
+async function onyxBrainText(env) {
+  const now = Date.now();
+  if (_onyxBrain.text && now - _onyxBrain.at < 15 * 60 * 1000) return _onyxBrain.text;
+  let out = '';
+  try {
+    const b = await assembleBrain(env, { topic: '', place: '', surface: 'article', maxKnowledge: 0, maxFacts: 0 });
+    out = b.text || '';
+  } catch (_) {}
+  // Carousels are half the studio's output, so carry their format band too.
+  try {
+    const car = (await env.DB.prepare(
+      `SELECT kind, note FROM brand_notes WHERE active=1 AND tier='format' AND category='carousel' ORDER BY id ASC LIMIT 14`
+    ).all()).results || [];
+    if (car.length) out += '\n\nCAROUSEL FORMAT RULES (how we build every deck):\n' + car.map(r => '- [' + r.kind + '] ' + r.note).join('\n');
+  } catch (_) {}
+  _onyxBrain = { text: out, at: now };
+  return out;
+}
+
+async function onyxSystem(env) {
   const today = new Date().toISOString().slice(0, 10);
+  const brain = await onyxBrainText(env);
   return [
     'You are ONYX, the Markets of Tomorrow (TMW) studio agent, running INSIDE the TMW admin Studio at admin.oftmw.com. You are talking to Jake (the founder) or his team. Today is ' + today + '.',
     'You run the studio through the same tool catalog the claude.ai connector uses. Before writing or critiquing any article, carousel, caption or headline, call get_brand_brain to load the shared house style. Record new likes/dislikes/rules with record_preference so taste stays in sync across every surface and account. Nothing you do publishes to the live journal, live map, or any social account: every write lands as a reviewable DRAFT for a human to promote.',
     'WRITING AN ARTICLE is your most important job. Never hand-write the article body yourself. Always author it with generate_article_draft, which runs the Fable 5 house writer grounded in the shared brand brain, the measured voice fingerprint, real published exemplars and the fact gate. That is what keeps every surface writing in one voice. Pass topic, angle, place, the verified facts you gathered, category (an EXISTING one only), linked_project when the story centers on a tracked project, and folder when you have staged photos. Refine with revise_article_draft. Fall back to create_post_draft(source:"ai") only if generation genuinely fails.',
+    'THE ANGLE IS THE JOB. A TMW piece is an UNVEIL: it opens on the single most remarkable thing and makes the reader feel they are seeing it first. It is never an encyclopedia entry that stacks facts in the order you found them. So never hand the writer a definition ("X, the private gated community in Y valley") because that is a topic, not an angle, and it produces flat prose no matter how good the writer is. Decide what the STORY is first: the one detail nobody else leads with, the thing that makes this first-of-its-kind or inevitable or absurd, and why it lands NOW. Put that in `angle` as a sentence, and order `facts` so the strongest one is first. If the subject is evergreen with no fresh event, find the live hook (what just changed, what is selling, what opens next, what it signals about the market) and say in the angle that this is a portrait led by that hook.',
+    'Match the gold-standard articles in the brain above: how they open, how they carry a reader, how they land. If a draft comes back flat or listy, do not settle. Call revise_article_draft with a specific instruction ("reopen on the members-only chairlift, cut the accolades to one line, land on what resale scarcity means") and read it again before you hand it over.',
     'TWO MODES, read the ask:',
     '(a) FAST: the user hands you the materials (pasted text, a press release, links, a document). Use what they gave you. Fetch any URL they pasted so you are working from the real page, not the summary. Do not go on a research expedition they did not ask for.',
     '(b) DEEP RESEARCH: the user asks you to go find it / wants it heavy and cited. Then web_search hard: open the official announcement plus independent reputable outlets (local business journals, The Real Deal, Bisnow, Commercial Observer, Robb Report, architecture and travel press). Corroborate every hard fact (keys, units, floors, GFA, dollars, dates, brand, developer, architect, address, opening) against 2+ independent sources or the official release plus one. A fact that appears in exactly one place is UNVERIFIED: hedge it honestly or drop it, never state it flat. Read real publish dates off the page, never off a search snippet. Put the source URLs in the facts you pass to generate_article_draft so the piece carries its citations, and list the sources you used in your reply.',
@@ -8867,6 +8896,9 @@ async function handleOnyxChat(req, env, origin) {
     content: m.content,
   }));
 
+  // Built ONCE per request (it embeds the house brain) and reused every round.
+  const sysText = await onyxSystem(env);
+
   const enc = new TextEncoder();
   const stream = new ReadableStream({
     async start(ctrl) {
@@ -8887,7 +8919,7 @@ async function handleOnyxChat(req, env, origin) {
                 model: ONYX_MODEL,
                 max_tokens: 8000,
                 thinking: { type: 'adaptive' },
-                system: [{ type: 'text', text: onyxSystem(), cache_control: { type: 'ephemeral', ttl: '1h' } }],
+                system: [{ type: 'text', text: sysText, cache_control: { type: 'ephemeral', ttl: '1h' } }],
                 tools,
                 messages: convo,
               }),
