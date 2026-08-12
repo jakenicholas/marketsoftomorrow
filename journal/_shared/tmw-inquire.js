@@ -103,13 +103,8 @@
     return null;
   }
 
-  function build() {
-    ensureCss();
-    _scrim = document.createElement('div');
-    _scrim.className = 'tmw-inq-scrim';
-    _scrim.innerHTML =
-      '<div class="tmw-inq" role="dialog" aria-modal="true" aria-label="Request information">' +
-      '<div class="tmw-inq-hd"><button class="tmw-inq-x" type="button" aria-label="Close">×</button>' +
+  function bodyMarkup() {
+    return '<div class="tmw-inq-hd"><button class="tmw-inq-x" type="button" aria-label="Close">×</button>' +
       '<div class="tmw-inq-eye" data-eye>Markets of Tomorrow</div>' +
       '<h2 class="tmw-inq-h" data-h>Request information</h2>' +
       '<p class="tmw-inq-sub" data-sub>Tell us where to send pricing, availability, and private-tour details.</p></div>' +
@@ -122,17 +117,31 @@
       '<div class="tmw-inq-err" data-err></div>' +
       '<button class="tmw-inq-go" type="submit">Request info</button>' +
       '<p class="tmw-inq-fine">We’ll connect you with the team behind this project. No spam.</p>' +
-      '</form></div>';
+      '</form>';
+  }
+  // (Re)render the form into the dialog and wire it. Called on EVERY open so a
+  // fresh form is guaranteed — after a successful submit the dialog holds the
+  // "you're on the list" state, and reopening must not crash on a missing form.
+  function renderBody() {
+    var inq = _scrim.querySelector('.tmw-inq');
+    inq.innerHTML = bodyMarkup();
+    inq.querySelector('.tmw-inq-x').addEventListener('click', close);
+    inq.querySelector('form').addEventListener('submit', submit);
+  }
+  function build() {
+    ensureCss();
+    _scrim = document.createElement('div');
+    _scrim.className = 'tmw-inq-scrim';
+    _scrim.innerHTML = '<div class="tmw-inq" role="dialog" aria-modal="true" aria-label="Request information"></div>';
     document.body.appendChild(_scrim);
     _scrim.addEventListener('click', function (e) { if (e.target === _scrim) close(); });
-    _scrim.querySelector('.tmw-inq-x').addEventListener('click', close);
-    _scrim.querySelector('form').addEventListener('submit', submit);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && _scrim && _scrim.classList.contains('on')) close(); });
+    renderBody();
   }
 
   function open(opts) {
     opts = opts || {};
-    if (!_scrim) build();
+    if (!_scrim) build(); else renderBody();   // always a fresh form
     _ctx = {
       project_slug: opts.project_slug || '',
       project_title: opts.project_title || '',
@@ -160,9 +169,6 @@
       sub.textContent = 'Tell us where to send pricing, availability, and private-tour details.';
       _scrim.querySelector('.tmw-inq-go').textContent = 'Request info';
     }
-    // reset form state
-    var f = _scrim.querySelector('form'); if (f.dataset.done) { location.reload(); return; }
-    _scrim.querySelector('[data-err]').textContent = '';
     document.documentElement.style.overflow = 'hidden';
     _scrim.classList.add('on');
     setTimeout(function () { try { _scrim.querySelector('[data-f="name"]').focus(); } catch (e) {} }, 220);
@@ -199,8 +205,7 @@
           '<button class="tmw-inq-x" type="button" aria-label="Close">×</button>' +
           '<div class="tmw-inq-done"><div class="ok"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>' +
           '<h3>You’re on the list.</h3><p>The team behind ' + (esc(_ctx.project_title) || 'this project') + ' will reach out with pricing and tour details. Keep an eye on your inbox.</p></div>';
-        inq.querySelector('.tmw-inq-x').addEventListener('click', function () { location.reload(); });
-        _scrim.querySelector('form') && (_scrim.querySelector('form').dataset.done = '1');
+        inq.querySelector('.tmw-inq-x').addEventListener('click', close);
       })
       .catch(function (ex) { err.textContent = ex.message || 'Something went wrong. Try again.'; btn.disabled = false; btn.textContent = orig; });
   }

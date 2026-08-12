@@ -13779,9 +13779,12 @@ async function ensureLeadsTable(env) {
     'source_url TEXT, utm TEXT, surface TEXT, status TEXT NOT NULL DEFAULT ' + "'new'" + ', ' +
     'notes TEXT, fee_type TEXT, fee_amount REAL, fee_status TEXT, updated_at INTEGER)'
   ).run();
-  // `surface` (project/article/etc — where they clicked, distinct from `source`
-  // = traffic channel) was added after the table shipped; ALTER for older DBs.
+  // Columns added after the table shipped; ALTER guards for older DBs (each
+  // throws + is caught if the column already exists).
+  // `surface` = where they clicked (project/article), distinct from `source`.
+  // `partner_emailed_at` = unix ts the referral was sent to the seller.
   try { await env.DB.prepare('ALTER TABLE leads ADD COLUMN surface TEXT').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE leads ADD COLUMN partner_emailed_at INTEGER').run(); } catch (_) {}
   _leadsTableReady = true;
 }
 const LEAD_STATUSES = ['new', 'emailed', 'contacted', 'toured', 'under_contract', 'closed', 'dead'];
@@ -13789,6 +13792,28 @@ function leadEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, funct
 // Capitalize the first letter of every word without downcasing the rest, so
 // existing caps (acronyms, hyphenated names like Ritz-Carlton) are preserved.
 function titleCaseWords(s) { return String(s == null ? '' : s).replace(/\b(\w)/g, function (m, c) { return c.toUpperCase(); }); }
+// Lead detail table shared by the TMW notify email + the partner referral email.
+function leadRowsHtml(rec) {
+  const proj = rec.project_title || rec.project_slug || 'a project';
+  return [['Name', rec.name], ['Email', rec.email], ['Phone', rec.phone], ['Project', proj], ['Interested in', rec.intent], ['From', rec.source], ['Message', rec.message]]
+    .filter(function (r) { return r[1]; })
+    .map(function (r) { return '<tr><td style="padding:4px 12px 4px 0;color:#888;font-size:13px">' + r[0] + '</td><td style="padding:4px 0;font-size:14px"><b>' + leadEsc(r[1]) + '</b></td></tr>'; }).join('');
+}
+// Email the referral to the seller/partner. Used at capture (auto, when the
+// project page carried a partner email) AND from the CRM "Send to partner"
+// button (when Jake adds the contact after the fact). Returns true on send.
+async function sendLeadPartnerEmail(env, rec) {
+  if (!env.RESEND_API_KEY || !rec.partner_email || !/@/.test(String(rec.partner_email))) return false;
+  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
+  const proj = rec.project_title || rec.project_slug || 'a project';
+  const dateStr = new Date((Number(rec.created_at) || Math.floor(Date.now() / 1000)) * 1000).toISOString().slice(0, 10);
+  const pHtml = '<div style="font-family:system-ui,sans-serif;max-width:520px"><p>Hi,</p><p>A potential buyer just requested information about <b>' + leadEsc(proj) + '</b> through <b>Markets of Tomorrow</b>. Here are their details so your team can follow up:</p><table>' + leadRowsHtml(rec) + '</table><p style="color:#888;font-size:13px;margin-top:14px">Referred by Markets of Tomorrow · ' + dateStr + '. Please keep us posted as you work the lead.</p></div>';
+  try {
+    const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [rec.partner_email], reply_to: (env.LEADS_NOTIFY || 'jake@oftmw.com'), subject: 'New buyer lead for ' + proj + ' (via Markets of Tomorrow)', html: pHtml }) });
+    return r.ok || r.status === 200;
+  } catch (_) { return false; }
+}
 // POST /lead — PUBLIC. The capture form on project pages posts here.
 async function handleLeadCreate(req, env, origin) {
   if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
@@ -13825,21 +13850,16 @@ async function handleLeadCreate(req, env, origin) {
   if (env.RESEND_API_KEY) {
     const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
     const proj = rec.project_title || rec.project_slug || 'a project';
-    const rows = [['Name', rec.name], ['Email', rec.email], ['Phone', rec.phone], ['Project', proj], ['Interested in', rec.intent], ['From', rec.source], ['Message', rec.message]]
-      .filter(function (r) { return r[1]; })
-      .map(function (r) { return '<tr><td style="padding:4px 12px 4px 0;color:#888;font-size:13px">' + r[0] + '</td><td style="padding:4px 0;font-size:14px"><b>' + leadEsc(r[1]) + '</b></td></tr>'; }).join('');
-    const tmwHtml = '<div style="font-family:system-ui,sans-serif;max-width:520px"><h2 style="margin:0 0 4px">New lead · ' + leadEsc(proj) + '</h2><p style="color:#888;margin:0 0 14px">Captured via Markets of Tomorrow. It\'s in your admin Leads board.</p><table>' + rows + '</table></div>';
+    const tmwHtml = '<div style="font-family:system-ui,sans-serif;max-width:520px"><h2 style="margin:0 0 4px">New lead · ' + leadEsc(proj) + '</h2><p style="color:#888;margin:0 0 14px">Captured via Markets of Tomorrow. It\'s in your admin Leads board.</p><table>' + leadRowsHtml(rec) + '</table></div>';
     try {
       await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: FROM, to: [env.LEADS_NOTIFY || 'jake@oftmw.com'], subject: 'New lead: ' + rec.name + ' — ' + proj, html: tmwHtml }) });
     } catch (_) {}
-    if (rec.partner_email && /@/.test(rec.partner_email)) {
-      const pHtml = '<div style="font-family:system-ui,sans-serif;max-width:520px"><p>Hi,</p><p>A potential buyer just requested information about <b>' + leadEsc(proj) + '</b> through <b>Markets of Tomorrow</b>. Here are their details so your team can follow up:</p><table>' + rows + '</table><p style="color:#888;font-size:13px;margin-top:14px">Referred by Markets of Tomorrow · ' + new Date(rec.created_at * 1000).toISOString().slice(0, 10) + '. Please keep us posted as you work the lead.</p></div>';
-      try {
-        await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: FROM, to: [rec.partner_email], reply_to: (env.LEADS_NOTIFY || 'jake@oftmw.com'), subject: 'New buyer lead for ' + proj + ' (via Markets of Tomorrow)', html: pHtml }) });
-        await env.DB.prepare("UPDATE leads SET status='emailed', updated_at=?2 WHERE id=?1").bind(rec.id, Math.floor(Date.now() / 1000)).run();
-      } catch (_) {}
+    // Auto-forward to the seller only when the page already carried their email.
+    // If Jake adds the contact later, he sends it from the CRM "Send to partner".
+    if (await sendLeadPartnerEmail(env, rec)) {
+      const ts = Math.floor(Date.now() / 1000);
+      try { await env.DB.prepare("UPDATE leads SET status='emailed', partner_emailed_at=?2, updated_at=?2 WHERE id=?1").bind(rec.id, ts).run(); } catch (_) {}
     }
   }
   // iPhone push — same channel as Pro signups. One branded line:
@@ -13884,6 +13904,27 @@ async function handleLeadUpdate(req, env, origin) {
   const stmt = env.DB.prepare('UPDATE leads SET ' + sets.join(', ') + ' WHERE id=?');
   await stmt.bind.apply(stmt, vals).run();
   return json({ ok: true, id: id }, {}, env, origin);
+}
+// POST /admin/lead-notify-partner { id } — (re)send the referral email to the
+// lead's partner_email now, and stamp partner_emailed_at. For leads where the
+// seller contact was added after capture, so no auto-forward fired.
+async function handleLeadNotifyPartner(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureLeadsTable(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const id = String(b.id || '').trim();
+  if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+  const rec = await env.DB.prepare('SELECT * FROM leads WHERE id=?1').bind(id).first();
+  if (!rec) return json({ error: 'lead not found' }, { status: 404 }, env, origin);
+  if (!rec.partner_email || !/@/.test(String(rec.partner_email))) return json({ error: 'This lead has no partner email set.' }, { status: 400 }, env, origin);
+  if (!env.RESEND_API_KEY) return json({ error: 'Email is not configured.' }, { status: 500 }, env, origin);
+  const ok = await sendLeadPartnerEmail(env, rec);
+  if (!ok) return json({ error: 'The email failed to send. Try again.' }, { status: 502 }, env, origin);
+  const ts = Math.floor(Date.now() / 1000);
+  // Advance status to 'emailed' only if still fresh; never downgrade later stages.
+  await env.DB.prepare("UPDATE leads SET partner_emailed_at=?2, status=CASE WHEN status='new' THEN 'emailed' ELSE status END, updated_at=?2 WHERE id=?1").bind(id, ts).run();
+  return json({ ok: true, partner_emailed_at: ts, partner_email: rec.partner_email }, {}, env, origin);
 }
 
 // Advertiser roster — the dashboard's list of who we run (or have run). Seeded
@@ -17605,6 +17646,9 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/admin/lead-update') {
         return await handleLeadUpdate(request, env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/admin/lead-notify-partner') {
+        return await handleLeadNotifyPartner(request, env, origin);
       }
       if (request.method === 'POST' && url.pathname === '/advertisers/toggle') {
         return await handleAdvertiserToggle(request, env, origin);
