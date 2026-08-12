@@ -8712,6 +8712,29 @@ async function handleResendWebhookSetup(req, env, origin) {
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
 }
 
+// GET /admin/dl?u=<media url>&name=<filename> — same-origin download relay for
+// the Studio. Slide/media files live on media.oftmw.com (R2), which serves no
+// CORS headers, so a browser fetch()->blob from admin.oftmw.com fails and
+// anchor clicks just open tabs. This streams the file back with an attachment
+// disposition so a plain same-origin <a> click downloads it. Own media hosts only.
+async function handleAdminDownload(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  const url = new URL(req.url);
+  const u = String(url.searchParams.get('u') || '');
+  let target; try { target = new URL(u); } catch { return json({ error: 'bad url' }, { status: 400 }, env, origin); }
+  const okHost = target.hostname === 'media.oftmw.com' || /\.r2\.dev$/.test(target.hostname) || target.hostname === 'www.oftmw.com';
+  if (target.protocol !== 'https:' || !okHost) return json({ error: 'only TMW media hosts' }, { status: 400 }, env, origin);
+  const name = String(url.searchParams.get('name') || target.pathname.split('/').pop() || 'download')
+    .replace(/[^\w.\-]+/g, '_').slice(0, 120);
+  let r; try { r = await fetch(target.toString()); } catch (e) { return json({ error: 'fetch failed: ' + (e.message || e) }, { status: 502 }, env, origin); }
+  if (!r.ok) return json({ error: 'upstream HTTP ' + r.status }, { status: 502 }, env, origin);
+  const h = new Headers();
+  h.set('Content-Type', r.headers.get('content-type') || 'application/octet-stream');
+  h.set('Content-Disposition', 'attachment; filename="' + name + '"');
+  h.set('Cache-Control', 'no-store');
+  return new Response(r.body, { status: 200, headers: h });
+}
+
 // ── Morning Desk feeds ──────────────────────────────────────────────────────
 // GET /admin/morning → real last-post-per-account from the daily IG archive
 // sync (ig_posts), so the desk's accounts board reflects actual Instagram
@@ -17125,6 +17148,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/dl')                  return await handleAdminDownload(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/design-chat')         return await handleDesignChat(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-feedback')     return await handleReviseFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
