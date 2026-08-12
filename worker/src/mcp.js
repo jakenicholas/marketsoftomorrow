@@ -2719,6 +2719,11 @@ const IMPL = {
       'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
       'CLAIMS LEDGER (required): list EVERY factual assertion the article makes — statuses, dates, numbers, prices, names, attributions — as {"claim":"<the assertion, one line>","type":"status"|"date"|"number"|"name"|"other","source":"facts"|"database"|"model"}. "facts" = stated in the provided facts; "database" = from the related-projects context above; "model" = from your own knowledge. BE HONEST about "model" — those get fact-checked against the live web, and a false "facts" tag is worse than an honest "model" tag.',
       'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation. HOW IT ENDS: land on a real closing PARAGRAPH, forward-looking, in your own prose. NEVER end with a call to action, a newsletter or subscribe pitch, a follow-us line, or any sign-off boilerplate (our older archive is full of "Sign up for ... free newsletter below" endings; that branding is retired and they must never be reproduced). NEVER end on an image either: photos belong between paragraphs, and the last thing a reader sees is your conclusion.',
+      // BINDING + LAST. The learned house rules used to sit mid-prompt, where the
+      // generic "strong hook" advice below them and the per-take hints above them
+      // quietly outvoted the editor's actual instructions. Recency matters: they
+      // go last, restated as non-negotiable, with an explicit self-check.
+      brain.voice ? 'THE HOUSE RULES BELOW ARE BINDING. They were written by the editor after real edits to real pieces, and they OUTRANK every other instruction in this prompt, including the generic advice above and any per-take hint. If a hint or a habit conflicts with one of these, the house rule wins. Before you output, re-read them and check your opening line, your structure, and your ending against them one by one:\n' + brain.voice : '',
     ].filter(Boolean).join('\n\n');
     const usr = [
       'TOPIC: ' + topic,
@@ -2730,10 +2735,17 @@ const IMPL = {
     // reads most like our published work. Selection substitutes for training:
     // sampling variance becomes the search space instead of a coin flip. Light
     // per-take hints decorrelate the drafts without touching fact discipline.
+    // Take hints decorrelate the drafts, but they must NEVER dictate the opening:
+    // the old hints ("open on the most concrete fact", "open on the actor") told
+    // two of every three candidates to violate the banked house opening rule, so
+    // the judge was picking from a search space that was mostly off-voice. That
+    // was the generator quietly diluting the editor's rules. They now vary the
+    // THROUGH-LINE only, and each defers explicitly to the house rules.
+    const HINT_TAIL = ' Follow the binding house rules exactly, especially how a piece opens and how it lands; this hint only shapes the through-line and never overrides them.';
     const TAKE_HINTS = [
       '',
-      '\n\nFOR THIS TAKE: open on the single most concrete fact (a number, an address, a date).',
-      '\n\nFOR THIS TAKE: open on the actor making the move (the developer, the brand, the firm).',
+      '\n\nFOR THIS TAKE: build the piece around what this changes for the market around it.' + HINT_TAIL,
+      '\n\nFOR THIS TAKE: build the piece around the ambition of the thing itself, what it will actually be like.' + HINT_TAIL,
     ];
     const parseGen = (raw) => {
       if (!raw) return null;
@@ -2777,7 +2789,12 @@ const IMPL = {
       try {
         const fp0 = await getFingerprint(env);
         const gold = (brain.articleExemplars && brain.articleExemplars[0]) || null;
+        // The judge USED to score only "reads like our published work" from the
+        // fingerprint + one gold piece, never seeing the editor's banked rules —
+        // so a candidate that broke an explicit house rule could still win. Rule
+        // adherence is now the first, decisive test.
         const pickSys = 'You are the executive editor of Markets of Tomorrow. Pick which candidate article reads MOST like our published work: judge prose (rhythm, ledes, how it lands, concreteness), not topic. Facts are identical across candidates; ignore factual differences. Output ONLY JSON: {"pick":<0-based index>,"why":"<one short sentence>"}.'
+          + (brain.voice ? '\n\nHOUSE RULES (DECISIVE — check these FIRST). Any candidate that breaks one of these, especially in how it opens or how it ends, LOSES to one that follows them, even if its prose is otherwise nicer:\n' + brain.voice : '')
           + (fp0 ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp0) : '')
           + (gold ? '\n\nREAL PUBLISHED REFERENCE:\n' + gold.body.slice(0, 1800) : '');
         const pickUsr = draws.map((g, i) => `CANDIDATE ${i}: ${g.title}\n${String(g.body_markdown).slice(0, 2400)}`).join('\n\n════════\n\n');
@@ -3001,6 +3018,9 @@ const IMPL = {
       brain.text || '',
       'OUTPUT: return ONLY the revised, COMPLETE article as Markdown — no JSON, no fences, no commentary.',
       'RULES: Preserve every fact from the original (do NOT invent or drop verified facts, numbers, dates, prices, or firm names). NEVER fabricate a quotation or attribute words to anyone. TMW voice per the brand brain. Avoid em dashes. Return the whole article, not a diff.',
+      // Binding + last, same as the generator: the editor's banked rules must not
+      // be outvoted by the generic guidance that follows them.
+      brain.voice ? 'THE HOUSE RULES BELOW ARE BINDING and outrank every other instruction here. Before you output, check the opening line, the structure, and the ending against them one by one:\n' + brain.voice : '',
     ].filter(Boolean).join('\n\n');
     const usr = 'INSTRUCTION: ' + instruction + '\n\nCURRENT ARTICLE:\n' + current;
     const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500 });
