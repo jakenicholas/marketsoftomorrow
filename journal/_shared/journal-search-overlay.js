@@ -3965,16 +3965,20 @@
       // on (project / concept / place); everything else keeps the heuristics.
       // Iconic ("list"), firm, food, wellness stay on their existing gates so a
       // "best hotels" iconic parse isn't lost.
-      if (_ik === 'project') {
+      if (_ik === 'project' && !(smart && smart.firmRank)) {
         smart = null;                       // exact project lookup → text path's full-hero
       } else if (_ik === 'concept' || _ik === 'topic') {
         // Topic/policy → semantic concept path. BUT if parseSmartQuery already found
-        // a concrete structured intent — a SIZE sort, an explicit type, a height
-        // band, or a US-country scope — it's a database LIST ("biggest projects in
-        // the united states"), not a concept. Keep the structured parse so it ranks
-        // by scale instead of falling to keyword text-match (which floated a padel
-        // court into "biggest projects"). Place-only questions still go concept.
-        if (smart && (smart.sort || smart.usOnly || smart.browseAll || (smart.types && smart.types.size) || smart.floorsMin != null)) {
+        // a concrete structured intent — a FIRM-RANKING ask ("most active developer
+        // in X"), a SIZE sort, an explicit type, a height band, or a US-country
+        // scope — it's a database LIST/leaderboard, not a concept. Keep the
+        // structured parse so it ranks by the real metric instead of falling to the
+        // freeform text path (which floated a padel court into "biggest projects",
+        // and crowned the flashiest developer instead of the most-active-by-count).
+        // Place-only questions still go concept. NB the classifier tags a bare
+        // "most active developer in Sarasota" as topic/analytical, so firmRank MUST
+        // be in this keep-list or the leaderboard never reaches the LLM.
+        if (smart && (smart.firmRank || smart.sort || smart.usOnly || smart.browseAll || (smart.types && smart.types.size) || smart.floorsMin != null)) {
           /* keep smart — structured list */
         } else {
           _conceptQ = true; smart = null;
