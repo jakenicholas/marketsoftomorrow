@@ -8752,8 +8752,10 @@ async function handleEmailWeeks(req, env, origin) {
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin); }
   const weeks = [];
   try { await ensureResendEventsTable(env); } catch (_) {}
-  for (const b of list) {
-    const w = { id: b.id, name: b.name || '', sent_at: b.sent_at, sent: null, delivered: null, opened: null, clicked: null };
+  try { await ensurePlacementStatsTable(env); } catch (_) {}
+  for (let i = 0; i < list.length; i++) {
+    const b = list[i];
+    const w = { id: b.id, name: b.name || '', sent_at: b.sent_at, sent: null, delivered: null, opened: null, clicked: null, to_site: null };
     try {
       const agg = (await env.DB.prepare('SELECT type, COUNT(DISTINCT email) c FROM resend_events WHERE broadcast_id = ?1 GROUP BY type').bind(b.id).all()).results || [];
       for (const r of agg) {
@@ -8763,6 +8765,18 @@ async function handleEmailWeeks(req, env, origin) {
         else if (r.type === 'email.clicked') w.clicked = r.c;
       }
       if (w.sent == null && w.delivered != null) w.sent = w.delivered;
+    } catch (_) {}
+    // First-party "to site" clicks attributed to this send: newsletter-surface
+    // clicks from its send day until the NEXT send day (open window for the
+    // latest). This is our own data, so it backfills history that Resend can't.
+    try {
+      const day0 = String(b.sent_at).slice(0, 10);
+      const day1 = i + 1 < list.length ? String(list[i + 1].sent_at).slice(0, 10) : null;
+      const q = day1
+        ? env.DB.prepare("SELECT SUM(clicks) c FROM placement_stats WHERE surface='newsletter' AND day >= ?1 AND day < ?2").bind(day0, day1)
+        : env.DB.prepare("SELECT SUM(clicks) c FROM placement_stats WHERE surface='newsletter' AND day >= ?1").bind(day0);
+      const r = await q.first();
+      if (r && r.c != null) w.to_site = r.c;
     } catch (_) {}
     weeks.push(w);
   }
