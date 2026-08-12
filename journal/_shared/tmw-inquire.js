@@ -27,8 +27,11 @@
   function ensureCss() {
     if (document.getElementById('tmw-inq-css')) return;
     var css = [
-      '.tmw-inq-scrim{position:fixed;inset:0;z-index:2147482000;background:rgba(4,4,6,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .25s ease;display:flex;align-items:center;justify-content:center;padding:20px}',
-      '.tmw-inq-scrim.on{opacity:1}',
+      /* pointer-events:none while closed — otherwise the invisible full-screen
+         scrim keeps eating every click on the page and nothing is clickable
+         until a reload. .on flips it back to auto so the modal is interactive. */
+      '.tmw-inq-scrim{position:fixed;inset:0;z-index:2147482000;background:rgba(4,4,6,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s ease;display:flex;align-items:center;justify-content:center;padding:20px}',
+      '.tmw-inq-scrim.on{opacity:1;pointer-events:auto}',
       '.tmw-inq{width:min(430px,100%);max-height:92vh;overflow:auto;background:#0d0f0d;border:1px solid rgba(255,255,255,.12);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(14px) scale(.98);opacity:0;transition:transform .3s cubic-bezier(.2,.9,.3,1),opacity .3s;font-family:Inter,-apple-system,system-ui,sans-serif;color:#ECEAE5}',
       '.tmw-inq-scrim.on .tmw-inq{transform:none;opacity:1}',
       '.tmw-inq-hd{position:relative;padding:26px 26px 4px}',
@@ -53,10 +56,32 @@
       '.tmw-inq-done .ok svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-inq-done h3{font-family:Fraunces,Georgia,serif;font-size:21px;font-weight:600;margin:0 0 8px}',
       '.tmw-inq-done p{font-size:14px;color:#9AA39C;line-height:1.55;margin:0;max-width:34ch;margin-left:auto;margin-right:auto}',
-      /* the auto-injected CTA on project pages */
+      /* the auto-injected CTA on project pages (base, used when not in the grid) */
       '.tmw-inq-cta{display:inline-flex;align-items:center;gap:8px;font-family:Inter,-apple-system,sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:13px 22px;border-radius:11px;text-decoration:none;cursor:pointer;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.12);color:#fff;box-shadow:0 6px 22px rgba(167,139,250,.3),0 0 30px rgba(167,139,250,.22);transition:all .18s}',
       '.tmw-inq-cta:hover{background:rgba(167,139,250,.2);transform:translateY(-1px);box-shadow:0 8px 28px rgba(167,139,250,.5)}',
       '.tmw-inq-cta svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2}',
+      /* ── Project-page CTA row normalized to a uniform 2x2 grid ──
+         Row 1: Request info + Dive Deeper. Row 2: Share + Watch. Every button
+         gets the same size/font/all-caps/radius, no text wrapping. Overrides the
+         static page's per-button styles so all four match without regenerating pages. */
+      '.cta-row.tmw-cta-2x2{display:grid !important;grid-template-columns:1fr 1fr;gap:10px;max-width:440px;align-items:stretch}',
+      '.cta-row.tmw-cta-2x2>*{box-sizing:border-box;height:52px !important;width:auto !important;min-width:0 !important;flex:none !important;margin:0 !important;padding:0 12px !important;font-family:Inter,-apple-system,system-ui,sans-serif !important;font-size:11.5px !important;font-weight:700 !important;letter-spacing:.11em !important;text-transform:uppercase !important;line-height:1 !important;border-radius:11px !important;white-space:nowrap !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;gap:8px !important;animation:none !important;text-decoration:none;cursor:pointer;overflow:hidden}',
+      '.cta-row.tmw-cta-2x2>* svg{width:14px !important;height:14px !important;flex-shrink:0}',
+      '.cta-row.tmw-cta-2x2>* .btn-share-tooltip{text-transform:none;letter-spacing:0}',
+      /* secondary trio (dive / share / watch): uniform dark hairline pill */
+      '.cta-row.tmw-cta-2x2 .btn-dive,.cta-row.tmw-cta-2x2 .btn-share,.cta-row.tmw-cta-2x2 .btn-watch{background:rgba(255,255,255,.06) !important;border:1px solid rgba(255,255,255,.14) !important;color:#fff !important;box-shadow:none !important}',
+      '.cta-row.tmw-cta-2x2 .btn-dive:hover,.cta-row.tmw-cta-2x2 .btn-share:hover,.cta-row.tmw-cta-2x2 .btn-watch:hover{background:rgba(255,255,255,.11) !important;transform:none !important}',
+      /* primary (request info): the purple money button, same geometry */
+      '.cta-row.tmw-cta-2x2 .tmw-inq-cta{background:linear-gradient(135deg,rgba(167,139,250,.24),rgba(139,111,240,.16)) !important;border:1px solid rgba(167,139,250,.6) !important;color:#fff !important;box-shadow:0 6px 22px rgba(167,139,250,.28),0 0 30px rgba(167,139,250,.2) !important}',
+      '.cta-row.tmw-cta-2x2 .tmw-inq-cta:hover{background:linear-gradient(135deg,rgba(167,139,250,.34),rgba(139,111,240,.24)) !important;transform:translateY(-1px)}',
+      /* ── Article CTA card (end of every article) ── */
+      '.tmw-inq-article{margin:34px 0 8px;padding:22px 24px;border-radius:16px;border:1px solid rgba(167,139,250,.28);background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(167,139,250,.02));display:flex;align-items:center;gap:20px;flex-wrap:wrap}',
+      '.tmw-inq-article .txt{flex:1;min-width:200px}',
+      '.tmw-inq-article .eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin-bottom:7px}',
+      '.tmw-inq-article h4{font-family:Fraunces,Georgia,serif;font-size:19px;font-weight:600;line-height:1.2;margin:0 0 5px;color:#fff}',
+      '.tmw-inq-article p{font-size:13.5px;color:#9AA39C;line-height:1.5;margin:0}',
+      '.tmw-inq-article .tmw-inq-cta{flex:0 0 auto}',
+      '@media(max-width:540px){.tmw-inq-article{padding:20px}.tmw-inq-article .tmw-inq-cta{width:100%;justify-content:center}}',
       '@media(prefers-reduced-motion:reduce){.tmw-inq,.tmw-inq-scrim{transition:opacity .15s}.tmw-inq{transform:none}}'
     ].join('');
     var s = document.createElement('style'); s.id = 'tmw-inq-css'; s.textContent = css; document.head.appendChild(s);
@@ -122,7 +147,8 @@
       partner: opts.partner || '',
       partner_email: opts.partner_email || '',
       intent: opts.intent || 'info',
-      source: opts.source || inferSource() || '',
+      source: opts.source || inferSource() || '',   // channel: instagram/facebook/search/…
+      surface: opts.surface || '',                  // where they clicked: project/article
     };
     var proj = _ctx.project_title || '';
     var eye = _scrim.querySelector('[data-eye]'), h = _scrim.querySelector('[data-h]'), sub = _scrim.querySelector('[data-sub]');
@@ -169,7 +195,7 @@
       name: name, email: email, phone: phone, message: get('message'),
       project_slug: _ctx.project_slug, project_title: _ctx.project_title,
       partner: _ctx.partner, partner_email: _ctx.partner_email,
-      intent: _ctx.intent, source: _ctx.source, source_url: location.href, utm: utmParams(),
+      intent: _ctx.intent, source: _ctx.source, surface: _ctx.surface, source_url: location.href, utm: utmParams(),
       hp: (form.querySelector('[name="website"]') || {}).value || ''
     };
     fetch(WORKER + '/lead', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) })
@@ -212,18 +238,30 @@
   function autoInjectProject() {
     var m = location.pathname.match(/^\/projects\/([^\/]+)\/?$/);
     if (!m) return;
+    ensureCss();
     var slug = decodeURIComponent(m[1]);
     var titleEl = document.querySelector('.pp-name, .pp-hero h1, h1');
     var title = (titleEl ? titleEl.textContent : document.title.replace(/\s*[—|].*$/, '')).trim();
     var pe = document.querySelector('meta[name="tmw:partner-email"]');
-    var opts = { project_slug: slug, project_title: title, partner_email: (pe ? pe.getAttribute('content') : '') || '', intent: 'interest-list' };
+    var opts = { project_slug: slug, project_title: title, partner_email: (pe ? pe.getAttribute('content') : '') || '', intent: 'interest-list', surface: 'project' };
     var cta = document.createElement('button');
     cta.type = 'button'; cta.className = 'tmw-inq-cta';
-    cta.innerHTML = 'Request info <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    cta.innerHTML = 'Request info <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
     cta.addEventListener('click', function () { open(opts); });
     var row = document.querySelector('.cta-row');
-    if (row) { row.insertBefore(cta, row.firstChild); }
-    else {
+    if (row && !row.__tmwInq) {
+      row.__tmwInq = true;
+      row.insertBefore(cta, row.firstChild);
+      // Normalize the row to the uniform 2x2 grid and give the icon-only Share
+      // button a visible label so all four buttons read the same.
+      row.classList.add('tmw-cta-2x2');
+      var share = row.querySelector('.btn-share');
+      if (share && !share.querySelector('.tmw-cta-lbl')) {
+        var lbl = document.createElement('span'); lbl.className = 'tmw-cta-lbl'; lbl.textContent = 'Share';
+        var firstSvg = share.querySelector('svg');
+        if (firstSvg && firstSvg.nextSibling) share.insertBefore(lbl, firstSvg.nextSibling); else share.appendChild(lbl);
+      }
+    } else if (!row) {
       // No CTA row on this template — float a pill bottom-center above the dock.
       cta.style.cssText += ';position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:9000';
       document.body.appendChild(cta);
@@ -235,7 +273,27 @@
     } catch (e) {}
   }
 
-  function boot() { wireTriggers(document); autoInjectProject(); }
+  // Article pages: drop a "Request info" card at the end of the body. The lead
+  // is captured with source 'article' and source_url = the article URL, so the
+  // backend shows exactly which article drove it (vs a project page).
+  function autoInjectArticle() {
+    if (!/^\/post\//.test(location.pathname)) return;
+    var body = document.querySelector('.article-body-content') || document.querySelector('.article-body');
+    if (!body || body.querySelector('.tmw-inq-article')) return;
+    ensureCss();
+    var opts = { project_slug: '', project_title: '', intent: 'info', surface: 'article' };
+    var card = document.createElement('div');
+    card.className = 'tmw-inq-article';
+    card.innerHTML =
+      '<div class="txt"><div class="eye">Markets of Tomorrow</div>' +
+      '<h4>Interested in a project you saw here?</h4>' +
+      '<p>Request info and we\'ll connect you with the team behind it, straight from the source.</p></div>' +
+      '<button type="button" class="tmw-inq-cta">Request info <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
+    card.querySelector('.tmw-inq-cta').addEventListener('click', function () { open(opts); });
+    body.appendChild(card);
+  }
+
+  function boot() { ensureCss(); wireTriggers(document); autoInjectProject(); autoInjectArticle(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 

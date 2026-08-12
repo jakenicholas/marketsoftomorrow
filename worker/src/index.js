@@ -13718,9 +13718,12 @@ async function ensureLeadsTable(env) {
     'CREATE TABLE IF NOT EXISTS leads (id TEXT PRIMARY KEY, created_at INTEGER, ' +
     'name TEXT, email TEXT, phone TEXT, project_slug TEXT, project_title TEXT, ' +
     'partner TEXT, partner_email TEXT, intent TEXT, message TEXT, source TEXT, ' +
-    'source_url TEXT, utm TEXT, status TEXT NOT NULL DEFAULT ' + "'new'" + ', ' +
+    'source_url TEXT, utm TEXT, surface TEXT, status TEXT NOT NULL DEFAULT ' + "'new'" + ', ' +
     'notes TEXT, fee_type TEXT, fee_amount REAL, fee_status TEXT, updated_at INTEGER)'
   ).run();
+  // `surface` (project/article/etc — where they clicked, distinct from `source`
+  // = traffic channel) was added after the table shipped; ALTER for older DBs.
+  try { await env.DB.prepare('ALTER TABLE leads ADD COLUMN surface TEXT').run(); } catch (_) {}
   _leadsTableReady = true;
 }
 const LEAD_STATUSES = ['new', 'emailed', 'contacted', 'toured', 'under_contract', 'closed', 'dead'];
@@ -13749,11 +13752,12 @@ async function handleLeadCreate(req, env, origin) {
     source: String(b.source || '').trim().slice(0, 60) || null,     // e.g. 'instagram' | 'article' | 'map'
     source_url: String(b.source_url || '').trim().slice(0, 400) || null,
     utm: (b.utm && typeof b.utm === 'object') ? JSON.stringify(b.utm).slice(0, 600) : (String(b.utm || '').slice(0, 600) || null),
+    surface: String(b.surface || '').trim().slice(0, 40) || null,   // 'project' | 'article' — where they clicked
   };
   await env.DB.prepare(
-    'INSERT INTO leads (id, created_at, name, email, phone, project_slug, project_title, partner, partner_email, intent, message, source, source_url, utm, status, updated_at) ' +
-    "VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,'new',?2)"
-  ).bind(rec.id, rec.created_at, rec.name, rec.email, rec.phone, rec.project_slug, rec.project_title, rec.partner, rec.partner_email, rec.intent, rec.message, rec.source, rec.source_url, rec.utm).run();
+    'INSERT INTO leads (id, created_at, name, email, phone, project_slug, project_title, partner, partner_email, intent, message, source, source_url, utm, surface, status, updated_at) ' +
+    "VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,'new',?2)"
+  ).bind(rec.id, rec.created_at, rec.name, rec.email, rec.phone, rec.project_slug, rec.project_title, rec.partner, rec.partner_email, rec.intent, rec.message, rec.source, rec.source_url, rec.utm, rec.surface).run();
   try { await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)').bind(rec.created_at, 'lead:' + rec.id, 'lead_captured', JSON.stringify({ project: rec.project_title, source: rec.source, intent: rec.intent })).run(); } catch (_) {}
   // Notify the TMW backend (always) + email the partner the referral (if we have
   // their address) — the partner email is itself timestamped attribution evidence.
