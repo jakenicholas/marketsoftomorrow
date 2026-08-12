@@ -391,6 +391,17 @@
       document.body.appendChild(celScript);
     }
 
+    // Lead-capture front door — the "Request info / Join the interest list" modal
+    // (self-injects a CTA on /projects/ pages; harmless everywhere else). Loaded
+    // on every page so a [data-tmw-inquire] trigger works in articles too.
+    if (!window.tmwInquire && !document.querySelector('script[data-tmw-inquire-loader]')) {
+      var inqScript = document.createElement('script');
+      inqScript.src = '/_shared/tmw-inquire.js';
+      inqScript.defer = true;
+      inqScript.setAttribute('data-tmw-inquire-loader', '');
+      document.body.appendChild(inqScript);
+    }
+
     // Contextual headline for the ONE universal funnel — the boxes are identical
     // everywhere (one module, one CSS), but the headline is tailored per context
     // (the smart "Following X?" text). Markets sets its own opts in the block
