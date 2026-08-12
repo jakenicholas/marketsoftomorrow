@@ -3204,9 +3204,12 @@ async function handleReviseDraft(req, env, origin) {
   const refFails = fetchedRefs.filter((f) => f.error);
 
   const brain = await assembleBrain(env, { topic: title, place: '', surface: 'article' });
+  const userKey = studioUserKey(req);
+  const memBlock = await threadMemoryBlock(env, userKey, {});
   const sys = [
-    'You are the senior staff editor for Markets of Tomorrow (TMW), talking with a colleague in a chat INSIDE the article editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
+    'You are Onyx, the Markets of Tomorrow studio assistant, working as the senior staff editor right now: you are talking with a colleague in a chat INSIDE the article editor. Same assistant, same ongoing conversation as the Onyx page and the carousel editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
     brain.text || '',
+    memBlock || '',
     'Read the colleague\'s message and decide what it needs:',
     '- A QUESTION, discussion, or a request for IDEAS/OPTIONS (e.g. "why is X the focus?", "give me 3 title ideas", "what do you think of the intro?"): just answer in `reply` — give the take or the options. Return NO edits and NO title unless they clearly asked you to APPLY one.',
     '- A SMALL change to the BODY (a line, a passage, a couple of grafs): return surgical find/replace `edits` on the prose PLUS a short `reply` telling them what you did.',
@@ -3293,6 +3296,14 @@ async function handleReviseDraft(req, env, origin) {
     binds.push(slug);
     try { await env.DB.prepare('UPDATE posts SET ' + sets.join(', ') + ' WHERE slug=?' + binds.length).bind(...binds).run(); } catch (_) {}
   }
+  // Same continuous thread as the Onyx page: record what was asked and done.
+  try {
+    await threadAppend(env, userKey, [
+      { surface: 'article editor', role: 'user', text: instruction, ref: slug },
+      { surface: 'article editor', role: 'assistant', text: reply + (bodyChanged ? ' [applied ' + applied + ' edit(s) to the draft]' : '') + (newTitle ? ' [retitled: ' + newTitle + ']' : ''), ref: slug },
+    ]);
+    await maybeCompactThread(env, userKey);
+  } catch (_) {}
   return json({ ok: true, reply, applied, skipped, changes,
     title: newTitle || undefined,
     body_html: bodyChanged ? out : undefined,
@@ -3335,9 +3346,12 @@ async function handleDesignChat(req, env, origin) {
     'SLIDE ' + s.n + ':\n' + (s.texts.length ? s.texts.map((t) => '  [box ' + t.index + (t.role ? ' · ' + t.role : '') + '] ' + (t.content || '(empty)')).join('\n') : '  (no text boxes)')
   ).join('\n');
 
+  const userKey = studioUserKey(req);
+  const memBlock = await threadMemoryBlock(env, userKey, {});
   const sys = [
-    'You are the senior social editor for Markets of Tomorrow (TMW), chatting with a colleague INSIDE the carousel Design editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
+    'You are Onyx, the Markets of Tomorrow studio assistant, working as the senior social editor right now: you are chatting with a colleague INSIDE the carousel Design editor. Same assistant, same ongoing conversation as the Onyx page and the article editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
     brainText ? ('HOUSE BRAIN (voice + learned rules, FOLLOW THESE):\n' + brainText) : '',
+    memBlock || '',
     'CAROUSEL ARC (how our decks read start to finish):\n- Slide 1 is the HOOK: one bold, high-energy claim that stops the scroll (never a title or label).\n- Middle slides deliver the INFO: one concrete fact each, every slide building on the one before so the deck reads in a smooth flow.\n- The last slide lands the payoff or a light call to action.',
     'Read the colleague\'s message and decide what it needs:',
     '- A QUESTION, discussion, or a request for IDEAS/OPTIONS: answer in `reply` only. NO edits, NO caption unless they clearly asked you to APPLY a change.',
@@ -3380,6 +3394,14 @@ async function handleDesignChat(req, env, origin) {
   }
   const newCaption = (parsed.caption != null && String(parsed.caption).trim() && deDash(parsed.caption).trim() !== caption.trim())
     ? deDash(parsed.caption).trim().slice(0, 2200) : '';
+  // Same continuous thread as the Onyx page + article editor.
+  try {
+    await threadAppend(env, userKey, [
+      { surface: 'carousel editor', role: 'user', text: instruction, ref: title || '' },
+      { surface: 'carousel editor', role: 'assistant', text: reply + (outEdits.length ? ' [applied ' + outEdits.length + ' slide edit(s)]' : '') + (newCaption ? ' [rewrote the caption]' : ''), ref: title || '' },
+    ]);
+    await maybeCompactThread(env, userKey);
+  } catch (_) {}
   return json({ ok: true, reply, edits: outEdits, caption: newCaption || undefined }, {}, env, origin);
 }
 
@@ -8928,6 +8950,112 @@ async function onyxAutoLearn(env, userText, assistantText) {
   return banked;
 }
 
+// ── STUDIO MEMORY — ONE continuous Onyx conversation per user ────────────────
+// Every Studio surface (the Onyx page, the article editor's Polish chat, the
+// carousel Design chat) used to hold its own private conversation client-side,
+// so the editor bot had no idea what the Onyx chat that generated the draft had
+// said. They now read and append the SAME per-user thread, stored server-side:
+// an append-only turn log plus a rolling summary of everything older, so the
+// conversation is continuous forever without dragging the full history into
+// every request. Keyed on the Cloudflare Access email the Studio proxy injects
+// (X-TMW-Admin), so Jake and Kait each get their own thread.
+let _studioThreadReady = false;
+async function ensureStudioThreadTables(env) {
+  if (_studioThreadReady) return;
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS studio_turns (id INTEGER PRIMARY KEY AUTOINCREMENT, user_key TEXT NOT NULL, ts INTEGER, surface TEXT, role TEXT, text TEXT, ref TEXT)').run();
+  try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_studio_turns_user ON studio_turns(user_key, id)').run(); } catch (_) {}
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS studio_thread_state (user_key TEXT PRIMARY KEY, summary TEXT, through_id INTEGER, updated_at INTEGER)').run();
+  _studioThreadReady = true;
+}
+// Who is talking. The Pages proxy verifies the Access JWT and forwards the
+// verified email; anything else collapses to one shared 'studio' thread.
+function studioUserKey(req) {
+  let h = '';
+  try { h = req.headers.get('X-TMW-Admin') || req.headers.get('x-tmw-admin') || ''; } catch (_) {}
+  const e = String(h).trim().toLowerCase();
+  return (e && e.indexOf('@') > 0) ? e.slice(0, 160) : 'studio';
+}
+const THREAD_RECENT = 16;          // turns kept verbatim
+const THREAD_COMPACT_AT = 24;      // older-than-recent turns before we summarize
+async function threadAppend(env, userKey, turns) {
+  if (!env.DB || !Array.isArray(turns) || !turns.length) return;
+  try {
+    await ensureStudioThreadTables(env);
+    const ts = Math.floor(Date.now() / 1000);
+    for (const t of turns) {
+      const text = String((t && t.text) || '').trim();
+      if (!text) continue;
+      await env.DB.prepare('INSERT INTO studio_turns (user_key, ts, surface, role, text, ref) VALUES (?,?,?,?,?,?)')
+        .bind(userKey, ts, String((t && t.surface) || 'studio').slice(0, 40), (t && t.role) === 'assistant' ? 'assistant' : 'user', text.slice(0, 2400), String((t && t.ref) || '').slice(0, 160) || null).run();
+    }
+  } catch (_) { /* memory is best-effort; never break a chat over it */ }
+}
+// Build the shared-memory block injected into every surface's system prompt.
+async function threadMemoryBlock(env, userKey, opts) {
+  opts = opts || {};
+  if (!env.DB) return '';
+  try {
+    await ensureStudioThreadTables(env);
+    const st = await env.DB.prepare('SELECT summary FROM studio_thread_state WHERE user_key=?').bind(userKey).first();
+    const rows = (await env.DB.prepare('SELECT surface, role, text, ref FROM studio_turns WHERE user_key=? ORDER BY id DESC LIMIT ?').bind(userKey, opts.recent || THREAD_RECENT).all()).results || [];
+    if (!rows.length && !(st && st.summary)) return '';
+    const recent = rows.reverse().map(function (r) {
+      const who = r.role === 'assistant' ? 'You' : 'Them';
+      const where = r.surface + (r.ref ? ' · ' + r.ref : '');
+      return '[' + where + '] ' + who + ': ' + String(r.text || '').slice(0, opts.turnChars || 700);
+    }).join('\n');
+    return ['SHARED STUDIO MEMORY — you are ONE assistant (Onyx) in ONE continuous conversation with this person across every Studio surface: the Onyx page, the article editor Polish chat, and the carousel Design chat. What follows is YOUR OWN memory of that conversation, including turns that happened on a different surface. Treat it as yours: if you generated a draft on the Onyx page and they now ask about it in the editor, you DO know it and must never say you cannot see that chat. Continue seamlessly, and do not re-introduce yourself.',
+      (st && st.summary) ? 'EARLIER IN THIS CONVERSATION (rolling summary):\n' + st.summary : '',
+      recent ? 'MOST RECENT TURNS:\n' + recent : ''].filter(Boolean).join('\n\n');
+  } catch (_) { return ''; }
+}
+// Fold everything older than the recent window into the rolling summary, so the
+// thread stays continuous forever without unbounded prompt growth.
+async function maybeCompactThread(env, userKey) {
+  if (!env.DB) return;
+  try {
+    await ensureStudioThreadTables(env);
+    const st = await env.DB.prepare('SELECT summary, through_id FROM studio_thread_state WHERE user_key=?').bind(userKey).first();
+    const through = (st && st.through_id) || 0;
+    const newest = await env.DB.prepare('SELECT id FROM studio_turns WHERE user_key=? ORDER BY id DESC LIMIT 1').bind(userKey).first();
+    if (!newest) return;
+    const cutoff = newest.id - THREAD_RECENT;      // never summarize the live window
+    if (cutoff <= through) return;
+    const pending = (await env.DB.prepare('SELECT id, surface, role, text, ref FROM studio_turns WHERE user_key=? AND id>? AND id<=? ORDER BY id').bind(userKey, through, cutoff).all()).results || [];
+    if (pending.length < THREAD_COMPACT_AT) return;
+    const transcript = pending.map(function (r) { return '[' + r.surface + (r.ref ? ' · ' + r.ref : '') + '] ' + (r.role === 'assistant' ? 'You' : 'Them') + ': ' + String(r.text || '').slice(0, 600); }).join('\n');
+    const sys = 'You compact a long working conversation between a studio assistant and the founder of Markets of Tomorrow into durable memory. Keep what a colleague would still need weeks later: decisions made, standing preferences and corrections, what was built or drafted (with slugs/titles), open threads and promises, and facts established. Drop small talk and superseded detail. Write terse third-person bullets, no preamble.';
+    const usr = (st && st.summary ? 'MEMORY SO FAR:\n' + st.summary + '\n\n' : '') + 'NEW TURNS TO FOLD IN:\n' + transcript + '\n\nReturn the updated memory as bullets, under 2500 characters.';
+    const out = await fableGenerate(env, { system: sys, user: usr.slice(0, 60000), maxTokens: 1200 });
+    const summary = String(out || '').trim().slice(0, 3000);
+    if (!summary) return;
+    await env.DB.prepare('INSERT OR REPLACE INTO studio_thread_state (user_key, summary, through_id, updated_at) VALUES (?,?,?,?)')
+      .bind(userKey, summary, cutoff, Math.floor(Date.now() / 1000)).run();
+  } catch (_) { /* best-effort */ }
+}
+// GET /admin/thread — the current user's continuous thread (UI restore).
+async function handleStudioThread(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ turns: [] }, {}, env, origin);
+  await ensureStudioThreadTables(env);
+  const userKey = studioUserKey(req);
+  const u = new URL(req.url);
+  const limit = Math.min(Math.max(parseInt(u.searchParams.get('limit') || '40', 10) || 40, 1), 200);
+  const rows = (await env.DB.prepare('SELECT id, ts, surface, role, text, ref FROM studio_turns WHERE user_key=? ORDER BY id DESC LIMIT ?').bind(userKey, limit).all()).results || [];
+  const st = await env.DB.prepare('SELECT summary, updated_at FROM studio_thread_state WHERE user_key=?').bind(userKey).first();
+  return json({ user: userKey, turns: rows.reverse(), summary: (st && st.summary) || '' }, {}, env, origin);
+}
+// POST /admin/thread-clear — "New chat": forget this user's thread entirely.
+async function handleStudioThreadClear(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ ok: true }, {}, env, origin);
+  await ensureStudioThreadTables(env);
+  const userKey = studioUserKey(req);
+  await env.DB.prepare('DELETE FROM studio_turns WHERE user_key=?').bind(userKey).run();
+  await env.DB.prepare('DELETE FROM studio_thread_state WHERE user_key=?').bind(userKey).run();
+  return json({ ok: true, cleared: userKey }, {}, env, origin);
+}
+
 async function handleOnyxChat(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 503 }, env, origin);
@@ -8950,7 +9078,11 @@ async function handleOnyxChat(req, env, origin) {
   }));
 
   // Built ONCE per request (it embeds the house brain) and reused every round.
-  const sysText = await onyxSystem(env);
+  // The shared studio memory rides along, so this chat continues the SAME
+  // conversation the editor Polish chats are part of, across sessions.
+  const userKey = studioUserKey(req);
+  const memBlock = await threadMemoryBlock(env, userKey, {});
+  const sysText = (await onyxSystem(env)) + (memBlock ? '\n\n' + memBlock : '');
   let lastAssistantText = '';
 
   const enc = new TextEncoder();
@@ -9044,6 +9176,13 @@ async function handleOnyxChat(req, env, origin) {
           const utxt = lastUser ? lastUser.content.filter((b) => b && b.type === 'text').map((b) => b.text).join('\n') : '';
           const banked = await onyxAutoLearn(env, utxt, lastAssistantText);
           for (const n of banked) send({ t: 'learned', m: n });
+          // Record this exchange in the shared thread so the editor Polish chats
+          // (and the next session) pick the conversation up exactly here.
+          await threadAppend(env, userKey, [
+            { surface: 'Onyx page', role: 'user', text: utxt },
+            { surface: 'Onyx page', role: 'assistant', text: lastAssistantText },
+          ]);
+          await maybeCompactThread(env, userKey);
         } catch (_) {}
         send({ t: 'done' });
         try { ctrl.close(); } catch (_) {}
@@ -17971,6 +18110,9 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/partner/leads')     return await handlePartnerLeads(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/partner/lead-update') return await handlePartnerLeadUpdate(request, env, origin);
       // Online routines (Claude Code cron routines moved into the Studio).
+      // Shared studio memory (one continuous Onyx thread per user).
+      if (request.method === 'GET'  && url.pathname === '/admin/thread')       return await handleStudioThread(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/thread-clear') return await handleStudioThreadClear(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/routines')    return await handleRoutinesList(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/routine-run') return await handleRoutineRun(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/advertisers/toggle') {
