@@ -3164,8 +3164,12 @@ async function handleReviseDraft(req, env, origin) {
   let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const slug = String(b.slug || '').trim().toLowerCase();
   let instruction = String(b.instruction || '').trim();
-  const context = String(b.context || '').trim().slice(0, 8000);
+  let context = String(b.context || '').trim().slice(0, 8000);
   const target = String(b.target || '').trim().slice(0, 4000);   // text the editor selected to work on
+  const history = Array.isArray(b.history) ? b.history.slice(-8).map((h) => ({
+    role: h && h.role === 'u' ? 'Colleague' : 'You',
+    text: String((h && h.text) || '').slice(0, 500),
+  })).filter((h) => h.text) : [];
   if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
   if (!instruction && !target) return json({ error: 'instruction required' }, { status: 400 }, env, origin);
   if (!instruction && target) instruction = 'Rewrite the selected passage in TMW voice — tighter and more on-brand, same facts.';
@@ -3176,34 +3180,58 @@ async function handleReviseDraft(req, env, origin) {
   const title = String(row.title || '');
   const stripTags = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
+  // URLs pasted straight into the chat message are references: fetch each one
+  // and hand its readable text to the editor as verified source material.
+  const urls = [...instruction.matchAll(/https?:\/\/[^\s"'<>)\]]+/g)].map((m) => m[0]).slice(0, 3);
+  const fetchedRefs = [];
+  for (const u of urls) {
+    try {
+      const r = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TMWStudio/1.0)', 'Accept': 'text/html,*/*' }, signal: AbortSignal.timeout(9000) });
+      if (!r.ok) { fetchedRefs.push({ url: u, error: 'HTTP ' + r.status }); continue; }
+      const html = (await r.text()).slice(0, 400000);
+      const text = html
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<(?:nav|header|footer|aside)[\s\S]*?<\/(?:nav|header|footer|aside)>/gi, ' ')
+        .replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"')
+        .replace(/\s+/g, ' ').trim().slice(0, 7000);
+      if (text.length > 200) fetchedRefs.push({ url: u, text });
+      else fetchedRefs.push({ url: u, error: 'page had no readable text' });
+    } catch (e) { fetchedRefs.push({ url: u, error: String(e && e.message || e).slice(0, 120) }); }
+  }
+  const refBlocks = fetchedRefs.filter((f) => f.text).map((f) => 'REFERENCE MATERIAL fetched from ' + f.url + ' (treat as the verified primary source; do not exceed it):\n' + f.text);
+  if (refBlocks.length) context = [context, ...refBlocks].filter(Boolean).join('\n\n');
+  const refFails = fetchedRefs.filter((f) => f.error);
+
   const brain = await assembleBrain(env, { topic: title, place: '', surface: 'article' });
   const sys = [
     'You are the senior staff editor for Markets of Tomorrow (TMW), talking with a colleague in a chat INSIDE the article editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
     brain.text || '',
     'Read the colleague\'s message and decide what it needs:',
     '- A QUESTION, discussion, or a request for IDEAS/OPTIONS (e.g. "why is X the focus?", "give me 3 title ideas", "what do you think of the intro?"): just answer in `reply` — give the take or the options. Return NO edits and NO title unless they clearly asked you to APPLY one.',
-    '- A change to the BODY: return surgical find/replace `edits` on the prose PLUS a short `reply` telling them what you did.',
+    '- A SMALL change to the BODY (a line, a passage, a couple of grafs): return surgical find/replace `edits` on the prose PLUS a short `reply` telling them what you did.',
+    '- A BIG change (rewrite it all, restructure, change the whole angle/tone, "make it more hype"): return `body` — the COMPLETE new body HTML, top to bottom — plus a short `reply`. Do NOT attempt a full rewrite through find/replace edits.',
     '- A change to the TITLE / headline: return a new `title` PLUS a `reply`. Only when they want it changed, not while brainstorming.',
     (target ? 'THE COLLEAGUE SELECTED THIS EXACT PASSAGE to work on — focus on it, and any `find` MUST come from within it:\n"""\n' + target + '\n"""' : ''),
-    'OUTPUT: return ONLY JSON, no fences, no commentary: {"reply":"<your chat message>","title":"<new title, ONLY if changing it>","edits":[{"find":"<EXACT verbatim substring of the CURRENT BODY HTML, character-for-character incl tags/whitespace, matching exactly ONE place>","replace":"<edited HTML>"}]}. `title` and `edits` are OPTIONAL; `reply` is ALWAYS present.',
-    'EDIT RULES (only when you actually edit the body): every `find` copied verbatim and matching exactly one place, or omit it. NEVER touch image / <figure> / <img> / gallery / slideshow / project-card (data-project) markup — prose text only, leave all media where it sits. Preserve every verified fact, number, date, price, and firm name unless the message or REFERENCE MATERIAL corrects it; never invent facts or fabricate a quotation. Keep edits minimal; do not rewrite the whole article unless asked. Avoid em dashes.',
+    'OUTPUT: return ONLY JSON, no fences, no commentary: {"reply":"<your chat message>","title":"<new title, ONLY if changing it>","edits":[{"find":"<EXACT verbatim substring of the CURRENT BODY HTML, character-for-character incl tags/whitespace, matching exactly ONE place>","replace":"<edited HTML>"}],"body":"<COMPLETE new body HTML, ONLY for a big rewrite — never alongside edits>"}. `title`, `edits`, `body` are OPTIONAL; `reply` is ALWAYS present.',
+    'EDIT RULES (both modes): NEVER touch image / <figure> / <img> / gallery / slideshow / project-card (data-project) / <iframe> markup — prose text only. In a full `body` you MUST carry over every one of those media elements from the current body VERBATIM (byte-identical markup), each placed sensibly between paragraphs; a rewrite that drops or alters an image is invalid. Every `find` copied verbatim and matching exactly one place, or omit it. Preserve every verified fact, number, date, price, and firm name unless the message or REFERENCE MATERIAL corrects it; never invent facts or fabricate a quotation. Avoid em dashes.',
   ].filter(Boolean).join('\n\n');
-  const usr = 'MESSAGE:\n' + instruction
+  const usr = (history.length ? 'RECENT CHAT (continuity — what you told them earlier really happened only if the draft below reflects it):\n' + history.map((h) => h.role + ': ' + h.text).join('\n') + '\n\n' : '')
+    + 'MESSAGE:\n' + instruction
     + (context ? '\n\nREFERENCE MATERIAL the colleague pasted (verified facts you may use; do not exceed it):\n' + context : '')
     + '\n\nCURRENT TITLE: ' + title
     + '\n\nCURRENT BODY HTML:\n' + body;
   let raw = '';
-  try { raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3200 }); }
+  try { raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 16000 }); }
   catch (e) { return json({ error: 'reviser model failed: ' + (e.message || e) }, { status: 502 }, env, origin); }
-  let parsed = null;
+  let parsed = null, repaired = false;
   try { parsed = JSON.parse(raw); }
-  catch { try { parsed = JSON.parse(repairTruncatedJson(String(raw).replace(/^\s*```(?:json)?|```\s*$/g, ''))); } catch (_) {} }
+  catch { try { parsed = JSON.parse(repairTruncatedJson(String(raw).replace(/^\s*```(?:json)?|```\s*$/g, ''))); repaired = true; } catch (_) {} }
   if (!parsed || typeof parsed.reply !== 'string') {
     const fb = stripTags(String(raw)).slice(0, 600);
     if (fb) return json({ ok: true, reply: fb, applied: 0 }, {}, env, origin);
     return json({ ok: false, error: 'The editor could not respond. Try rephrasing.' }, {}, env, origin);
   }
-  const reply = String(parsed.reply || '').slice(0, 800);
+  let reply = String(parsed.reply || '').slice(0, 800);
   const edits = Array.isArray(parsed.edits) ? parsed.edits : [];
   const newTitle = (parsed.title != null && stripTags(String(parsed.title)) && stripTags(String(parsed.title)) !== title)
     ? stripTags(String(parsed.title)).slice(0, 200) : '';
@@ -3212,20 +3240,48 @@ async function handleReviseDraft(req, env, origin) {
   // never String.replace (article HTML/prices contain $ and other specials).
   let out = body, applied = 0, skipped = 0;
   const changes = [];
-  for (const e of edits.slice(0, 16)) {
-    const find = e && e.find != null ? String(e.find) : '';
-    if (!find) { skipped++; continue; }
-    let count = 0, idx = 0;
-    while ((idx = out.indexOf(find, idx)) !== -1) { count++; idx += find.length; }
-    if (count !== 1) { skipped++; continue; }
-    const rep = e.replace == null ? '' : String(e.replace);
-    const at = out.indexOf(find);
-    out = out.slice(0, at) + rep + out.slice(at + find.length);
-    const repText = stripTags(rep).slice(0, 400);
-    if (repText) changes.push(repText);
-    applied++;
+  const fullBody = parsed.body != null && String(parsed.body).trim() ? String(parsed.body).trim() : '';
+  if (fullBody) {
+    // A full rewrite is valid only if every media element survived verbatim —
+    // a rewrite that drops an image/gallery/card silently destroys the layout.
+    const mediaOf = (h) => {
+      const m = [];
+      for (const re of [/<img[^>]*\ssrc=["']([^"']+)["']/gi, /<iframe[^>]*\ssrc=["']([^"']+)["']/gi]) {
+        let x; while ((x = re.exec(h)) !== null) m.push(x[1]);
+      }
+      if (/tmw-project-card/.test(h)) m.push('__project_card__');
+      return m;
+    };
+    const missing = mediaOf(body).filter((src) => !fullBody.includes(src === '__project_card__' ? 'tmw-project-card' : src));
+    if (missing.length) {
+      reply = 'I drafted the full rewrite but it dropped ' + missing.length + ' of the article\'s images along the way, so I did not apply it — nothing changed. Ask me again and I will redo it with every image kept in place.';
+    } else {
+      out = fullBody; applied = 1;
+      changes.push(stripTags(fullBody).slice(0, 400));
+    }
+  } else {
+    for (const e of edits.slice(0, 16)) {
+      const find = e && e.find != null ? String(e.find) : '';
+      if (!find) { skipped++; continue; }
+      let count = 0, idx = 0;
+      while ((idx = out.indexOf(find, idx)) !== -1) { count++; idx += find.length; }
+      if (count !== 1) { skipped++; continue; }
+      const rep = e.replace == null ? '' : String(e.replace);
+      const at = out.indexOf(find);
+      out = out.slice(0, at) + rep + out.slice(at + find.length);
+      const repText = stripTags(rep).slice(0, 400);
+      if (repText) changes.push(repText);
+      applied++;
+    }
   }
-  const bodyChanged = applied > 0;
+  const bodyChanged = applied > 0 && out !== body;
+  // HONESTY GUARD: the model narrates success in `reply` BEFORE we try to apply
+  // its edits. If it clearly attempted a change and nothing landed (unmatched
+  // finds, or its response was truncated and repaired), never let the confident
+  // reply through — say plainly that nothing changed.
+  if (!bodyChanged && !fullBody && (edits.length > 0 || (repaired && /rewrit|rewrote|edit|chang|updat|new lede|punchier/i.test(reply)))) {
+    reply = 'I tried to make that change but my edits did not land on the current text' + (repaired ? ' (my response came back cut off)' : '') + ', so NOTHING has changed in the draft. Ask me again — for a big rewrite just say "rewrite the whole thing" and I will replace the body in one piece.';
+  }
   if (bodyChanged) out = out.replace(/\s*—\s*/g, ', ');
   if (bodyChanged || newTitle) {
     const sets = [], binds = [];
@@ -3239,7 +3295,9 @@ async function handleReviseDraft(req, env, origin) {
   return json({ ok: true, reply, applied, skipped, changes,
     title: newTitle || undefined,
     body_html: bodyChanged ? out : undefined,
-    unmatched: (edits.length > 0 && applied === 0) || undefined }, {}, env, origin);
+    refs_read: refBlocks.length || undefined,
+    ref_errors: refFails.length ? refFails.map((f) => f.url + ' (' + f.error + ')') : undefined,
+    unmatched: (!fullBody && edits.length > 0 && applied === 0) || undefined }, {}, env, origin);
 }
 
 // POST /admin/design-chat — the article Polish chat, ported to the carousel
