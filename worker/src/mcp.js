@@ -4708,6 +4708,30 @@ const IMPL = {
   },
 };
 
+// ── The Studio agent surface, shared ────────────────────────────────────────
+// The in-admin ONYX chat (/admin/onyx-chat) runs this EXACT tool catalog and
+// these EXACT implementations — the same ones claude.ai drives over MCP. That
+// is deliberate: it is the only way the admin writer and a claude.ai session
+// can never drift apart. Adding a tool here lights it up on both surfaces at
+// once. `studioToolDefs()` hands out Anthropic-shaped defs (input_schema
+// instead of MCP's inputSchema); `studioCallTool` is the one dispatch path.
+export function studioToolDefs() {
+  return TOOLS.map((t) => ({
+    name: t.name,
+    description: t.description,
+    input_schema: t.inputSchema || { type: 'object', properties: {} },
+  }));
+}
+export async function studioCallTool(name, args, env) {
+  const impl = IMPL[name];
+  if (!impl) throw new Error('Unknown tool: ' + name);
+  return await impl(args || {}, env);
+}
+// Onyx runs as its own actor so per-article scorecards attribute correctly.
+export function setStudioActor(label) { _mcpActor = String(label || 'studio-connector'); }
+// Fresh per-request caches (handleMcp does this too; the Onyx loop needs it).
+export function resetStudioCaches() { _projectsCache = null; _articlesCache = null; _firmRegCache = null; }
+
 // ── Studio-admin bridge helpers ─────────────────────────────────────────────
 const BRIDGE_ORIGIN = 'https://www.oftmw.com';
 // Synthetic GET carrying the worker's own admin bearer, so self-gating

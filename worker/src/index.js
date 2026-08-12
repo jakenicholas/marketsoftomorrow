@@ -15,7 +15,8 @@
 //   account acts as a non-human principal granted read-only access to one
 //   specific GA4 property. The README walks through the GCP-side setup.
 
-import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage, syncOpenDeliveryDates } from './mcp.js';
+import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage, syncOpenDeliveryDates,
+         studioToolDefs, studioCallTool, setStudioActor, resetStudioCaches } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
 import { ONTOLOGY, ONTOLOGY_VERSION, ontologyText } from './ontology.js';
@@ -8784,6 +8785,191 @@ async function handleEmailWeeks(req, env, origin) {
   return json({ weeks }, {}, env, origin);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ONYX — the in-admin studio agent (POST /admin/onyx-chat, SSE)
+//
+// The whole point: this is the SAME agent a claude.ai session is, just hosted
+// inside the Studio. It drives the EXACT tool catalog + implementations that
+// claude.ai drives over MCP (studioToolDefs / studioCallTool from mcp.js), so
+// the two surfaces can never drift. Article writing goes through
+// generate_article_draft, which means Fable 5 + assembleBrain + the fact gate:
+// the identical writer the in-editor Polish chat uses. Everything it learns
+// (record_preference, edit pairs) lands in the one shared brain.
+//
+// Orchestrator = Opus 4.8 with adaptive thinking + Anthropic's server-side
+// web_search for the "go research this properly, cited" mode. Streams SSE so
+// the UI shows the tool trail live instead of hanging on a 2-minute research
+// run. Nothing here publishes — every tool writes reviewable drafts only.
+// ═══════════════════════════════════════════════════════════════════════════
+const ONYX_MODEL = 'claude-opus-4-8';
+const ONYX_MAX_ROUNDS = 18;
+
+function onyxSystem() {
+  const today = new Date().toISOString().slice(0, 10);
+  return [
+    'You are ONYX, the Markets of Tomorrow (TMW) studio agent, running INSIDE the TMW admin Studio at admin.oftmw.com. You are talking to Jake (the founder) or his team. Today is ' + today + '.',
+    'You run the studio through the same tool catalog the claude.ai connector uses. Before writing or critiquing any article, carousel, caption or headline, call get_brand_brain to load the shared house style. Record new likes/dislikes/rules with record_preference so taste stays in sync across every surface and account. Nothing you do publishes to the live journal, live map, or any social account: every write lands as a reviewable DRAFT for a human to promote.',
+    'WRITING AN ARTICLE is your most important job. Never hand-write the article body yourself. Always author it with generate_article_draft, which runs the Fable 5 house writer grounded in the shared brand brain, the measured voice fingerprint, real published exemplars and the fact gate. That is what keeps every surface writing in one voice. Pass topic, angle, place, the verified facts you gathered, category (an EXISTING one only), linked_project when the story centers on a tracked project, and folder when you have staged photos. Refine with revise_article_draft. Fall back to create_post_draft(source:"ai") only if generation genuinely fails.',
+    'TWO MODES, read the ask:',
+    '(a) FAST: the user hands you the materials (pasted text, a press release, links, a document). Use what they gave you. Fetch any URL they pasted so you are working from the real page, not the summary. Do not go on a research expedition they did not ask for.',
+    '(b) DEEP RESEARCH: the user asks you to go find it / wants it heavy and cited. Then web_search hard: open the official announcement plus independent reputable outlets (local business journals, The Real Deal, Bisnow, Commercial Observer, Robb Report, architecture and travel press). Corroborate every hard fact (keys, units, floors, GFA, dollars, dates, brand, developer, architect, address, opening) against 2+ independent sources or the official release plus one. A fact that appears in exactly one place is UNVERIFIED: hedge it honestly or drop it, never state it flat. Read real publish dates off the page, never off a search snippet. Put the source URLs in the facts you pass to generate_article_draft so the piece carries its citations, and list the sources you used in your reply.',
+    'BEFORE you draft: call list_post_drafts and check BOTH tabs for a draft already covering this project or story (the #1 failure is a duplicate), and search_articles for recent published coverage. If it is already covered, say so and ask before proceeding rather than quietly making a duplicate.',
+    'PHOTOS are organized by PROJECT, never by article: the folder is always "Projects / {canonical project name}" (use search_projects / match_project to get the real name). Reuse an existing folder; scrape_website_images into that same folder when the library is thin. Pass that folder to generate_article_draft so the piece gets a cover and inline images.',
+    'CATEGORY FIREWALL: never invent a category. Pick an existing one (the market regions plus Hotels, Golf, Restaurants, Real Estate); an unrecognized value is silently dropped and the post ends up uncategorized.',
+    'HOUSE RULES: never use em dashes anywhere (commas or periods instead). Never invent facts, numbers, dates, prices or firm names. Never fabricate a quotation. Luxury and hype only, forward looking.',
+    'HOW TO REPLY: be brief and concrete, like a sharp colleague. When you create or change something, ALWAYS give the human the link (the Studio edit URL for a draft, the preview URL for a carousel). Say plainly what you verified and what you could not. If a tool fails, say what failed instead of pretending it worked. Do not narrate every step in prose: the UI already shows your tool trail.',
+  ].join('\n\n');
+}
+
+// Pull any human-openable artifact out of a tool result so the UI can show a
+// "here is your draft" card without the model having to remember to paste links.
+function onyxArtifacts(toolName, result) {
+  const out = [];
+  const r = (result && typeof result === 'object') ? result : {};
+  const push = (label, url, sub) => { if (url && typeof url === 'string' && /^https?:\/\//.test(url)) out.push({ label, url, sub: sub || '' }); };
+  const title = String(r.title || r.name || r.headline || '').slice(0, 140);
+  if (r.edit_url) push(title || 'Open the draft', r.edit_url, 'Studio editor');
+  if (r.preview_url) push(title || 'Share preview', r.preview_url, 'client preview link');
+  if (r.studio_url) push(title || 'Open in Studio', r.studio_url, '');
+  if (!r.edit_url && r.slug && /post|article/i.test(toolName)) {
+    push(title || 'Open the draft', 'https://admin.oftmw.com/post.html?id=' + encodeURIComponent(r.slug), 'Studio editor');
+  }
+  if (/map_draft/i.test(toolName) && (r.ok || r.slug)) push(title || 'Review the map draft', 'https://admin.oftmw.com/map/?drafts', 'Drafts tab');
+  return out;
+}
+
+async function handleOnyxChat(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 503 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const incoming = Array.isArray(body.messages) ? body.messages.slice(-24) : [];
+  if (!incoming.length) return json({ error: 'messages required' }, { status: 400 }, env, origin);
+
+  resetStudioCaches();
+  setStudioActor('onyx-admin');
+
+  // The shared catalog, Anthropic-shaped, with the big block prompt-cached at
+  // 1h (a chat turn-taking session re-sends these ~37k tokens every round).
+  const tools = studioToolDefs();
+  if (tools.length) tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
+  tools.push({ type: 'web_search_20250305', name: 'web_search', max_uses: 16 });
+
+  const convo = incoming.map((m) => ({
+    role: m.role === 'assistant' ? 'assistant' : 'user',
+    content: m.content,
+  }));
+
+  const enc = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(ctrl) {
+      const send = (o) => { try { ctrl.enqueue(enc.encode('data: ' + JSON.stringify(o) + '\n\n')); } catch (_) {} };
+      const fail = (m) => { send({ t: 'error', m: String(m).slice(0, 400) }); send({ t: 'done' }); try { ctrl.close(); } catch (_) {} };
+      try {
+        for (let round = 0; round < ONYX_MAX_ROUNDS; round++) {
+          let resp;
+          try {
+            resp = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'x-api-key': env.ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: ONYX_MODEL,
+                max_tokens: 8000,
+                thinking: { type: 'adaptive' },
+                system: [{ type: 'text', text: onyxSystem(), cache_control: { type: 'ephemeral', ttl: '1h' } }],
+                tools,
+                messages: convo,
+              }),
+            });
+          } catch (e) { return fail('network error calling the model: ' + (e.message || e)); }
+          if (!resp.ok) {
+            const t = await resp.text().catch(() => '');
+            return fail('model HTTP ' + resp.status + ' ' + t.slice(0, 300));
+          }
+          const d = await resp.json();
+          if (d.stop_reason === 'refusal') return fail('The model declined that request. Rephrase it and try again.');
+
+          const content = Array.isArray(d.content) ? d.content : [];
+          // Surface the prose for this round, plus any web sources it consulted.
+          for (const b of content) {
+            if (b.type === 'text' && b.text) send({ t: 'text', m: b.text });
+            if (b.type === 'server_tool_use' && b.name === 'web_search') {
+              const q = b.input && b.input.query; if (q) send({ t: 'status', tool: 'web_search', m: 'Searching: ' + String(q).slice(0, 120) });
+            }
+            if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) {
+              const srcs = b.content.filter((x) => x && x.url).slice(0, 6).map((x) => ({ url: x.url, title: String(x.title || '').slice(0, 120) }));
+              if (srcs.length) send({ t: 'sources', items: srcs });
+            }
+          }
+          // Replay the assistant turn VERBATIM (thinking + server-tool blocks
+          // must go back unmodified or the API rejects the next request).
+          convo.push({ role: 'assistant', content });
+
+          const calls = content.filter((b) => b.type === 'tool_use');
+          if (!calls.length) break;   // end_turn: the agent is done talking
+
+          const results = [];
+          for (const call of calls) {
+            send({ t: 'status', tool: call.name, m: onyxToolLabel(call.name, call.input) });
+            let payload, isErr = false;
+            try {
+              const r = await studioCallTool(call.name, call.input || {}, env);
+              payload = JSON.stringify(r).slice(0, 60000);
+              for (const a of onyxArtifacts(call.name, r)) send({ t: 'artifact', ...a });
+            } catch (e) {
+              isErr = true;
+              payload = 'Error: ' + (e && e.message ? e.message : String(e));
+              send({ t: 'status', tool: call.name, m: 'failed: ' + payload.slice(0, 160), bad: true });
+            }
+            results.push({ type: 'tool_result', tool_use_id: call.id, content: payload, is_error: isErr || undefined });
+          }
+          convo.push({ role: 'user', content: results });
+        }
+        send({ t: 'done' });
+        try { ctrl.close(); } catch (_) {}
+      } catch (e) { fail(e && e.message ? e.message : String(e)); }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      ...corsHeaders(env, origin),
+    },
+  });
+}
+// Human-readable label for the tool trail ("Writing the article with Fable"),
+// so the UI reads like progress instead of a function log.
+function onyxToolLabel(name, input) {
+  const i = input || {};
+  const M = {
+    generate_article_draft: 'Writing the article with Fable 5 (house brain + fact gate)',
+    revise_article_draft: 'Revising the draft',
+    get_brand_brain: 'Loading the house style',
+    list_post_drafts: 'Checking existing drafts for duplicates',
+    search_articles: 'Checking what we already published',
+    search_posts: 'Searching the journal',
+    search_projects: 'Looking this up in the database',
+    match_project: 'Matching it against tracked projects',
+    scrape_website_images: 'Pulling photos into the media library',
+    upload_photo: 'Filing a photo',
+    create_map_draft: 'Staging a map draft for review',
+    create_post_draft: 'Saving the draft',
+    record_preference: 'Banking that preference to the brain',
+    list_content_gaps: 'Reading what the audience is asking for',
+    create_carousel_draft: 'Building the carousel draft',
+    write_article_and_post: 'Writing the article and building the post',
+  };
+  if (M[name]) return M[name] + (i.topic ? ': ' + String(i.topic).slice(0, 90) : (i.query ? ': ' + String(i.query).slice(0, 90) : ''));
+  return name.replace(/_/g, ' ') + (i.topic || i.query || i.name ? ': ' + String(i.topic || i.query || i.name).slice(0, 90) : '');
+}
+
 // ── Morning Desk feeds ──────────────────────────────────────────────────────
 // GET /admin/morning → real last-post-per-account from the daily IG archive
 // sync (ig_posts), so the desk's accounts board reflects actual Instagram
@@ -17199,6 +17385,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/dl')                  return await handleAdminDownload(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/email-weeks')         return await handleEmailWeeks(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/onyx-chat')           return await handleOnyxChat(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/design-chat')         return await handleDesignChat(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-feedback')     return await handleReviseFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
