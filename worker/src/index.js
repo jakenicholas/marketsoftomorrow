@@ -5196,7 +5196,7 @@ async function handlePostsList(req, env, origin, url) {
   const total = await env.DB.prepare(`SELECT COUNT(*) AS c FROM posts WHERE ${whereSql}`).bind(...params).first();
   const rows  = await env.DB.prepare(`
     SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
-           author_name, status, published_at, updated_at, reading_time_min, wix_url, featured, main_category,
+           author_name, status, published_at, updated_at, created_at, reading_time_min, wix_url, featured, main_category,
            post_type, income, contact_id, project_slug, source
     FROM posts WHERE ${whereSql}
     ORDER BY COALESCE(published_at, updated_at) DESC
@@ -5865,6 +5865,7 @@ function rowToPostSummary(r) {
     published_at: r.published_at,
     published_iso: r.published_at ? new Date(r.published_at * 1000).toISOString() : null,
     updated_at: r.updated_at,
+    created_at: r.created_at != null ? r.created_at : null,
     reading_time_min: r.reading_time_min,
     wix_url: r.wix_url,
     featured: r.featured ? 1 : 0,
