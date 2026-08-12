@@ -1,10 +1,10 @@
 /* ===================================================================
-   tmw-inquire.js — the lead-capture front door.
+   tmw-inquire.js, the lead-capture front door.
 
    The whole referral thesis: TMW's audience drives real transactions
    (condos, club memberships, homes) but people see a post on Instagram
    and run STRAIGHT to the developer, cutting TMW out. This makes them
-   run through us instead — a "Request info / Join the interest list"
+   run through us instead, a "Request info / Join the interest list"
    modal on our own project pages that captures the buyer as a
    first-party, timestamped lead (our attribution evidence), posts to
    the worker /lead endpoint, notifies the TMW backend, and (when we
@@ -27,7 +27,7 @@
   function ensureCss() {
     if (document.getElementById('tmw-inq-css')) return;
     var css = [
-      /* pointer-events:none while closed — otherwise the invisible full-screen
+      /* pointer-events:none while closed, otherwise the invisible full-screen
          scrim keeps eating every click on the page and nothing is clickable
          until a reload. .on flips it back to auto so the modal is interactive. */
       '.tmw-inq-scrim{position:fixed;inset:0;z-index:2147482000;background:rgba(4,4,6,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s ease;display:flex;align-items:center;justify-content:center;padding:20px}',
@@ -126,7 +126,7 @@
       '<input data-f="name" type="text" placeholder="Full name" autocomplete="name" required>' +
       '<input data-f="email" type="email" placeholder="Email" autocomplete="email" inputmode="email">' +
       '<input data-f="phone" type="tel" placeholder="Phone" autocomplete="tel" inputmode="tel">' +
-      '<textarea data-f="message" placeholder="Anything specific? (budget, timeline, unit size…) — optional"></textarea>' +
+      '<textarea data-f="message" placeholder="Anything specific? Budget, timeline, unit size… (optional)"></textarea>' +
       '<div class="tmw-inq-err" data-err></div>' +
       '<button class="tmw-inq-go" type="submit">Request info</button>' +
       '<p class="tmw-inq-fine">We’ll connect you with the team behind this project. No spam.</p>' +
@@ -155,7 +155,7 @@
     if (_ctx.intent === 'interest-list') {
       eye.textContent = proj || 'Markets of Tomorrow';
       h.textContent = proj ? 'Join the ' + proj + ' interest list' : 'Join the interest list';
-      sub.textContent = 'First access to pricing, availability, and private tours — straight from the source.';
+      sub.textContent = 'First access to pricing, availability, and private tours, straight from the source.';
       _scrim.querySelector('.tmw-inq-go').textContent = 'Join the list';
     } else if (_ctx.intent === 'tour') {
       eye.textContent = proj || 'Markets of Tomorrow';
@@ -262,7 +262,7 @@
         if (firstSvg && firstSvg.nextSibling) share.insertBefore(lbl, firstSvg.nextSibling); else share.appendChild(lbl);
       }
     } else if (!row) {
-      // No CTA row on this template — float a pill bottom-center above the dock.
+      // No CTA row on this template, float a pill bottom-center above the dock.
       cta.style.cssText += ';position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:9000';
       document.body.appendChild(cta);
     }
