@@ -27,8 +27,10 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var PASSPORT_ICON = '<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9.5 16.5h5"/></svg>';
   function toast(msg) {
-    // Use the GENERIC site toast with a white passport icon — NOT tmwWatchToast
-    // (which appends "added to your watchlist"), and not the default 🎉.
+    // Unified dock toast (Direction A, above the dock). Its own passport icon, so
+    // strip any trailing check glyph from the message.
+    if (window.tmwToast) { window.tmwToast({ type: 'passport', title: String(msg || '').replace(/\s*✓\s*$/, '') }); return; }
+    // Fallbacks: the celebrate toast, then the page-local pill.
     if (window.tmwCelebrateToast) { try { window.tmwCelebrateToast({ title: msg, emoji: PASSPORT_ICON }); return; } catch (_) {} }
     var t = el('div', 'tmw-pp-toast', esc(msg)); document.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add('on'); });

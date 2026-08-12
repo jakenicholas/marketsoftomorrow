@@ -950,6 +950,9 @@ function hookFavorite() {
   // Tiny in-page toast. We position it INSIDE .share so it floats above
   // the byline row without needing a fixed-position container.
   function showToast(msg, kind) {
+    // Favorites success → the unified dock toast (Direction A, above the dock).
+    // Errors keep the local pill (not a dock-toast concept).
+    if (kind !== 'err' && window.tmwToast) { window.tmwToast({ type: 'fav', title: msg }); return; }
     let host = document.getElementById('fav-toast');
     if (host) host.remove();
     host = document.createElement('div');

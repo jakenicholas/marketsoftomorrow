@@ -2547,40 +2547,67 @@
   var ACH = { founding:{n:'Founding Member',xp:100}, reader:{n:'Reader',xp:0}, globetrotter:{n:'Globetrotter',xp:150}, tastemaker:{n:'Tastemaker',xp:300}, centurion:{n:'Centurion',xp:250}, contributor:{n:'Contributor',xp:200} };
   var STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
   var LVLUP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/><path d="M18 9l-6-6-6 6"/></svg>';
-  var CSS = '#tmw-ach-wrap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:2147483000;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}'
-    +'.tmw-ach{display:flex;align-items:center;gap:13px;min-width:360px;max-width:460px;padding:14px 18px;border-radius:16px;background:rgba(16,18,24,.92);border:1px solid rgba(230,197,116,.35);box-shadow:0 0 30px rgba(230,197,116,.22),0 18px 50px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:Inter,system-ui,sans-serif;color:#ECEAE5;transform:translateY(22px);opacity:0;transition:transform .42s cubic-bezier(.2,.9,.3,1),opacity .42s;pointer-events:auto}'
-    +'.tmw-ach.in{transform:translateY(0);opacity:1}'
-    +'.tmw-ach-ic{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(240,214,138,.95),rgba(230,197,116,.82));color:#4a3708;box-shadow:0 0 18px rgba(230,197,116,.4)}'
-    +'.tmw-ach-ic svg{width:21px;height:21px}'
-    +'.tmw-ach-bd{flex:1;min-width:0}'
-    +'.tmw-ach-k{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#e6c574;margin-bottom:3px}'
-    +'.tmw-ach-n{font-family:Fraunces,Georgia,serif;font-size:17px;font-weight:600;color:#fff;line-height:1.1}'
-    +'.tmw-ach-xp{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;color:#42EB81;text-shadow:0 0 12px rgba(31,223,103,.4);flex:0 0 auto}'
-    +'.tmw-ach.lvl{border-color:rgba(167,139,250,.4);box-shadow:0 0 30px rgba(167,139,250,.25),0 18px 50px rgba(0,0,0,.5)}'
-    +'.tmw-ach.lvl .tmw-ach-ic{background:linear-gradient(135deg,#c4b5fd,#A78BFA);color:#1a1340;box-shadow:0 0 18px rgba(167,139,250,.45)}'
-    +'.tmw-ach.lvl .tmw-ach-k{color:#B9A6FF}'
-    +'.tmw-ach.lvl .tmw-ach-xp{color:#B9A6FF;text-shadow:0 0 12px rgba(167,139,250,.45)}';
-  function ensureCss(){ if(!document.getElementById('tmw-ach-css')){var s=document.createElement('style');s.id='tmw-ach-css';s.textContent=CSS;document.head.appendChild(s);} }
-  function pushToast(o){
-    ensureCss();
-    var w=document.getElementById('tmw-ach-wrap'); if(!w){w=document.createElement('div');w.id='tmw-ach-wrap';document.body.appendChild(w);}
-    var el=document.createElement('div'); el.className='tmw-ach'+(o.lvl?' lvl':'');
-    el.innerHTML='<div class="tmw-ach-ic">'+(o.icon||STAR)+'</div><div class="tmw-ach-bd"><div class="tmw-ach-k">'+o.kicker+'</div><div class="tmw-ach-n">'+o.name+'</div></div>'+(o.sub?'<div class="tmw-ach-xp">'+o.sub+'</div>':'');
-    // Tapping any toast takes you to your account (the climb / rewards live there).
-    el.style.cursor='pointer'; el.setAttribute('role','link'); el.setAttribute('tabindex','0');
-    function goAccount(){ try{ location.href=(o.href||'/dashboard/'); }catch(e){} }
-    el.addEventListener('click',goAccount);
-    el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goAccount(); } });
-    w.appendChild(el);
-    requestAnimationFrame(function(){ el.classList.add('in'); });
-    setTimeout(function(){ el.classList.remove('in'); setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },420); }, 5400);
-  }
-  function toast(key){ var a=ACH[key]; if(!a) return; pushToast({kicker:'Achievement unlocked', name:a.n, sub:(a.xp?'+'+a.xp+' XP':'')}); }
-  function toastLevel(lvl,tier){ pushToast({kicker:'Level up', name:'Level '+lvl+(tier?' · '+tier:''), icon:LVLUP, lvl:true}); }
+  var HEART = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-6.5-4.3-9-8C1.4 9.4 2.7 6.6 5.5 6.3 7.2 6.1 9 7.1 12 10c3-2.9 4.8-3.9 6.5-3.7 2.8.3 4.1 3.1 2.5 5.7-2.5 3.7-9 8-9 8z"/></svg>';
+  var BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+  var STAMP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="2.4"/><path d="M9 16.5h6"/></svg>';
   var FLAME = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c4.4 0 8-3.3 8-7.8 0-2.9-1.4-5.2-2.8-7-.3-.4-.9-.3-1.1.2-.5 1.4-1.5 2.3-2.3 2-.9-.3-.6-2-.4-3.7.2-2-.2-4-2.5-6-.4-.3-.9 0-1 .5-.2 2-1 3.4-2.2 4.8C5.8 8.6 4 11 4 15.2 4 19.7 7.6 23 12 23z"/></svg>';
-  function toastStreak(n){ pushToast({kicker:'Daily streak', name:n+'-day streak', sub:'+10 XP', icon:FLAME}); }
-  // Console test helper: run tmwToastTest() on any oftmw.com page to preview the toasts.
-  window.tmwToastTest = function(){ toast('globetrotter'); setTimeout(function(){ toastLevel(4,'Insider'); }, 800); setTimeout(function(){ toastStreak(12); }, 1600); };
+  // ── Unified toast — Direction A "dock glass" (Jake 2026-08-12). ONE host that
+  //    sits ABOVE the dock (measured), compact glass pills tinted per type, stacking
+  //    upward (newest just above the dock, earlier ones ride up, cap 3). Replaces
+  //    the old #tmw-ach-wrap (which sat AT bottom:26px, ON the dock, killing touch)
+  //    and unifies the watch / passport / favorites toasts — they now call
+  //    window.tmwToast({type,title,sub,xp,href}). type: fav|watch|passport|streak|level|ach.
+  var TT_ICON  = { fav:HEART, watch:BELL, passport:STAMP, streak:FLAME, level:LVLUP, ach:STAR };
+  var TT_TINT  = { fav:'167,139,250', watch:'240,214,138', passport:'66,235,129', streak:'255,145,71', level:'143,162,255', ach:'240,214,138', info:'167,139,250' };
+  var TT_SOLID = { fav:'#B9A6FF', watch:'#f0d68a', passport:'#42EB81', streak:'#FF9147', level:'#8FA2FF', ach:'#f0d68a', info:'#B9A6FF' };
+  var CSS = '#tmw-toast-host{position:fixed;left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;flex-direction:column;gap:10px;align-items:stretch;pointer-events:none;width:min(360px,calc(100vw - 28px))}'
+    +'.tmw-toast{display:flex;align-items:center;gap:11px;width:100%;padding:9px 14px 9px 9px;border-radius:14px;background:rgba(16,18,16,.74);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 28px rgba(0,0,0,.46);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-family:Inter,system-ui,sans-serif;color:#ECEAE5;transform:translateY(14px);opacity:0;transition:transform .4s cubic-bezier(.2,.9,.3,1),opacity .4s;pointer-events:auto;cursor:pointer}'
+    +'.tmw-toast.in{transform:translateY(0);opacity:1}'
+    +'.tmw-toast.out{transform:translateY(14px);opacity:0}'
+    +'.tmw-toast-ic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;display:flex;align-items:center;justify-content:center}'
+    +'.tmw-toast-ic svg{width:17px;height:17px}'
+    +'.tmw-toast-bd{min-width:0;flex:1}'
+    +'.tmw-toast-t{font-size:13.5px;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    +'.tmw-toast-s{font-size:11.5px;color:#9AA39C;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    +'.tmw-toast-xp{margin-left:auto;flex:0 0 auto;font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:700;padding-left:8px}'
+    +'@media(prefers-reduced-motion:reduce){.tmw-toast{transition:opacity .2s}.tmw-toast.in{transform:none}}';
+  function ensureCss(){ if(!document.getElementById('tmw-toast-css')){var s=document.createElement('style');s.id='tmw-toast-css';s.textContent=CSS;document.head.appendChild(s);} }
+  function ttEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  // Anchor the host just ABOVE the dock: measure the (collapsed) dock pill; fall back
+  // to a safe calc when the dock is absent or mid-expansion (unusually tall).
+  function ttPosition(w){
+    try{ var d=document.querySelector('.tmw-dock');
+      if(d){ var r=d.getBoundingClientRect(); if(r.height>0 && r.height<170){ w.style.bottom=Math.max(14,(window.innerHeight-r.top+12))+'px'; return; } }
+    }catch(e){}
+    w.style.bottom='calc(94px + env(safe-area-inset-bottom, 0px))';
+  }
+  function tmwToast(o){
+    o=o||{}; ensureCss();
+    var w=document.getElementById('tmw-toast-host'); if(!w){ w=document.createElement('div'); w.id='tmw-toast-host'; document.body.appendChild(w); }
+    ttPosition(w);
+    var type=o.type||'info', tint=TT_TINT[type]||TT_TINT.info, solid=TT_SOLID[type]||TT_SOLID.info, icon=TT_ICON[type]||STAR;
+    var el=document.createElement('div'); el.className='tmw-toast';
+    el.innerHTML='<div class="tmw-toast-ic" style="background:rgba('+tint+',.16);color:'+solid+'">'+icon+'</div>'
+      +'<div class="tmw-toast-bd"><div class="tmw-toast-t">'+ttEsc(o.title)+'</div>'+(o.sub?'<div class="tmw-toast-s">'+ttEsc(o.sub)+'</div>':'')+'</div>'
+      +(o.xp?'<div class="tmw-toast-xp" style="color:'+solid+'">'+ttEsc(o.xp)+'</div>':'');
+    while(w.children.length>=3){ w.removeChild(w.firstChild); }   // cap 3 visible, drop oldest
+    w.appendChild(el);   // newest sits just above the dock; earlier ones ride up
+    var to; function dismiss(){ if(to)clearTimeout(to); el.classList.remove('in'); el.classList.add('out'); setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },420); }
+    if(o.href){ el.setAttribute('role','link'); el.setAttribute('tabindex','0');
+      el.addEventListener('click',function(){ try{location.href=o.href;}catch(e){} });
+      el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); try{location.href=o.href;}catch(_){} } });
+    } else { el.addEventListener('click',dismiss); }
+    requestAnimationFrame(function(){ el.classList.add('in'); });
+    to=setTimeout(dismiss, o.life || ((type==='ach'||type==='level')?4800:3500));
+    return el;
+  }
+  window.tmwToast = tmwToast;
+  window.addEventListener('resize', function(){ var w=document.getElementById('tmw-toast-host'); if(w && w.children.length) ttPosition(w); });
+  function toast(key){ var a=ACH[key]; if(!a) return; tmwToast({type:'ach', title:a.n, xp:(a.xp?'+'+a.xp+' XP':''), href:'/dashboard/'}); }
+  function toastLevel(lvl,tier){ tmwToast({type:'level', title:'Level '+lvl+(tier?' · '+tier:''), href:'/dashboard/'}); }
+  function toastStreak(n){ tmwToast({type:'streak', title:n+'-day streak', xp:'+10 XP', href:'/dashboard/'}); }
+  // Console test helper: run tmwToastTest() on any oftmw.com page to preview the stack.
+  window.tmwToastTest = function(){ tmwToast({type:'fav',title:'Saved to your favorites'}); setTimeout(function(){ tmwToast({type:'watch',title:'Now watching',sub:'Mandarin Oriental Residences'}); },600); setTimeout(function(){ tmwToast({type:'passport',title:'Added to your passport'}); },1200); setTimeout(function(){ toastStreak(12); },1800); setTimeout(function(){ toastLevel(4,'Insider'); },2400); };
   function check(id){
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
       if(!d) return;

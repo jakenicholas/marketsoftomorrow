@@ -286,6 +286,9 @@
   // project to the watchlist (map, hotels Opening Radar, Onyx overlay, article
   // project cards). Callers pass the project's display name.
   function watchToast(name) {
+    // Route through the unified dock toast (Direction A, above the dock). Falls back
+    // to the celebrate toast only if the dock's tmwToast isn't loaded yet.
+    if (window.tmwToast) { window.tmwToast({ type: 'watch', title: 'Now watching', sub: (name || 'Project') }); return; }
     var bell = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
     toast({ emoji: bell, title: (name || 'Project') + ' added to your watchlist',
       sub: 'You&rsquo;ll get the alert when it moves.', hold: 6000 });
