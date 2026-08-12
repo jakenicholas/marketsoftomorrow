@@ -1771,6 +1771,20 @@ window.addEventListener('resize', () => {
   _pulseRz = setTimeout(() => { if (_pulseStrip) paintPulseTrack(_pulseStrip); }, 250);
 });
 
+// A project pulse item (status change / financing / now-tracking) should open
+// the project's full SEO page, not the map pin — richer, indexable, and it
+// keeps the reader on a real article surface. Articles keep their post link.
+// Both are same-origin, so we drop target=_blank: the click stays in-tab and
+// the Departure Board loader (tmw-loader.js) intercepts it. Falls back to the
+// event's own link (the map) only when there's no project_slug.
+function pulseHref(e) {
+  if (e.type !== 'article' && e.project_slug) {
+    // Root-relative so it's always same-origin — the loader only intercepts
+    // same-origin clicks, and this resolves to www.oftmw.com/projects/<slug>/.
+    return '/projects/' + encodeURIComponent(e.project_slug) + '/';
+  }
+  return e.link || 'https://map.oftmw.com';
+}
 function pulseItemHtml(e) {
   const kind = e.type === 'article' ? 'article' : (e.type === 'status_change' ? 'status' : 'new');
   // Milestone-style events carry a real event_date (when it happened per the
@@ -1779,7 +1793,7 @@ function pulseItemHtml(e) {
   const age = e.event_date ? (fmtEvDate(e.event_date) || (e.timestamp ? relativeAge(e.timestamp) : ''))
                            : (e.timestamp ? relativeAge(e.timestamp) : '');
   const title = pulseTitle(e);
-  return `<a class="ticker-item" href="${escapeAttr(e.link)}" target="_blank" rel="noopener">
+  return `<a class="ticker-item" href="${escapeAttr(pulseHref(e))}">
     <span class="pdot ${kind}"></span>
     <span class="ttxt">${escapeHtml(title)}</span>
     ${age ? `<span class="tage">${escapeHtml(age)}</span>` : ''}
