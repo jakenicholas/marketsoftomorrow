@@ -12510,6 +12510,25 @@ async function handleMultipartUpload(req, env, origin, action, url) {
 
 async function handleMediaList(req, env, origin, url) {
   const authCheck = await requireAdminToken(req, env, origin);
+  // Look up ONE media row by its public URL → used by the crop tool so a crop
+  // is filed in the folder the ORIGINAL lives in, rather than wherever the UI
+  // happened to be pointing (the article editor passed no folder at all, so
+  // crops made there landed unfiled).
+  {
+    const byUrl = url.searchParams.get('by_url');
+    if (byUrl) {
+      if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+      const u = String(byUrl).trim();
+      const tail = u.split('/').pop().split('?')[0];
+      let row = null;
+      try {
+        row = await env.DB.prepare('SELECT key, filename, folder, url FROM media WHERE url = ?1 LIMIT 1').bind(u).first();
+        if (!row && tail) row = await env.DB.prepare('SELECT key, filename, folder, url FROM media WHERE key = ?1 OR filename = ?1 LIMIT 1').bind(tail).first();
+        if (!row && tail) row = await env.DB.prepare("SELECT key, filename, folder, url FROM media WHERE url LIKE '%' || ?1 LIMIT 1").bind('/' + tail).first();
+      } catch (_) {}
+      return json({ ok: true, found: !!row, folder: (row && row.folder) || '', filename: (row && row.filename) || '' }, {}, env, origin);
+    }
+  }
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
 
@@ -12608,7 +12627,7 @@ async function handleMediaDelete(req, env, origin, key) {
 // strings on media.folder, so renaming "A / B" → "A / C" rewrites that exact
 // folder plus every "A / B / …" descendant prefix. Merges if the target exists.
 //   POST /admin/media/rename-folder { from, to }
-async function handleMediaRenameFolder(req, env, origin) {
+export async function handleMediaRenameFolder(req, env, origin) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);

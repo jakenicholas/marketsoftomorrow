@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, handleReviseFeedback, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, handleReviseFeedback, handleMediaRenameFolder, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
 // Studio-admin read bridge: the connector reuses the SAME handler functions the
 // Access-gated admin pages hit, so the numbers can never drift from the Studio.
 import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats, handleDailyPulse } from './index.js';
@@ -797,6 +797,18 @@ const TOOLS = [
       topic: { type: 'string', description: 'What you are about to write — a short phrase; drives relevance retrieval of house notes' },
       all: { type: 'boolean', description: 'Management view: return every active note with ids/tiers/scopes' },
     } },
+  },
+  {
+    name: 'merge_media_folders',
+    description: 'Merge one media folder INTO another: every image (and every sub-folder) under `from` moves to `to`, and `from` disappears. Use it when the same project ended up with two folders (for example "Projects / Martis Camp" and "Projects / Martis Camp Tahoe"). Keep the more specific, canonical project name as `to`. This is a real move, not a copy, and it cannot be auto-undone, so be sure the two folders are genuinely the same project before merging: near-identical names can still be different developments (a hotel and its residences, a district and a tower inside it).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        from: { type: 'string', description: 'Folder to empty and remove (full path, e.g. "Projects / Martis Camp").' },
+        to: { type: 'string', description: 'Folder to keep (full path, e.g. "Projects / Martis Camp Tahoe").' },
+      },
+      required: ['from', 'to'],
+    },
   },
   {
     name: 'teach_from_rewrite',
@@ -2060,6 +2072,44 @@ function resolveTypes(inputTypes, canon) {
 }
 
 // ── Tool implementations ────────────────────────────────────────────────────
+// Resolve a requested media folder against what already exists, so a second
+// folder is never created for a project we already have. Exact-normalized
+// matches ("Martis Camp" vs "martis camp.") are REUSED silently. Near matches
+// ("Martis Camp" vs "Martis Camp Tahoe") are NOT auto-merged, because
+// "Waldorf Astoria" and "Waldorf Astoria Miami" are genuinely different
+// projects; instead we report them so the caller can merge deliberately with
+// merge_media_folders.
+const _normFolder = (x) => String(x || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+async function resolveMediaFolder(env, requested) {
+  const want = String(requested || '').trim();
+  const out = { folder: want, reused: false, near: [] };
+  if (!want || !env.DB) return out;
+  let names = [];
+  try {
+    const a = (await env.DB.prepare('SELECT DISTINCT folder AS name FROM media WHERE folder IS NOT NULL AND folder != ""').all()).results || [];
+    const b = (await env.DB.prepare('SELECT name FROM media_folders').all()).results || [];
+    names = [...new Set([...a, ...b].map((r) => String(r.name || '')).filter(Boolean))];
+  } catch (_) { return out; }
+  const nWant = _normFolder(want);
+  for (const n of names) {
+    if (n === want) { out.folder = n; out.reused = true; return out; }
+    if (_normFolder(n) === nWant) { out.folder = n; out.reused = true; return out; }
+  }
+  // Near matches: same parent, and one leaf is a whole-token prefix of the other.
+  const leafOf = (x) => String(x).split(' / ').pop();
+  const parentOf = (x) => String(x).split(' / ').slice(0, -1).join(' / ');
+  const wLeaf = _normFolder(leafOf(want)).split(' ').filter(Boolean);
+  for (const n of names) {
+    if (parentOf(n) !== parentOf(want)) continue;
+    const nLeaf = _normFolder(leafOf(n)).split(' ').filter(Boolean);
+    if (nLeaf.length < 2 || wLeaf.length < 2) continue;
+    const short = nLeaf.length <= wLeaf.length ? nLeaf : wLeaf;
+    const long  = nLeaf.length <= wLeaf.length ? wLeaf : nLeaf;
+    if (short.every((t, i) => long[i] === t)) out.near.push(n);
+  }
+  return out;
+}
+
 const IMPL = {
   async search_posts(args, env) {
     const limit = Math.min(Math.max(parseInt(args.limit, 10) || 20, 1), 100);
@@ -3331,7 +3381,9 @@ const IMPL = {
     if (!env.MEDIA || !env.DB) throw new Error('media storage not configured');
     const project = String(args.project || '').trim().slice(0, 120);
     if (!project) throw new Error('project name is required');
-    const folder  = (String(args.folder || '').trim() || ('Projects / ' + project)).slice(0, 160);
+    const wantFolder = (String(args.folder || '').trim() || ('Projects / ' + project)).slice(0, 160);
+    const _fr = await resolveMediaFolder(env, wantFolder);
+    const folder = _fr.folder;
     const limit   = Math.min(Math.max(parseInt(args.limit, 10) || 30, 1), 60);
     const minBytes = Math.max(0, (parseInt(args.min_kb, 10) || 8)) * 1024;
     const wantSpace = Math.max(0, parseInt(args.ensure_space, 10) || 6);   // target # of resort-SPACE images
@@ -3381,6 +3433,15 @@ const IMPL = {
 
     return {
       ok: true, project, folder,
+      folder_reused: _fr.reused || undefined,
+      // A near-duplicate is reported, never silently merged: "Waldorf Astoria"
+      // and "Waldorf Astoria Miami" can be different projects, so the call is
+      // the caller's to make with merge_media_folders.
+      near_duplicate_folders: _fr.near.length ? _fr.near : undefined,
+      duplicate_warning: _fr.near.length
+        ? 'HEADS UP: "' + folder + '" looks like a duplicate of ' + _fr.near.map((n) => '"' + n + '"').join(', ')
+          + '. If it is the same project, merge them now with merge_media_folders({from,to}) and tell the human which way you merged. If they are genuinely different projects, say so and carry on.'
+        : undefined,
       sources: pages, web_sources: webPages,
       saved: saved.length, by_category: counts, skipped: skipped.length,
       images: saved.map((s) => s.url),
@@ -4414,6 +4475,23 @@ const IMPL = {
   // Teach the house voice from a real human rewrite. Reuses the SAME learning
   // pipeline the in-editor Polish chat uses (handleReviseFeedback signal:'manual'),
   // so the pair is banked as an event AND embedded for topic-relevant retrieval.
+  async merge_media_folders(args, env) {
+    const from = String(args.from || '').trim();
+    const to = String(args.to || '').trim();
+    if (!from || !to) throw new Error('from and to are both required');
+    if (from === to) throw new Error('from and to are the same folder');
+    // rename-folder IS a merge when the target already exists: it moves the
+    // media rows and every descendant path, then carries the registration over.
+    const req = new Request('https://tmw.jake-ab7.workers.dev/admin/media/rename-folder', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + (env.ADMIN_TOKEN || ''), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to }),
+    });
+    const r = bridgeJson(await handleMediaRenameFolder(req, env, BRIDGE_ORIGIN));
+    const d = await r;
+    return { ok: true, from, to, items_moved: (d && d.items_moved) || 0,
+      note: '"' + from + '" is gone; its images now live in "' + to + '".' };
+  },
   async teach_from_rewrite(args, env) {
     if (!env.DB) throw new Error('D1 not configured');
     const slug = String(args.slug || '').trim().toLowerCase();
