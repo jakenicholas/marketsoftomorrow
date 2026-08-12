@@ -8876,6 +8876,54 @@ function onyxArtifacts(toolName, result) {
   return out;
 }
 
+// AUTO-LEARN. Onyx is now the only writing surface, so learning cannot depend
+// on the orchestrator remembering to call a tool. After every turn we read the
+// human's message for DURABLE house guidance and bank it through the same
+// record_preference path (brand_notes + Vectorize embed) that every other
+// surface reads. One-off task instructions are ignored; only reusable taste
+// lands. Whatever is banked is reported back in the chat so Jake can kill a
+// bad rule with remove_brand_note.
+async function onyxAutoLearn(env, userText, assistantText) {
+  const t = String(userText || '').trim();
+  if (!env.ANTHROPIC_API_KEY || t.length < 12) return [];
+  const sys = [
+    'You are the memory of the Markets of Tomorrow (TMW) studio. Read the founder\'s message to his studio agent and extract any DURABLE HOUSE RULES worth remembering for all future work.',
+    'A rule qualifies ONLY if it states taste or standards that should apply to FUTURE articles, carousels, captions or answers. Examples that qualify: "never open on specs, open on the category claim and the stakes", "no signpost lines telling the reader what to think", "always name the developer with one credential".',
+    'These do NOT qualify: a one-off instruction about a single piece ("add the price", "make this one shorter", "use this photo"), a question, a task request ("write about X"), praise with no specifics, or anything about the software/UI rather than the writing.',
+    'Each note must be a self-contained imperative a writer could follow WITHOUT seeing this conversation. Never reference "this article" or "the draft". Be specific and short.',
+    'Return ONLY JSON: {"rules":[{"kind":"rule|voice|structure|like|dislike|avoid","category":"article|carousel|caption|general","note":"..."}]}. Return {"rules":[]} when nothing qualifies, which is the common case.',
+  ].join('\n\n');
+  const usr = 'FOUNDER SAID:\n' + t.slice(0, 4000) + (assistantText ? '\n\nAGENT REPLIED:\n' + String(assistantText).slice(0, 1200) : '');
+  let raw = '';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 700, system: sys, messages: [{ role: 'user', content: usr }] }),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    raw = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+  } catch (_) { return []; }
+  let parsed = null;
+  try { const m = raw.match(/\{[\s\S]*\}/); if (m) parsed = JSON.parse(m[0]); } catch (_) {}
+  const rules = (parsed && Array.isArray(parsed.rules)) ? parsed.rules.slice(0, 3) : [];
+  const banked = [];
+  for (const rule of rules) {
+    const note = String((rule && rule.note) || '').trim();
+    if (note.length < 12) continue;
+    try {
+      await studioCallTool('record_preference', {
+        kind: String((rule && rule.kind) || 'rule'),
+        category: String((rule && rule.category) || 'general'),
+        note, by: 'onyx-chat', context: 'auto-captured from the Onyx chat',
+      }, env);
+      banked.push(note);
+    } catch (_) {}
+  }
+  return banked;
+}
+
 async function handleOnyxChat(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 503 }, env, origin);
@@ -8899,6 +8947,7 @@ async function handleOnyxChat(req, env, origin) {
 
   // Built ONCE per request (it embeds the house brain) and reused every round.
   const sysText = await onyxSystem(env);
+  let lastAssistantText = '';
 
   const enc = new TextEncoder();
   const stream = new ReadableStream({
@@ -8934,6 +8983,7 @@ async function handleOnyxChat(req, env, origin) {
           if (d.stop_reason === 'refusal') return fail('The model declined that request. Rephrase it and try again.');
 
           const content = Array.isArray(d.content) ? d.content : [];
+          for (const b of content) if (b.type === 'text' && b.text) lastAssistantText = b.text;
           // Round boundary: lets the UI treat everything before the LAST round
           // as progress narration and render only the final round as the answer.
           send({ t: 'round', n: round });
@@ -8984,6 +9034,13 @@ async function handleOnyxChat(req, env, origin) {
           }
           convo.push({ role: 'user', content: results });
         }
+        // Bank any durable house rules the founder just stated, and say so.
+        try {
+          const lastUser = [...convo].reverse().find((m) => m.role === 'user' && Array.isArray(m.content) && m.content.some((b) => b && b.type === 'text' && !/^ATTACHED FILE/.test(b.text || '')));
+          const utxt = lastUser ? lastUser.content.filter((b) => b && b.type === 'text').map((b) => b.text).join('\n') : '';
+          const banked = await onyxAutoLearn(env, utxt, lastAssistantText);
+          for (const n of banked) send({ t: 'learned', m: n });
+        } catch (_) {}
         send({ t: 'done' });
         try { ctrl.close(); } catch (_) {}
       } catch (e) { fail(e && e.message ? e.message : String(e)); }
@@ -13729,6 +13786,9 @@ async function ensureLeadsTable(env) {
 }
 const LEAD_STATUSES = ['new', 'emailed', 'contacted', 'toured', 'under_contract', 'closed', 'dead'];
 function leadEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+// Capitalize the first letter of every word without downcasing the rest, so
+// existing caps (acronyms, hyphenated names like Ritz-Carlton) are preserved.
+function titleCaseWords(s) { return String(s == null ? '' : s).replace(/\b(\w)/g, function (m, c) { return c.toUpperCase(); }); }
 // POST /lead — PUBLIC. The capture form on project pages posts here.
 async function handleLeadCreate(req, env, origin) {
   if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
@@ -13782,6 +13842,17 @@ async function handleLeadCreate(req, env, origin) {
       } catch (_) {}
     }
   }
+  // iPhone push — same channel as Pro signups. One branded line:
+  // "Studio: New {Project} Inquiry"; body carries who + how to reach them.
+  try {
+    if (env.VAPID_PRIVATE_JWK) {
+      const projName = titleCaseWords(rec.project_title || '');
+      const pTitle = 'Studio: New ' + (projName ? projName + ' ' : '') + 'Inquiry';
+      const contact = rec.email || rec.phone || '';
+      const pBody = rec.name + (contact ? ' · ' + contact : '') + (rec.source ? ' · from ' + rec.source : '');
+      await pushAll(env, { title: pTitle, body: pBody, url: '/leads' });
+    }
+  } catch (_) {}
   return json({ ok: true, id: rec.id }, {}, env, origin);
 }
 // GET /admin/leads — the CRM list. PATCH-style updates via POST /admin/lead-update.
@@ -17025,7 +17096,7 @@ async function maybeNotifyNewPro(env) {
       const plan = amt ? ('$' + amt + (iv === 'year' ? '/yr' : '/mo')) : 'Pro';
       const body = who + (c.name && c.email ? ' (' + c.email + ')' : '')
         + (s.status === 'trialing' ? ' started the ' + plan + ' trial.' : ' went Pro at ' + plan + '.');
-      await pushAll(env, { title: s.status === 'trialing' ? 'New Pro trial' : 'New Pro member', body: body, url: '/analytics' });
+      await pushAll(env, { title: s.status === 'trialing' ? 'Studio: New Pro Trial' : 'Studio: New Pro Member', body: body, url: '/analytics' });
     }
   } catch (_) {}
 }

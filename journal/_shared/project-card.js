@@ -245,8 +245,14 @@
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry, rec) +
       '<div class="pc-actions">' +
-        // Primary CTA — purple-glow "Dive Deeper" → the full project SEO page
-        // (same tab). The map deep-link now lives on the top-right View on Map button.
+        // Request Info — the lead-capture front door, styled like Dive Deeper and
+        // placed first. This card only renders for real database projects, so
+        // there is always something to request. surface 'article' = it fired from
+        // inside an article (vs the map modal or the project page).
+        '<button class="pc-btn dive pc-inquire" type="button" data-inq-slug="' + esc(rec.Slug || slug) + '" data-inq-title="' + esc(rec.Title || '') + '">Request Info ' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>' +
+        // Dive Deeper — purple-glow → the full project SEO page (same tab).
+        // The map deep-link now lives on the top-right View on Map button.
         '<a class="pc-btn dive" href="https://www.oftmw.com/projects/' + encodeURIComponent(rec.Slug || slug) + '/">Dive Deeper ' +
           '<svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a>' +
         // Watch — bell + "Watch" label (check when watching), toggles the same Memberstack favorites the map/SEO pages use.
@@ -274,6 +280,10 @@
     });
     var wb = card.querySelector('.pc-btn.watch');
     if (wb) { hydrateWatch(wb, slug); wb.addEventListener('click', function () { toggleWatch(wb, slug); }); }
+    var ib = card.querySelector('.pc-inquire');
+    if (ib) ib.addEventListener('click', function () {
+      if (window.tmwInquire) window.tmwInquire.open({ project_slug: ib.getAttribute('data-inq-slug'), project_title: ib.getAttribute('data-inq-title'), intent: 'interest-list', surface: 'article' });
+    });
   }
 
   // ── Watch — toggles the SAME Memberstack `favorites` store the map + SEO project

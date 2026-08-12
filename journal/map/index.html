@@ -4978,10 +4978,13 @@
   }
   /* Bottom CTA */
   #projectModal .pm-cta {
-    display: flex; gap: 8px;
+    display: flex; gap: 8px; flex-wrap: wrap;
     padding: 14px 0 calc(18px + var(--safe-area-bottom, 0px));
     border-top: 0.5px solid rgba(255,255,255,0.07);
   }
+  /* Request Info + Dive Deeper share the top row (each at least ~46% so they
+     never squeeze onto one cramped line); Watch + Share wrap below. */
+  #projectModal .pm-btn-inquire, #projectModal #pmLearnBtn { min-width: 46%; }
   /* Purple-glow "Project Profile" (TMW Intelligence style) → the project's full page. */
   #projectModal .pm-btn-learn {
     flex: 1; height: 46px;
@@ -12672,6 +12675,7 @@
                under the bio; the Watch button sits in the 2nd slot, label always
                visible (incl. mobile) so the watch action reads clearly. -->
           <div class="pm-cta">
+            <button class="pm-btn-learn pm-btn-inquire" id="pmInquireBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Request Info</button>
             <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>Dive Deeper</a>
             <!-- Watch button (Phase 1). Replaces the old icon-only favorite
                  button. The underlying isFavorited()/toggleFavorite() data
@@ -16409,6 +16413,16 @@
         }
         // "Project Profile" (gold) \u2192 the project's full page; always available.
         if (learnBtn) learnBtn.href = projectShareUrl(p.title);
+        // Request Info \u2192 opens the lead-capture modal for THIS project. onclick
+        // (not addEventListener) so re-opening the modal for another project
+        // rebinds cleanly instead of stacking handlers.
+        const inqBtn = document.getElementById('pmInquireBtn');
+        if (inqBtn) {
+          const inqSlug = p.slug || projectSlug(p.title);
+          inqBtn.onclick = function () {
+            if (window.tmwInquire) window.tmwInquire.open({ project_slug: inqSlug, project_title: p.title, intent: 'interest-list', surface: 'map' });
+          };
+        }
         // "Official Website" (subtle text link under the bio) \u2192 hidden when none.
         if (websiteLink) {
           if (websiteUrl) { websiteLink.href = websiteUrl; websiteLink.hidden = false; }

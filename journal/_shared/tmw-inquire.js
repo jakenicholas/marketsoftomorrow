@@ -74,14 +74,6 @@
       /* primary (request info): the purple money button, same geometry */
       '.cta-row.tmw-cta-2x2 .tmw-inq-cta{background:linear-gradient(135deg,rgba(167,139,250,.24),rgba(139,111,240,.16)) !important;border:1px solid rgba(167,139,250,.6) !important;color:#fff !important;box-shadow:0 6px 22px rgba(167,139,250,.28),0 0 30px rgba(167,139,250,.2) !important}',
       '.cta-row.tmw-cta-2x2 .tmw-inq-cta:hover{background:linear-gradient(135deg,rgba(167,139,250,.34),rgba(139,111,240,.24)) !important;transform:translateY(-1px)}',
-      /* ── Article CTA card (end of every article) ── */
-      '.tmw-inq-article{margin:34px 0 8px;padding:22px 24px;border-radius:16px;border:1px solid rgba(167,139,250,.28);background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(167,139,250,.02));display:flex;align-items:center;gap:20px;flex-wrap:wrap}',
-      '.tmw-inq-article .txt{flex:1;min-width:200px}',
-      '.tmw-inq-article .eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin-bottom:7px}',
-      '.tmw-inq-article h4{font-family:Fraunces,Georgia,serif;font-size:19px;font-weight:600;line-height:1.2;margin:0 0 5px;color:#fff}',
-      '.tmw-inq-article p{font-size:13.5px;color:#9AA39C;line-height:1.5;margin:0}',
-      '.tmw-inq-article .tmw-inq-cta{flex:0 0 auto}',
-      '@media(max-width:540px){.tmw-inq-article{padding:20px}.tmw-inq-article .tmw-inq-cta{width:100%;justify-content:center}}',
       '@media(prefers-reduced-motion:reduce){.tmw-inq,.tmw-inq-scrim{transition:opacity .15s}.tmw-inq{transform:none}}'
     ].join('');
     var s = document.createElement('style'); s.id = 'tmw-inq-css'; s.textContent = css; document.head.appendChild(s);
@@ -273,27 +265,12 @@
     } catch (e) {}
   }
 
-  // Article pages: drop a "Request info" card at the end of the body. The lead
-  // is captured with source 'article' and source_url = the article URL, so the
-  // backend shows exactly which article drove it (vs a project page).
-  function autoInjectArticle() {
-    if (!/^\/post\//.test(location.pathname)) return;
-    var body = document.querySelector('.article-body-content') || document.querySelector('.article-body');
-    if (!body || body.querySelector('.tmw-inq-article')) return;
-    ensureCss();
-    var opts = { project_slug: '', project_title: '', intent: 'info', surface: 'article' };
-    var card = document.createElement('div');
-    card.className = 'tmw-inq-article';
-    card.innerHTML =
-      '<div class="txt"><div class="eye">Markets of Tomorrow</div>' +
-      '<h4>Interested in a project you saw here?</h4>' +
-      '<p>Request info and we\'ll connect you with the team behind it, straight from the source.</p></div>' +
-      '<button type="button" class="tmw-inq-cta">Request info <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
-    card.querySelector('.tmw-inq-cta').addEventListener('click', function () { open(opts); });
-    body.appendChild(card);
-  }
+  // (The generic end-of-article CTA was removed: many articles cover things
+  // with nothing to request — a new airport, a restaurant. Request Info now
+  // lives on each linked-project card inside articles, which are real database
+  // projects, plus the project pages and the map modal.)
 
-  function boot() { ensureCss(); wireTriggers(document); autoInjectProject(); autoInjectArticle(); }
+  function boot() { ensureCss(); wireTriggers(document); autoInjectProject(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
