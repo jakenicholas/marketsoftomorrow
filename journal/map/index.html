@@ -3500,35 +3500,9 @@
        so the chrome stays visible; the LIVE dock search + its autocomplete are
        repositioned to the centre via body.map-landing (same elements, all
        wiring intact) and float above the scrim. */
-    /* Deep-link veil — the SAME blur as the "Where are you looking?" landing,
-       with a spinning TMW hexagon + "Flying you there…", shown while a
-       ?project/?city load jumps to its destination. Fades to reveal the place
-       already framed. Below the header (z99) so chrome stays visible. */
-    #mapDeepCover {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 90;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(8,9,8,.72); -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
-      opacity: 1; transition: opacity .4s ease;
-    }
-    #mapDeepCover.fade { opacity: 0; }
-    #mapDeepCover[hidden] { display: none; }
-    .mdc-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-    .mdc-hex { width: 58px; height: 58px; filter: drop-shadow(0 0 14px rgba(167,139,250,.35)); }
-    .mdc-hex svg { width: 100%; height: 100%; overflow: visible; display: block; }
-    /* The actual TMW Intelligence hexagon — same hard-spin + core pulse + ring
-       expand used in the header lockup and the account pill (global keyframes). */
-    .mdc-hex .tmw-hex-spinner { transform-origin: 50% 50%; animation: tmw-hex-hardspin 4.2s cubic-bezier(0.16,1,0.3,1) infinite; }
-    .mdc-hex .tmw-hex-core    { transform-origin: 50% 50%; animation: tmw-hex-corepulse 4.2s ease-in-out infinite; }
-    .mdc-hex .tmw-hex-ring    { transform-origin: 50% 50%; animation: tmw-hex-ring 4.2s ease-out infinite; }
-    .mdc-text { font-family: 'Inter', system-ui, sans-serif; font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.72); font-weight: 600; }
-    .mdc-text .mdc-dots span { animation: mdcBlink 1.4s infinite both; }
-    .mdc-text .mdc-dots span:nth-child(2){ animation-delay: .2s }
-    .mdc-text .mdc-dots span:nth-child(3){ animation-delay: .4s }
-    @keyframes mdcBlink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
-    /* Keep the dock + timeline scrubber out from over the veil. */
-    body.map-deeplink-loading .tmw-dock,
-    body.map-deeplink-loading .tmw-il-scrub { opacity: 0 !important; pointer-events: none !important; }
-    @media (prefers-reduced-motion: reduce) { .mdc-hex .tmw-hex-spinner, .mdc-hex .tmw-hex-core, .mdc-hex .tmw-hex-ring, .mdc-text .mdc-dots span { animation: none !important; } .mdc-hex .tmw-hex-ring { opacity: 0; } }
+    /* "Flying you there" deep-link veil CSS removed 2026-08-12 (see the markup
+       note) — the sitewide loader covers the map boot now. The tmw-hex-* @keyframes
+       stay defined globally (header lockup + account pill still use them). */
     #mapLanding {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 90;
       opacity: 0; transition: opacity .3s ease;
@@ -11964,41 +11938,10 @@
       <span class="presented-brand">MARKETS OF TOMORROW</span>
     </div>
   </div>
-  <!-- Deep-link veil: the landing's blur + a spinning TMW hexagon + "Flying you
-       there…" for ?project/?city loads (which skip the landing). Without it the
-       cheap Miami boot view flashes before we can jump to the destination.
-       handleDeepLink fades it once the map is framed on the place. -->
-  <div id="mapDeepCover" hidden>
-    <div class="mdc-inner">
-      <div class="mdc-hex" aria-hidden="true">
-        <svg viewBox="0 0 100 100" overflow="visible" xmlns="http://www.w3.org/2000/svg">
-          <polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>
-          <g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>
-        </svg>
-      </div>
-      <div class="mdc-text">Flying you there<span class="mdc-dots"><span>.</span><span>.</span><span>.</span></span></div>
-    </div>
-  </div>
-  <script>
-    // First paint. A ?project/?city deep-link jumps straight to its destination,
-    // so cover the map (no Miami-boot flash) until handleDeepLink positions it.
-    // Every other load raises the "Where are you looking?" landing gate instead.
-    (function(){
-      try {
-        var p = new URLSearchParams(location.search);
-        if (p.get('project') || p.get('city')) {
-          document.body.classList.add('map-deeplink-loading');
-          var dc = document.getElementById('mapDeepCover');
-          if (dc) dc.hidden = false;
-          // Safety net: never trap the user behind the veil if positioning fails.
-          setTimeout(function(){ var c = document.getElementById('mapDeepCover'); if (c && !c.hidden){ document.body.classList.remove('map-deeplink-loading'); c.classList.add('fade'); setTimeout(function(){ c.hidden = true; }, 520); } }, 4500);
-          return;
-        }
-        // "Where are you looking?" landing RETIRED (2026-08-10, Jake) — boot
-        // straight into the map. Markup + dismiss plumbing kept inert.
-      } catch (e) {}
-    })();
-  </script>
+  <!-- "Flying you there" deep-link veil REMOVED (2026-08-12, Jake): the sitewide
+       loader (the "future is here" departure board) already covers the nav into the
+       map, so the extra veil was redundant. handleDeepLink's _cover refs no-op now
+       that #mapDeepCover is gone (getElementById → null). -->
 
   <!-- Full-screen map toggle (top-right of the map). Hides the universal
        header for an edge-to-edge map; click again to restore it. -->
@@ -12854,6 +12797,18 @@
     if ('visualViewport' in window) {
       window.visualViewport.addEventListener('resize', _resizeMapToViewport);
     }
+
+    // BLACK-BAR fix (mobile, map reached via a page change): the shell height
+    // (--app-height) + the GL canvas get captured while the "future is here" loader
+    // holds the page and the browser toolbar is still settling, so a black strip is
+    // left under the map after the veil lifts. Re-run BOTH a few times after full
+    // load so they match the settled viewport. (The loader also dispatches a window
+    // 'resize' on lift, which the listeners above already catch — this is the
+    // belt-and-suspenders for the settle that happens just after that.)
+    var _settleViewport = function(){ setAppHeight(); _resizeMapToViewport(); };
+    if (document.readyState === 'complete') _settleViewport();
+    else window.addEventListener('load', _settleViewport);
+    [450, 1000, 1800].forEach(function(ms){ setTimeout(_settleViewport, ms); });
 
     // Build version — to verify deploys in DevTools: window.__buildVersion
     window.__buildVersion = '2026-05-04T05:00Z account-modal-overhaul';

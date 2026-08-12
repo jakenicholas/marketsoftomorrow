@@ -245,8 +245,9 @@
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry, rec) +
       '<div class="pc-actions">' +
-        // Primary CTA — purple-glow "Dive Deeper" (matches the SEO project page's btn-dive).
-        '<a class="pc-btn dive" href="' + projectUrl(slug) + '">Dive Deeper ' +
+        // Primary CTA — purple-glow "Dive Deeper" → the full project SEO page
+        // (same tab). The map deep-link now lives on the top-right View on Map button.
+        '<a class="pc-btn dive" href="https://www.oftmw.com/projects/' + encodeURIComponent(rec.Slug || slug) + '/">Dive Deeper ' +
           '<svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a>' +
         // Watch — bell + "Watch" label (check when watching), toggles the same Memberstack favorites the map/SEO pages use.
         '<button class="pc-btn watch" type="button" data-watch="' + esc(slug) + '" aria-label="Watch this project">' +
@@ -259,7 +260,18 @@
 
   function wire(card, slug) {
     var fly = card.querySelector('.pc-flyover');
-    if (fly) fly.addEventListener('click', function () { window.open('https://www.oftmw.com/map/?project=' + encodeURIComponent(slug), '_blank', 'noopener'); });
+    // View on Map → the map tile deep-link (fullscreen + normalized mapSlug),
+    // SAME TAB. Was window.open('/map/?project=<raw-hyphen-slug>','_blank') — a new
+    // tab AND a slug the map couldn't resolve; projectUrl() is the link Dive Deeper
+    // used to carry, which lands on the actual project on the map. Route through the
+    // site loader (the "future is here" departure board) so the map's boot is
+    // covered — this button is a <button>, so the loader's <a>-click interception
+    // never catches it on its own.
+    if (fly) fly.addEventListener('click', function () {
+      var url = projectUrl(slug);
+      if (window.tmwLoader && window.tmwLoader.go) { window.tmwLoader.go(url); }
+      else { window.location.href = url; }
+    });
     var wb = card.querySelector('.pc-btn.watch');
     if (wb) { hydrateWatch(wb, slug); wb.addEventListener('click', function () { toggleWatch(wb, slug); }); }
   }
