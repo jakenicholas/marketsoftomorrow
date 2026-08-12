@@ -1156,22 +1156,71 @@ function capArticleImages(md) {
   return String(md).replace(/!\[[^\]]*\]\([^)]*\)/g, (m) => (++n <= MAX_ARTICLE_IMAGES ? m : ''));
 }
 
+// TRAILING BOILERPLATE. 602 published pieces end with Wix-era CTA lines
+// ("Sign up for Florida of Tomorrow's free newsletter below..."), which also
+// carry the retired "of Tomorrow" branding. The writer learns them from the
+// corpus, so we strip them from what we teach AND from what we ship.
+const CTA_RE = /(sign\s*up|subscribe|join\s+(our|the)|follow\s+us|our\s+free\s+newsletter|free\s+newsletter|newsletter\s+below|stay\s+in\s+the\s+know|never\s+miss|for\s+the\s+latest\s+(real\s+estate\s+)?news)/i;
+function stripTrailingCta(md) {
+  let blocks = String(md || '').split(/\n\s*\n/);
+  for (let guard = 0; guard < 4; guard++) {
+    while (blocks.length && !String(blocks[blocks.length - 1]).trim()) blocks.pop();
+    const last = String(blocks[blocks.length - 1] || '').trim();
+    if (!last) break;
+    const plain = last.replace(/<[^>]*>/g, ' ').replace(/[*_#>]/g, ' ').trim();
+    // Only a SHORT trailing block that reads like a call to action goes.
+    if (plain.length <= 320 && CTA_RE.test(plain)) { blocks.pop(); continue; }
+    break;
+  }
+  return blocks.join('\n\n');
+}
+// An article ENDS ON PROSE, never on a photo (Jake 2026-08-12). Drops any
+// trailing image-only blocks left by the model or by an older sprinkle.
+function endOnProse(md) {
+  const isImageOnly = (b) => {
+    const t = String(b || '').trim();
+    if (!t) return false;
+    return /^!\[[^\]]*\]\([^)]*\)$/.test(t) || /^<figure[\s\S]*<\/figure>$/i.test(t) || /^<img\b[^>]*>$/i.test(t);
+  };
+  const blocks = String(md || '').split(/\n\s*\n/);
+  while (blocks.length && (!String(blocks[blocks.length - 1]).trim() || isImageOnly(blocks[blocks.length - 1]))) blocks.pop();
+  return blocks.join('\n\n');
+}
+// Final gate for any article body we write.
+function finishArticleBody(md) { return endOnProse(stripTrailingCta(endOnProse(md))); }
+
 function sprinkleImagesIntoMarkdown(md, images) {
   if (images && images.length > MAX_ARTICLE_IMAGES) images = images.slice(0, MAX_ARTICLE_IMAGES);
-  if (!images || !images.length) return md || '';
-  const blocks = String(md || '').split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
-  if (!blocks.length) return images.map((u) => `![](${u})`).join('\n\n');
-  const n = images.length;
-  const gap = Math.max(2, Math.floor(blocks.length / (n + 1)));
-  const out = []; let imgI = 0;
-  blocks.forEach((b, i) => {
-    out.push(b);
-    if (imgI < n && i < blocks.length - 1 && (i + 1) % gap === 0 && !/^#{1,3}\s/.test(blocks[i + 1] || '')) {
-      out.push(`![](${images[imgI++]})`);
-    }
-  });
-  while (imgI < n) out.push(`![](${images[imgI++]})`);   // leftovers → end
-  return out.join('\n\n');
+  const base = stripTrailingCta(String(md || ''));
+  if (!images || !images.length) return endOnProse(base);
+  const blocks = base.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  if (!blocks.length) return '';
+  // Legal slots are BETWEEN blocks only, never after the last one, and never
+  // right before a heading (that would orphan the heading from its section).
+  // Overflow images are DROPPED rather than dumped at the end, which is what
+  // used to leave articles finishing on a photo.
+  const slots = [];
+  for (let i = 0; i < blocks.length - 1; i++) {
+    if (/^#{1,3}\s/.test(blocks[i + 1] || '')) continue;
+    slots.push(i);
+  }
+  const use = Math.min(images.length, slots.length);
+  const chosen = new Map();
+  for (let k = 0; k < use; k++) {
+    // Spread evenly across the available gaps.
+    const at = slots[Math.min(slots.length - 1, Math.round(((k + 1) * slots.length) / (use + 1)))];
+    if (!chosen.has(at)) chosen.set(at, images[k]);
+  }
+  // Any image whose slot collided lands in the next free gap.
+  let next = 0;
+  for (let k = chosen.size; k < use; k++) {
+    while (next < slots.length && chosen.has(slots[next])) next++;
+    if (next >= slots.length) break;
+    chosen.set(slots[next], images[k]);
+  }
+  const out = [];
+  blocks.forEach((b, i) => { out.push(b); if (chosen.has(i)) out.push(`![](${chosen.get(i)})`); });
+  return endOnProse(out.join('\n\n'));
 }
 
 function mdToHtml(md) {
@@ -2669,7 +2718,7 @@ const IMPL = {
       dbDossier ? 'TMW DATABASE DOSSIER (proprietary, authoritative for every project listed):\n' + dbDossier : '',
       'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
       'CLAIMS LEDGER (required): list EVERY factual assertion the article makes — statuses, dates, numbers, prices, names, attributions — as {"claim":"<the assertion, one line>","type":"status"|"date"|"number"|"name"|"other","source":"facts"|"database"|"model"}. "facts" = stated in the provided facts; "database" = from the related-projects context above; "model" = from your own knowledge. BE HONEST about "model" — those get fact-checked against the live web, and a false "facts" tag is worse than an honest "model" tag.',
-      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation.',
+      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation. HOW IT ENDS: land on a real closing PARAGRAPH, forward-looking, in your own prose. NEVER end with a call to action, a newsletter or subscribe pitch, a follow-us line, or any sign-off boilerplate (our older archive is full of "Sign up for ... free newsletter below" endings; that branding is retired and they must never be reproduced). NEVER end on an image either: photos belong between paragraphs, and the last thing a reader sees is your conclusion.',
     ].filter(Boolean).join('\n\n');
     const usr = [
       'TOPIC: ' + topic,
@@ -3154,7 +3203,7 @@ const IMPL = {
     const exists = await env.DB.prepare('SELECT 1 FROM posts WHERE slug = ?1 LIMIT 1').bind(slug).first();
     if (exists) slug = (slug + '-' + Math.random().toString(36).slice(2, 6)).slice(0, 160);
     const id = 'tmw-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
-    let bodyHtml = mdToHtml(capArticleImages(deDash(args.body_markdown || '')));
+    let bodyHtml = mdToHtml(capArticleImages(finishArticleBody(deDash(args.body_markdown || ''))));
     const linkedSlug = args.linked_project ? String(args.linked_project).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : '';
     if (linkedSlug && !/class=["']tmw-(project-card|map-embed)["']/.test(bodyHtml)) {
       bodyHtml += `\n<div class="tmw-project-card" data-project="${linkedSlug}"></div>`;
@@ -3218,7 +3267,7 @@ const IMPL = {
 
     // Body: rebuild from markdown if given; otherwise start from the stored body
     // so we can inject a project-card link without a full rewrite.
-    let finalBody = (args.body_markdown != null) ? mdToHtml(capArticleImages(deDash(args.body_markdown))) : null;
+    let finalBody = (args.body_markdown != null) ? mdToHtml(capArticleImages(finishArticleBody(deDash(args.body_markdown)))) : null;
     const derivedExcerpt = (args.body_markdown != null) ? stripHtml(finalBody).slice(0, 180) : null;
     const linkedSlug = args.linked_project ? String(args.linked_project).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : '';
     if (linkedSlug) {

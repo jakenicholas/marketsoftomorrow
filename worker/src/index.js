@@ -14810,6 +14810,21 @@ async function handleBuildFingerprint(req, env, origin) {
 // have `limit`. Bodies are stripped to clean text and trimmed to a char budget
 // from the START, so the LEDE (the highest-value voice signal) always survives.
 // Best-effort: returns [] on any failure and never blocks generation.
+// Trailing CTA / sign-off boilerplate, removed from anything we hold up as an
+// example of how to write. Mirrors stripTrailingCta in mcp.js (which cleans what
+// we SHIP); this one cleans what we TEACH.
+const LEARNED_OUTRO_RE = /(sign\s*up|subscribe|join\s+(our|the)|follow\s+us|free\s+newsletter|newsletter\s+below|stay\s+in\s+the\s+know|never\s+miss|for\s+the\s+latest\s+(real\s+estate\s+)?news)/i;
+function stripLearnedOutro(text) {
+  let blocks = String(text || '').split(/\n\s*\n/);
+  for (let guard = 0; guard < 4; guard++) {
+    while (blocks.length && !String(blocks[blocks.length - 1]).trim()) blocks.pop();
+    const last = String(blocks[blocks.length - 1] || '').trim();
+    if (!last || last.length > 320 || !LEARNED_OUTRO_RE.test(last)) break;
+    blocks.pop();
+  }
+  return blocks.join('\n\n');
+}
+
 export async function articleExemplars(env, { topic = '', place = '', limit = 3, excludeSlug = '', perChars = 1500 } = {}) {
   if (!env || !env.DB) return [];
   const exclude = String(excludeSlug || '').toLowerCase();
@@ -14860,7 +14875,10 @@ export async function articleExemplars(env, { topic = '', place = '', limit = 3,
     try {
       const r = await env.DB.prepare(`SELECT slug, title, excerpt, body_html FROM posts WHERE slug=?1 AND status='published'`).bind(slug).first();
       if (!r || !r.body_html) continue;
-      let body = htmlToProse(r.body_html);
+      // Strip the Wix-era sign-off before this becomes a teaching example:
+      // 602 published pieces end with a newsletter CTA that also carries the
+      // retired "of Tomorrow" branding, and the writer was copying it.
+      let body = stripLearnedOutro(htmlToProse(r.body_html));
       if (body.length < 200) continue;
       if (body.length > perChars) body = body.slice(0, perChars).replace(/\s+\S*$/, '') + ' …';
       out.push({ slug: r.slug, title: String(r.title || '').slice(0, 200), excerpt: String(r.excerpt || '').slice(0, 300), body });
