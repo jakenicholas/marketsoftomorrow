@@ -9991,38 +9991,165 @@ async function reindexAll(env) {
 // same Vectorize index with kind:'knowledge' (one note per topic — re-studying a
 // topic upserts/refreshes it). Onyx retrieves the relevant notes per query and
 // uses them for expert context, never as a TMW project fact.
-async function handleKnowledgeIngest(req, env, origin) {
-  const denied = await requireAdminToken(req, env, origin);
-  if (denied) return denied;
-  if (!retrievalReady(env)) return json({ error: 'retrieval not configured' }, { status: 503 }, env, origin);
-  let body; try { body = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
-  const notes = (Array.isArray(body && body.notes) ? body.notes : []).slice(0, 50)
+// Shared core: embed + upsert evergreen knowledge notes into Vectorize (upsert
+// by topic, so re-studying a topic refreshes it). Used by the /admin/knowledge
+// endpoint AND the online onyx-study routine, so both land identical rows.
+async function bankKnowledgeNotes(env, rawNotes) {
+  const notes = (Array.isArray(rawNotes) ? rawNotes : []).slice(0, 50)
     .map((n) => ({
       topic: String((n && n.topic) || '').trim().slice(0, 120),
       text: String((n && n.text) || '').trim().slice(0, 600),
       source: String((n && n.source) || '').trim().slice(0, 300),
     }))
     .filter((n) => n.topic && n.text.length >= 20);
-  if (!notes.length) return json({ error: 'no valid notes (need topic + text>=20 chars)' }, { status: 400 }, env, origin);
+  if (!notes.length) return { added: 0, topics: [] };
   let added = 0;
+  for (let i = 0; i < notes.length; i += 40) {
+    const chunk = notes.slice(i, i + 40);
+    const vecs = await embedTexts(env, chunk.map((n) => n.topic + ': ' + n.text));
+    const items = chunk.map((n, k) => ({
+      id: vecId('knowledge', n.topic.toLowerCase()),
+      values: vecs[k],
+      metadata: { kind: 'knowledge', topic: n.topic, text: n.text, source: n.source, ts: Math.floor(Date.now() / 1000) },
+    })).filter((it) => Array.isArray(it.values));
+    if (items.length) { await env.VECTORIZE.upsert(items); added += items.length; }
+  }
+  return { added, topics: notes.map((n) => n.topic) };
+}
+async function handleKnowledgeIngest(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured' }, { status: 503 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const rawNotes = Array.isArray(body && body.notes) ? body.notes : [];
+  if (!rawNotes.length) return json({ error: 'no notes provided' }, { status: 400 }, env, origin);
+  let added = 0, topics = [];
   try {
-    for (let i = 0; i < notes.length; i += 40) {
-      const chunk = notes.slice(i, i + 40);
-      const vecs = await embedTexts(env, chunk.map((n) => n.topic + ': ' + n.text));
-      const items = chunk.map((n, k) => ({
-        id: vecId('knowledge', n.topic.toLowerCase()),
-        values: vecs[k],
-        metadata: { kind: 'knowledge', topic: n.topic, text: n.text, source: n.source, ts: Math.floor(Date.now() / 1000) },
-      })).filter((it) => Array.isArray(it.values));
-      if (items.length) { await env.VECTORIZE.upsert(items); added += items.length; }
-    }
+    const r = await bankKnowledgeNotes(env, rawNotes); added = r.added; topics = r.topics;
+    if (!added) return json({ error: 'no valid notes (need topic + text>=20 chars)' }, { status: 400 }, env, origin);
     try {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1, ?2, ?3, ?4)`)
-        .bind(Math.floor(Date.now() / 1000), 'system:onyx-study', 'intel_knowledge',
-          JSON.stringify({ added, topics: notes.map((n) => n.topic) })).run();
+        .bind(Math.floor(Date.now() / 1000), 'system:onyx-study', 'intel_knowledge', JSON.stringify({ added, topics })).run();
     } catch (_) { /* logging is best-effort */ }
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin); }
   return json({ ok: true, added }, {}, env, origin);
+}
+
+// ── ONLINE ROUTINES — the Claude Code cron routines, moved into the Studio ─────
+// The brain routines don't need the full chat agent: the worker does the
+// mechanical fetch/store in code, and the model (with server-side web search)
+// does the judgment. Each run is logged so the Studio shows status. First one
+// online: onyx-study (self-study → evergreen knowledge Onyx reads on every
+// answer). intel-review (answer critique) + daily-articles (agent loop) follow.
+
+// One model call with Anthropic's server-side web_search: the tool executes and
+// the model continues within the SAME request, so this returns the final text.
+async function modelWebResearch(env, { system, user, model, maxSearches = 8, maxTokens = 4000 }) {
+  if (!env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: model || ONYX_MODEL, max_tokens: maxTokens,
+      system: system,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: maxSearches }],
+      messages: [{ role: 'user', content: user }],
+    }),
+  });
+  if (!r.ok) throw new Error('model HTTP ' + r.status + ' ' + (await r.text().catch(() => '')).slice(0, 200));
+  const d = await r.json();
+  const content = Array.isArray(d.content) ? d.content : [];
+  return content.filter((b) => b.type === 'text' && b.text).map((b) => b.text).join('\n');
+}
+
+const STUDY_BUCKETS =
+  '\n- Terminology / concepts: mass timber, podium tower, transit-oriented development, adaptive reuse, FAR, air rights, condo-hotel, branded residences, mixed-use district, supertall vs high-rise, CLT, modular construction' +
+  '\n- Financing / policy: Live Local Act, Opportunity Zones, TIF, EB-5, PILOT, inclusionary zoning, condo-inventory loan, mezzanine debt, ground lease, 421a / 485x, density bonus' +
+  '\n- City / market profiles: West Palm Beach, Miami, Nashville, Tampa, Austin, Charleston, Naples — the structural drivers of growth and who is moving there (NO project names or figures)' +
+  '\n- Sector trends: branded-residence boom, Sun Belt migration, golf-real-estate resurgence, hotel-to-residence conversions, office flight-to-quality, waterfront scarcity premiums';
+
+// onyx-study: research ~6 rotating topics, bank 5-8 evergreen knowledge notes.
+async function runOnyxStudy(env) {
+  if (!retrievalReady(env)) throw new Error('retrieval (Vectorize) not configured');
+  const sys = 'You are Onyx, the Markets of Tomorrow real-estate intelligence, doing self-study. Build EVERGREEN domain expertise that Onyx reads as background context on every answer. Research with web search, leaning on reputable sources (ULI, Brookings, CBRE, JLL, Cushman & Wakefield, The Real Deal, Bisnow, Commercial Observer, NAHB, government/agency pages). RULES: evergreen only (definitions, mechanics, durable structural trends) — never timestamped or volatile facts, never current interest rates, never specific project names or dollar figures; domain knowledge, not TMW inventory (never reference TMW, "our database", or any tracked project); American spelling and imperial units; plain analyst register, no hype; no em dashes. Each note is 2 to 4 sentences: what it IS and why it MATTERS to development.';
+  const user = 'Pick about 6 topics spanning these buckets, varying the mix to broaden coverage over time:' + STUDY_BUCKETS + '\n\nResearch each, then output ONLY a JSON array of 5 to 8 notes and nothing else: [{"topic":"<short topic>","text":"<2-4 sentence evergreen note>","source":"<source name or URL>"}]';
+  const raw = await modelWebResearch(env, { system: sys, user: user, model: ONYX_MODEL, maxSearches: 12, maxTokens: 4500 });
+  const arr = parseLLMJson(raw);
+  if (!Array.isArray(arr) || !arr.length) throw new Error('no notes parsed from the research output');
+  const banked = await bankKnowledgeNotes(env, arr);
+  if (!banked.added) throw new Error('notes failed validation (need topic + text>=20 chars)');
+  try {
+    await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)')
+      .bind(Math.floor(Date.now() / 1000), 'system:onyx-study', 'intel_knowledge', JSON.stringify({ added: banked.added, topics: banked.topics, via: 'online-routine' })).run();
+  } catch (_) {}
+  return { summary: 'Banked ' + banked.added + ' knowledge notes: ' + banked.topics.slice(0, 8).join(', '), added: banked.added, topics: banked.topics };
+}
+
+// Registry of routines that run online. cronHour is UTC (worker cron fires every
+// minute; each routine runs once/day at its hour). Add intel-review + daily-
+// articles here as they come online.
+const ONLINE_ROUTINES = {
+  'onyx-study': { label: 'Onyx Study', desc: 'Research + bank evergreen knowledge Onyx reads on every answer.', run: runOnyxStudy, cronHour: 12 },
+};
+
+let _routineRunsReady = false;
+async function ensureRoutineRunsTable(env) {
+  if (_routineRunsReady) return;
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS routine_runs (id TEXT PRIMARY KEY, routine TEXT, started_at INTEGER, finished_at INTEGER, status TEXT, summary TEXT, detail TEXT)').run();
+  _routineRunsReady = true;
+}
+async function runOnlineRoutine(env, name) {
+  await ensureRoutineRunsTable(env);
+  const def = ONLINE_ROUTINES[name];
+  if (!def) return { ok: false, error: 'unknown routine' };
+  const id = 'run_' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0, 16) : (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)));
+  const started = Math.floor(Date.now() / 1000);
+  await env.DB.prepare('INSERT INTO routine_runs (id,routine,started_at,status) VALUES (?,?,?,?)').bind(id, name, started, 'running').run();
+  try {
+    const res = await def.run(env);
+    await env.DB.prepare('UPDATE routine_runs SET finished_at=?, status=?, summary=?, detail=? WHERE id=?')
+      .bind(Math.floor(Date.now() / 1000), 'ok', String((res && res.summary) || 'done').slice(0, 600), JSON.stringify(res || {}).slice(0, 4000), id).run();
+    return Object.assign({ ok: true, id: id }, res);
+  } catch (e) {
+    const msg = String((e && e.message) || e).slice(0, 600);
+    try { await env.DB.prepare('UPDATE routine_runs SET finished_at=?, status=?, summary=? WHERE id=?').bind(Math.floor(Date.now() / 1000), 'error', msg, id).run(); } catch (_) {}
+    return { ok: false, id: id, error: msg };
+  }
+}
+// GET /admin/routines — the online routines + recent run log (Studio status).
+async function handleRoutinesList(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no database' }, { status: 500 }, env, origin);
+  await ensureRoutineRunsTable(env);
+  const runs = (await env.DB.prepare('SELECT id,routine,started_at,finished_at,status,summary FROM routine_runs ORDER BY started_at DESC LIMIT 40').all()).results || [];
+  const routines = Object.keys(ONLINE_ROUTINES).map(function (k) { return { id: k, label: ONLINE_ROUTINES[k].label, desc: ONLINE_ROUTINES[k].desc, cronHour: ONLINE_ROUTINES[k].cronHour }; });
+  return json({ routines: routines, runs: runs }, {}, env, origin);
+}
+// POST /admin/routine-run { routine } — run one now, synchronously.
+async function handleRoutineRun(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const name = String(b.routine || '').trim();
+  if (!ONLINE_ROUTINES[name]) return json({ error: 'unknown routine: ' + name }, { status: 400 }, env, origin);
+  const res = await runOnlineRoutine(env, name);
+  return json(res, res.ok ? {} : { status: 502 }, env, origin);
+}
+// Cron: fire each online routine once/day at its UTC hour (skip if already run today).
+async function maybeRunRoutines(env) {
+  if (!env.DB || !env.ANTHROPIC_API_KEY) return;
+  try {
+    await ensureRoutineRunsTable(env);
+    const now = new Date();
+    const hour = now.getUTCHours();
+    const dayStart = Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / 1000);
+    for (const name of Object.keys(ONLINE_ROUTINES)) {
+      const def = ONLINE_ROUTINES[name];
+      if (def.cronHour == null || hour !== def.cronHour) continue;
+      const last = await env.DB.prepare('SELECT started_at FROM routine_runs WHERE routine=? AND started_at>=? LIMIT 1').bind(name, dayStart).first();
+      if (last) continue;
+      await runOnlineRoutine(env, name);
+    }
+  } catch (_) { /* best-effort */ }
 }
 
 // GET /admin/brain/corpus — the performance-ranked article corpus (body text +
@@ -17843,6 +17970,9 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/partner/context')   return await handlePartnerContext(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/partner/leads')     return await handlePartnerLeads(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/partner/lead-update') return await handlePartnerLeadUpdate(request, env, origin);
+      // Online routines (Claude Code cron routines moved into the Studio).
+      if (request.method === 'GET'  && url.pathname === '/admin/routines')    return await handleRoutinesList(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/routine-run') return await handleRoutineRun(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/advertisers/toggle') {
         return await handleAdvertiserToggle(request, env, origin);
       }
@@ -18520,6 +18650,7 @@ export default {
   // — fully resumable, self-pacing, and auto-pauses when everything is copied.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(migrationTick(env));
+    ctx.waitUntil(maybeRunRoutines(env));         // online routines (onyx-study, …) once/day at their UTC hour
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeSyncCheckinNames(env));   // refresh Passport leaderboard handles from Memberstack names (hourly)
