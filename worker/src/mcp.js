@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, handleReviseFeedback, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
 // Studio-admin read bridge: the connector reuses the SAME handler functions the
 // Access-gated admin pages hit, so the numbers can never drift from the Studio.
 import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats, handleDailyPulse } from './index.js';
@@ -797,6 +797,31 @@ const TOOLS = [
       topic: { type: 'string', description: 'What you are about to write — a short phrase; drives relevance retrieval of house notes' },
       all: { type: 'boolean', description: 'Management view: return every active note with ids/tiers/scopes' },
     } },
+  },
+  {
+    name: 'teach_from_rewrite',
+    description: 'THE STRONGEST WAY TO TEACH THE HOUSE VOICE. Use this the moment the human rewrites a draft by hand, or pastes their own version and says "this is what I want". It (1) saves their version as the draft body, and (2) banks the before/after as an EDIT PAIR in the shared learning loop — the same pipeline the publish-time learner uses, embedded so every future article generation retrieves it by topic relevance and sees it under "THE EDITOR\'S HAND". This is far more durable than a text note, because the model learns from the actual prose delta rather than a description of it. ALWAYS follow this call with 2-3 record_preference notes stating the SPECIFIC, reusable lessons from the diff (for example: "open on the category claim and the stakes before any spec", "never signpost with a line telling the reader what to think"), so the lesson also lands as an explicit rule. If the piece later gets published, pin it with pin_voice_exemplar so it becomes a gold-standard reference.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug of the draft the human rewrote.' },
+        rewrite_markdown: { type: 'string', description: "The human's version of the article, in Markdown. Saved as the new draft body." },
+        note: { type: 'string', description: 'Optional one-line summary of what they changed and why (goes on the learning record).' },
+      },
+      required: ['slug', 'rewrite_markdown'],
+    },
+  },
+  {
+    name: 'pin_voice_exemplar',
+    description: 'Pin (or unpin) a PUBLISHED article as a GOLD-STANDARD voice exemplar. Pinned pieces are injected verbatim into every future article-writing prompt with the instruction to match their voice, rhythm, structure, and how they open and land — they are the single highest-leverage voice control in the system, ahead of any rule text. Pin the pieces that best represent how TMW should read. Only published posts count (drafts are ignored by the exemplar retriever).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug of the PUBLISHED post to pin.' },
+        on: { type: 'boolean', description: 'true to pin (default), false to unpin.' },
+      },
+      required: ['slug'],
+    },
   },
   {
     name: 'record_preference',
@@ -4386,6 +4411,53 @@ const IMPL = {
     };
   },
 
+  // Teach the house voice from a real human rewrite. Reuses the SAME learning
+  // pipeline the in-editor Polish chat uses (handleReviseFeedback signal:'manual'),
+  // so the pair is banked as an event AND embedded for topic-relevant retrieval.
+  async teach_from_rewrite(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim().toLowerCase();
+    const rewrite = String(args.rewrite_markdown || '').trim();
+    if (!slug) throw new Error('slug is required');
+    if (!rewrite) throw new Error('rewrite_markdown is required');
+    const row = await env.DB.prepare('SELECT id, title, status, body_html FROM posts WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('no post with slug "' + slug + '"');
+    const before = String(row.body_html || '');
+    // Save the human's version as the draft body (drafts only; guarded downstream).
+    let saved = null;
+    try { saved = await IMPL.update_post_draft({ slug, body_markdown: rewrite }, env); }
+    catch (e) { throw new Error('could not save the rewrite: ' + (e && e.message ? e.message : e)); }
+    // Bank the before -> after pair into the shared learning loop.
+    let learned = null;
+    try {
+      const req = new Request('https://tmw.jake-ab7.workers.dev/admin/revise-feedback', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + (env.ADMIN_TOKEN || ''), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, signal: 'manual', before, after: rewrite, instruction: String(args.note || 'human rewrite'), summary: String(args.note || '') }),
+      });
+      learned = await bridgeJson(await handleReviseFeedback(req, env, BRIDGE_ORIGIN));
+    } catch (e) { learned = { error: String(e && e.message || e) }; }
+    return {
+      ok: true, slug, title: row.title || '', status: row.status,
+      saved_to_draft: !!saved, learning: learned,
+      edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id,
+      next: 'Now call record_preference 2-3 times with the SPECIFIC reusable lessons from this rewrite (what to do, not what happened). If this piece gets published, pin_voice_exemplar it so it becomes a gold-standard reference for every future article.',
+      note: 'The edit pair stores the opening ~600 characters of each version, which is where the lede lesson lives.',
+    };
+  },
+  async pin_voice_exemplar(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim().toLowerCase();
+    if (!slug) throw new Error('slug is required');
+    const on = args.on === false ? 0 : 1;
+    const row = await env.DB.prepare('SELECT id, title, status FROM posts WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('no post with slug "' + slug + '"');
+    if (on && row.status !== 'published') throw new Error('"' + (row.title || slug) + '" is a ' + row.status + '. Only PUBLISHED posts can be gold-standard exemplars — publish it first, then pin it.');
+    await env.DB.prepare('UPDATE posts SET voice_exemplar = ?1 WHERE slug = ?2').bind(on, slug).run();
+    const n = await env.DB.prepare("SELECT COUNT(*) c FROM posts WHERE status='published' AND voice_exemplar=1").first();
+    return { ok: true, slug, title: row.title || '', pinned: !!on, total_pinned: n ? n.c : null,
+      note: 'Pinned articles are injected into every future article-writing prompt as the voice to match.' };
+  },
   async record_preference(args, env) {
     if (!env.DB) throw new Error('D1 not configured');
     await ensureBrandNotesTable(env);
