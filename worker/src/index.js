@@ -6944,7 +6944,15 @@ export async function rejectedTopics(env, days = 120) {
 // (e.g. "shorecrest", "edition") + embedding similarity as backstop.
 // Includes generic street/money/headline words: "avenue" alone matched a Miami
 // Beach hotel reno against a Fifth Avenue supertall and blocked real coverage.
-const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update','avenue','street','boulevard','million','billion','construction','renovation','oceanfront','announced','unveils','unveiled','launch','launches','renderings','backed','inside','transformation','storied','reopens','remade','wellness','retreat','debut','debuts','flagship','branded','private','marina','estates','collection']);
+// Every word here is a GENERIC descriptor, never a distinguishing name. Real
+// dedup rides on distinctive proper nouns (GOLFZON, CityGolf, Shorecrest,
+// Edition), so stop-listing common English aggressively is safe AND necessary:
+// "America's best destination golf course" (Martis Camp, Tahoe) collided with
+// "GOLFZON ... indoor golf course ... Nashville" on {america, course} and
+// blocked a completely unrelated story.
+const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update','avenue','street','boulevard','million','billion','construction','renovation','oceanfront','announced','unveils','unveiled','launch','launches','renderings','backed','inside','transformation','storied','reopens','remade','wellness','retreat','debut','debuts','flagship','branded','private','marina','estates','collection',
+  // added 2026-08-12 after the Martis Camp false positive
+  'course','courses','america','americas','american','first','second','third','club','clubs','community','communities','destination','indoor','outdoor','world','worlds','largest','biggest','tallest','newest','longest','highest','national','international','exclusive','members','membership','residents','resident','acres','acreage','homesites','homesite','village','valley','mountain','mountains','island','islands','course','lakefront','ski','skiing','golfing','course','course','gated','amenities','amenity','clubhouse','neighborhood','neighbourhood','property','properties','homes','houses','building','buildings','tracked','feature','features','offering','offerings','experience','experiences','between','around','across','within','finally','already','before','after','during','through','because','without','another','several','various','multiple','including','includes','include','complete','completed','completes','completion','expansion','expands','expanded']);
 export async function topicRejected(env, topic, days = 120) {
   const rejected = await rejectedTopics(env, days);
   if (!rejected.length) return null;
@@ -8893,6 +8901,9 @@ async function handleOnyxChat(req, env, origin) {
           if (d.stop_reason === 'refusal') return fail('The model declined that request. Rephrase it and try again.');
 
           const content = Array.isArray(d.content) ? d.content : [];
+          // Round boundary: lets the UI treat everything before the LAST round
+          // as progress narration and render only the final round as the answer.
+          send({ t: 'round', n: round });
           // Surface the prose for this round, plus any web sources it consulted.
           for (const b of content) {
             if (b.type === 'text' && b.text) send({ t: 'text', m: b.text });
@@ -8915,11 +8926,23 @@ async function handleOnyxChat(req, env, origin) {
           for (const call of calls) {
             send({ t: 'status', tool: call.name, m: onyxToolLabel(call.name, call.input) });
             let payload, isErr = false;
+            // KEEPALIVE. generate_article_draft alone runs best-of-3 Fable
+            // drafts + a judge + the QA/fact passes, which can be minutes of
+            // total silence on the wire — long enough for the proxy or the
+            // browser to drop the stream ("Connection error: network error").
+            // An SSE comment every 8s keeps it warm without touching the UI.
+            let ping = null;
+            const beat = () => { try { ctrl.enqueue(enc.encode(': keepalive\n\n')); } catch (_) {} };
+            const startBeat = () => { ping = setInterval(beat, 8000); };
+            const stopBeat = () => { if (ping) { clearInterval(ping); ping = null; } };
             try {
+              startBeat();
               const r = await studioCallTool(call.name, call.input || {}, env);
+              stopBeat();
               payload = JSON.stringify(r).slice(0, 60000);
               for (const a of onyxArtifacts(call.name, r)) send({ t: 'artifact', ...a });
             } catch (e) {
+              stopBeat();
               isErr = true;
               payload = 'Error: ' + (e && e.message ? e.message : String(e));
               send({ t: 'status', tool: call.name, m: 'failed: ' + payload.slice(0, 160), bad: true });

@@ -2528,7 +2528,11 @@ const IMPL = {
     if (!topic) throw new Error('topic is required');
     // Editorial rejection memory: if the editor deleted a draft on this story
     // in the last ~4 months, refuse — pick a DIFFERENT story instead.
-    const rej = await topicRejected(env, topic + ' ' + String(args.angle || ''));
+    // Match on the TOPIC only, never the angle: the angle is editorial prose
+    // ("America's best destination golf course") and its generic words are what
+    // produced false rejections. The topic carries the project name, which is
+    // the signal that actually identifies a story.
+    const rej = await topicRejected(env, topic);
     if (rej) throw new Error('TOPIC REJECTED BY EDITOR: a draft on this story ("' + rej.title + '") was deleted on ' + new Date(rej.rejected_at * 1000).toISOString().slice(0, 10) + ' — it is suppressed until ' + new Date(rej.until * 1000).toISOString().slice(0, 10) + '. Do NOT redraft it or a close variant; choose a different story.');
     // ── DUPLICATE-DRAFT GUARD (the #1 failure mode). If a draft on the SAME
     // tracked project already sits in EITHER tab (AI or human Drafts), refuse —
