@@ -3158,6 +3158,53 @@ async function handleWatchDelete(req, env, origin) {
 // TITLE change. `target` is a passage the user selected to focus on. Pasted
 // `context` is treated as verified facts. Admin-token gated. Returns a chat
 // `reply` plus, when applicable, the updated title and/or body_html.
+// Visible text of an HTML page (scripts/styles/chrome removed).
+function readableHtmlText(html) {
+  return String(html || '')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<(?:nav|header|footer|aside)[\s\S]*?<\/(?:nav|header|footer|aside)>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ').trim();
+}
+// Mine the human-readable strings out of a JS app's embedded state (Next.js
+// __NEXT_DATA__ or any application/json island). This is where SPAs actually
+// keep their content: on equinox.com/clubs it recovers 129 club names with
+// addresses from a page whose visible text is the word "Loading". Contentful-
+// style ids, hashes and timestamps are filtered out so the model sees names,
+// not machine keys.
+function jsonBlobText(html) {
+  try {
+    const blobs = [];
+    const re = /<script[^>]*(?:id="__NEXT_DATA__"|type="application\/json"|type="application\/ld\+json")[^>]*>([\s\S]*?)<\/script>/gi;
+    let m; while ((m = re.exec(String(html))) !== null) { if (m[1] && m[1].length > 40) blobs.push(m[1]); }
+    if (!blobs.length) return '';
+    blobs.sort((a, b) => b.length - a.length);
+    let data = null;
+    for (const b of blobs.slice(0, 3)) { try { data = JSON.parse(b.trim()); break; } catch (_) {} }
+    if (!data) return '';
+    const TS = /^\d{4}-\d{2}-\d{2}T/;
+    const IDLIKE = /^[0-9a-zA-Z_-]{10,}$/;
+    const JUNK = /^[\d.,%$+\-()\s]{1,12}$/;
+    const seen = new Set(), out = [];
+    const keep = (s) => {
+      if (!(s.length > 2 && s.length < 200)) return false;
+      if (/^(?:https?:|\/|#|data:|\{|\[)/.test(s)) return false;
+      if (TS.test(s)) return false;
+      if (s.indexOf(' ') === -1 && IDLIKE.test(s)) return false;   // contentful id / hash
+      if (JUNK.test(s)) return false;
+      return true;
+    };
+    const walk = (n, depth) => {
+      if (depth > 14 || out.length > 3000) return;
+      if (typeof n === 'string') { const s = n.trim(); if (keep(s) && !seen.has(s)) { seen.add(s); out.push(s); } }
+      else if (Array.isArray(n)) { for (const v of n) walk(v, depth + 1); }
+      else if (n && typeof n === 'object') { for (const k in n) walk(n[k], depth + 1); }
+    };
+    walk(data, 0);
+    return out.join(' | ');
+  } catch (_) { return ''; }
+}
+
 async function handleReviseDraft(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
@@ -3189,14 +3236,19 @@ async function handleReviseDraft(req, env, origin) {
     try {
       const r = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TMWStudio/1.0)', 'Accept': 'text/html,*/*' }, signal: AbortSignal.timeout(9000) });
       if (!r.ok) { fetchedRefs.push({ url: u, error: 'HTTP ' + r.status }); continue; }
-      const html = (await r.text()).slice(0, 400000);
-      const text = html
-        .replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ')
-        .replace(/<(?:nav|header|footer|aside)[\s\S]*?<\/(?:nav|header|footer|aside)>/gi, ' ')
-        .replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"')
-        .replace(/\s+/g, ' ').trim().slice(0, 7000);
+      const html = (await r.text()).slice(0, 900000);
+      let text = readableHtmlText(html).slice(0, 12000);
+      // JS-RENDERED PAGES. Stripping <script> first threw away the only copy of
+      // the content on any modern SPA: equinox.com/clubs is 437KB of HTML whose
+      // visible text extracts to 82 characters ("… Loading…"), while all 129 club
+      // names sit in the __NEXT_DATA__ JSON. When the visible text comes back
+      // thin, mine the embedded JSON instead of reporting an empty page.
+      if (text.length < 400) {
+        const fromJson = jsonBlobText(html);
+        if (fromJson.length > text.length) text = fromJson.slice(0, 12000);
+      }
       if (text.length > 200) fetchedRefs.push({ url: u, text });
-      else fetchedRefs.push({ url: u, error: 'page had no readable text' });
+      else fetchedRefs.push({ url: u, error: 'the page rendered no readable text (it loads its content with JavaScript)' });
     } catch (e) { fetchedRefs.push({ url: u, error: String(e && e.message || e).slice(0, 120) }); }
   }
   const refBlocks = fetchedRefs.filter((f) => f.text).map((f) => 'REFERENCE MATERIAL fetched from ' + f.url + ' (treat as the verified primary source; do not exceed it):\n' + f.text);
@@ -3222,6 +3274,11 @@ async function handleReviseDraft(req, env, origin) {
   const usr = (history.length ? 'RECENT CHAT (continuity — what you told them earlier really happened only if the draft below reflects it):\n' + history.map((h) => h.role + ': ' + h.text).join('\n') + '\n\n' : '')
     + 'MESSAGE:\n' + instruction
     + (context ? '\n\nREFERENCE MATERIAL the colleague pasted (verified facts you may use; do not exceed it):\n' + context : '')
+    // The model used to be told NOTHING when a link failed to fetch, so it would
+    // proceed and claim it had "verified" facts on a page it never read. Say it
+    // plainly instead, and forbid the claim.
+    + (refFails.length ? '\n\nLINK(S) YOU COULD NOT READ: ' + refFails.map((f) => f.url + ' (' + f.error + ')').join('; ')
+        + '\nYou did NOT see the contents of that link. Do NOT claim you checked, verified, or read it, and do NOT add any fact sourced to it. Say plainly in your reply that the page did not load for you and ask them to paste the relevant details.' : '')
     + '\n\nCURRENT TITLE: ' + title
     + '\n\nCURRENT BODY HTML:\n' + body;
   let raw = '';
