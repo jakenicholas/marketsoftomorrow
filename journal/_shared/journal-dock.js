@@ -2027,6 +2027,17 @@
   // The badge shows the count of UNDISMISSED notifications — it persists across
   // opens and only drops as the user clears each tile with its × (not on open).
   function countNew(){ return active().length; }
+  // A project pulse notification (status change / financing / now-tracking)
+  // opens the project's full SEO page, not the map pin — richer + indexable,
+  // and it keeps the reader on a real article surface. project_slug maps 1:1
+  // to the built /projects/<slug>/ pages. Articles keep their post link; falls
+  // back to the event's own link only when there's no project_slug.
+  function pulseItemHref(e){
+    if (e && e.type !== 'article' && e.project_slug){
+      return '/projects/' + encodeURIComponent(e.project_slug) + '/';
+    }
+    return (e && e.link) || '#';
+  }
   function itemHtml(e){
     var lab = label(e);
     var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
@@ -2046,7 +2057,7 @@
     // beat ("Because you watch Miami", "You're watching this project", …).
     var why = '';
     if (scope === 'me'){ var wr = mineReason(e); if (wr) why = '<div class="pi-why"><svg class="pi-why-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span>' + esc(wr) + '</span></div>'; }
-    return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
+    return '<a class="tmw-pulse-item" href="' + esc(pulseItemHref(e)) + '" data-eid="' + esc(eid(e)) + '">' + img +
       '<div class="pi-body">' + chip +
       '<div class="pi-title">' + esc(title(e)) + '</div>' +
       '<div class="pi-meta">' + meta + '</div>' + partOf + why + '</div>' +
@@ -2576,8 +2587,17 @@
   // Anchor the host just ABOVE the dock: measure the (collapsed) dock pill; fall back
   // to a safe calc when the dock is absent or mid-expansion (unusually tall).
   function ttPosition(w){
-    try{ var d=document.querySelector('.tmw-dock');
-      if(d){ var r=d.getBoundingClientRect(); if(r.height>0 && r.height<170){ w.style.bottom=Math.max(14,(window.innerHeight-r.top+12))+'px'; return; } }
+    try{
+      // The VISIBLE dock is the dynamic dock .tmwx-wrap (tmw-mobile-dock.js) on most
+      // pages; the old .tmw-dock pill is display:none except on the map-search host.
+      // Pick whichever is actually on-screen (height>0, sitting in the lower half),
+      // and skip a mid-expansion tray (too tall) — the calc fallback covers those.
+      var d=document.querySelector('.tmwx-wrap') || document.querySelector('.tmw-dock');
+      if(d){ var r=d.getBoundingClientRect();
+        if(r.height>0 && r.height<170 && r.bottom>window.innerHeight*0.5){
+          w.style.bottom=Math.max(14,(window.innerHeight-r.top+12))+'px'; return;
+        }
+      }
     }catch(e){}
     w.style.bottom='calc(94px + env(safe-area-inset-bottom, 0px))';
   }
