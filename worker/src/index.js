@@ -8735,6 +8735,40 @@ async function handleAdminDownload(req, env, origin) {
   return new Response(r.body, { status: 200, headers: h });
 }
 
+// GET /admin/email-weeks — week-by-week newsletter performance for the Morning
+// Desk chart: the last ~14 SENT broadcasts with DISTINCT-recipient counts per
+// webhook event type from resend_events. Broadcasts sent before the webhook
+// went live (2026-08-11) or before domain open-tracking was enabled simply
+// carry nulls; the chart fills in with every new send.
+async function handleEmailWeeks(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.RESEND_API_KEY) return json({ error: 'RESEND_API_KEY not configured' }, { status: 503 }, env, origin);
+  let list = [];
+  try {
+    const r = await fetch('https://api.resend.com/broadcasts', { headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY } });
+    if (!r.ok) return json({ error: 'Resend /broadcasts HTTP ' + r.status }, { status: 502 }, env, origin);
+    list = ((await r.json()).data || []).filter((b) => b.status === 'sent' && b.sent_at)
+      .sort((a, b) => Date.parse(a.sent_at) - Date.parse(b.sent_at)).slice(-14);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin); }
+  const weeks = [];
+  try { await ensureResendEventsTable(env); } catch (_) {}
+  for (const b of list) {
+    const w = { id: b.id, name: b.name || '', sent_at: b.sent_at, sent: null, delivered: null, opened: null, clicked: null };
+    try {
+      const agg = (await env.DB.prepare('SELECT type, COUNT(DISTINCT email) c FROM resend_events WHERE broadcast_id = ?1 GROUP BY type').bind(b.id).all()).results || [];
+      for (const r of agg) {
+        if (r.type === 'email.sent') w.sent = r.c;
+        else if (r.type === 'email.delivered') w.delivered = r.c;
+        else if (r.type === 'email.opened') w.opened = r.c;
+        else if (r.type === 'email.clicked') w.clicked = r.c;
+      }
+      if (w.sent == null && w.delivered != null) w.sent = w.delivered;
+    } catch (_) {}
+    weeks.push(w);
+  }
+  return json({ weeks }, {}, env, origin);
+}
+
 // ── Morning Desk feeds ──────────────────────────────────────────────────────
 // GET /admin/morning → real last-post-per-account from the daily IG archive
 // sync (ig_posts), so the desk's accounts board reflects actual Instagram
@@ -17149,6 +17183,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/dl')                  return await handleAdminDownload(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/email-weeks')         return await handleEmailWeeks(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/design-chat')         return await handleDesignChat(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-feedback')     return await handleReviseFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
