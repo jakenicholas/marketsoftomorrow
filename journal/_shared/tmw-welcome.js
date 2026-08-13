@@ -187,7 +187,7 @@
   var TICKER =
     '<div class="g-ticker">' +
       '<div class="tk"><div class="v">1,000+</div><div class="k">Tracked projects</div></div>' +
-      '<div class="tk"><div class="v">8.1M</div><div class="k">Monthly views</div></div>' +
+      '<div class="tk"><div class="v">10.2M</div><div class="k">Monthly views</div></div>' +
       '<div class="tk"><div class="v">40+</div><div class="k">Markets</div></div>' +
     '</div>';
 
