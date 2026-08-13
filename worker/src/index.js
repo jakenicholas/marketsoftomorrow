@@ -3257,7 +3257,9 @@ async function handleReviseDraft(req, env, origin) {
 
   const brain = await assembleBrain(env, { topic: title, place: '', surface: 'article' });
   const userKey = studioUserKey(req);
-  const memBlock = await threadMemoryBlock(env, userKey, {});
+  // Focus = this draft, so Onyx pulls up everything it has ever said about THIS
+  // project (from any surface) and leaves other projects' chatter behind.
+  const memBlock = await threadMemoryBlock(env, userKey, { focus: title + ' ' + slug });
   const sys = [
     'You are Onyx, the Markets of Tomorrow studio assistant, working as the senior staff editor right now: you are talking with a colleague in a chat INSIDE the article editor. Same assistant, same ongoing conversation as the Onyx page and the carousel editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
     brain.text || '',
@@ -3404,7 +3406,9 @@ async function handleDesignChat(req, env, origin) {
   ).join('\n');
 
   const userKey = studioUserKey(req);
-  const memBlock = await threadMemoryBlock(env, userKey, {});
+  // Focus = this deck, which is how a carousel finds the article conversation
+  // about the same project (the two surfaces store different ref strings).
+  const memBlock = await threadMemoryBlock(env, userKey, { focus: title || instruction });
   const sys = [
     'You are Onyx, the Markets of Tomorrow studio assistant, working as the senior social editor right now: you are chatting with a colleague INSIDE the carousel Design editor. Same assistant, same ongoing conversation as the Onyx page and the article editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
     brainText ? ('HOUSE BRAIN (voice + learned rules, FOLLOW THESE):\n' + brainText) : '',
@@ -9047,23 +9051,58 @@ async function threadAppend(env, userKey, turns) {
     }
   } catch (_) { /* memory is best-effort; never break a chat over it */ }
 }
+// Distinctive tokens of whatever the user is working on right now ("Equinox is
+// bringing its first Tennessee club…" → equinox, tennessee, nashville). Used to
+// pull this PROJECT's history out of the thread regardless of how long ago it
+// happened, and regardless of which surface it happened on (the article editor
+// stores a slug, the carousel editor stores a deck title, so exact-match fails).
+// Verbs and generic nouns are dropped so the surviving tokens are the ones that
+// actually identify a project (a brand, a city, a building), not the ones that
+// merely happen to be long.
+const THREAD_STOPWORDS = new Set(['this','that','with','from','into','their','there','have','has','been','will','the','and','for','are','its','it','new','first','deck','draft','post','article','carousel','about','more','over','under','than','then','they','them','what','when','where','which','while','your','yours','ours','make','made','only','just','also','some','very','most','best','luxury','project','projects','residences','hotel','hotels','club','clubs','square','foot','story','three','coming','opens','opening','bringing','brings','bring','breaks','breaking','ground','unveils','unveil','debuts','debut','reveals','reveal','launches','launch','announces','announce','announced','adding','tops','topped','topping','sets','plans','planned','building','builds','built','features','featuring','offering','offers','inside','look','next','years','year','month','months']);
+function focusTokens(focus) {
+  const out = [];
+  for (const raw of String(focus || '').toLowerCase().split(/[^a-z0-9]+/)) {
+    if (raw.length < 4 || THREAD_STOPWORDS.has(raw) || /^\d+$/.test(raw)) continue;
+    if (out.indexOf(raw) === -1) out.push(raw);
+  }
+  return out.sort((a, b) => b.length - a.length).slice(0, 4);
+}
 // Build the shared-memory block injected into every surface's system prompt.
+// Two layers: (a) everything said about THE PIECE/PROJECT in front of you now,
+// however long ago, and (b) the most recent turns for general continuity. That
+// gives continuity without dragging an unrelated project into the current one.
 async function threadMemoryBlock(env, userKey, opts) {
   opts = opts || {};
   if (!env.DB) return '';
   try {
     await ensureStudioThreadTables(env);
     const st = await env.DB.prepare('SELECT summary FROM studio_thread_state WHERE user_key=?').bind(userKey).first();
-    const rows = (await env.DB.prepare('SELECT surface, role, text, ref FROM studio_turns WHERE user_key=? ORDER BY id DESC LIMIT ?').bind(userKey, opts.recent || THREAD_RECENT).all()).results || [];
-    if (!rows.length && !(st && st.summary)) return '';
-    const recent = rows.reverse().map(function (r) {
-      const who = r.role === 'assistant' ? 'You' : 'Them';
-      const where = r.surface + (r.ref ? ' · ' + r.ref : '');
-      return '[' + where + '] ' + who + ': ' + String(r.text || '').slice(0, opts.turnChars || 700);
-    }).join('\n');
-    return ['SHARED STUDIO MEMORY — you are ONE assistant (Onyx) in ONE continuous conversation with this person across every Studio surface: the Onyx page, the article editor Polish chat, and the carousel Design chat. What follows is YOUR OWN memory of that conversation, including turns that happened on a different surface. Treat it as yours: if you generated a draft on the Onyx page and they now ask about it in the editor, you DO know it and must never say you cannot see that chat. Continue seamlessly, and do not re-introduce yourself.',
+    const limit = opts.recent || THREAD_RECENT;
+    const rows = (await env.DB.prepare('SELECT id, surface, role, text, ref FROM studio_turns WHERE user_key=? ORDER BY id DESC LIMIT ?').bind(userKey, limit).all()).results || [];
+    const recentIds = new Set(rows.map((r) => r.id));
+    // (a) This project's own history, matched on distinctive tokens of the ref.
+    let related = [];
+    const toks = focusTokens(opts.focus);
+    if (toks.length) {
+      const where = toks.map(() => '(ref LIKE ? OR text LIKE ?)').join(' OR ');
+      const binds = [userKey];
+      for (const t of toks) { binds.push('%' + t + '%', '%' + t + '%'); }
+      binds.push(24);
+      const stmt = env.DB.prepare('SELECT id, surface, role, text, ref FROM studio_turns WHERE user_key=? AND (' + where + ') ORDER BY id DESC LIMIT ?');
+      const res = await stmt.bind.apply(stmt, binds).all();
+      related = (res.results || []).filter((r) => !recentIds.has(r.id)).slice(0, 10).reverse();
+    }
+    if (!rows.length && !related.length && !(st && st.summary)) return '';
+    const fmt = (r) => '[' + r.surface + (r.ref ? ' · ' + String(r.ref).slice(0, 60) : '') + '] '
+      + (r.role === 'assistant' ? 'You' : 'Them') + ': ' + String(r.text || '').slice(0, opts.turnChars || 700);
+    const recent = rows.reverse().map(fmt).join('\n');
+    return ['SHARED STUDIO MEMORY — you are ONE assistant (Onyx) in ONE continuous conversation with this person across every Studio surface: the Onyx page, the article editor, and the carousel editor. What follows is YOUR OWN memory of that conversation, including turns from a different surface. Treat it as yours: if you generated a draft on the Onyx page and they now ask about it in the editor, you DO know it and must never say you cannot see that chat. Continue seamlessly and do not re-introduce yourself.',
       (st && st.summary) ? 'EARLIER IN THIS CONVERSATION (rolling summary):\n' + st.summary : '',
-      recent ? 'MOST RECENT TURNS:\n' + recent : ''].filter(Boolean).join('\n\n');
+      related.length ? 'WHAT YOU HAVE ALREADY SAID ABOUT THE PIECE IN FRONT OF YOU (carry these corrections and decisions forward):\n' + related.map(fmt).join('\n') : '',
+      recent ? 'MOST RECENT TURNS (general continuity):\n' + recent : '',
+      'USING THIS MEMORY: the piece currently open is what governs. Turns tagged to a DIFFERENT piece are background only — never carry another project\'s facts, framing, or angle into this one, and never treat an instruction given about a different piece as an instruction about this one.'
+    ].filter(Boolean).join('\n\n');
   } catch (_) { return ''; }
 }
 // Fold everything older than the recent window into the rolling summary, so the
@@ -9138,7 +9177,16 @@ async function handleOnyxChat(req, env, origin) {
   // The shared studio memory rides along, so this chat continues the SAME
   // conversation the editor Polish chats are part of, across sessions.
   const userKey = studioUserKey(req);
-  const memBlock = await threadMemoryBlock(env, userKey, {});
+  // No fixed draft here, so the newest message is the focus signal: ask about
+  // Equinox on the Onyx page and it surfaces the editor turns about Equinox.
+  let focusText = '';
+  try {
+    const lastU = [...incoming].reverse().find((m) => m.role !== 'assistant');
+    const c = lastU && lastU.content;
+    focusText = typeof c === 'string' ? c
+      : (Array.isArray(c) ? c.filter((b) => b && b.type === 'text').map((b) => b.text).join(' ') : '');
+  } catch (_) {}
+  const memBlock = await threadMemoryBlock(env, userKey, { focus: focusText.slice(0, 300) });
   const sysText = (await onyxSystem(env)) + (memBlock ? '\n\n' + memBlock : '');
   let lastAssistantText = '';
 
