@@ -484,7 +484,11 @@
       // Our own fixed overlays (subscribe lightbox, custom auth modal) have
       // email/password inputs but are NOT Memberstack modals — never tag them,
       // or the MS theme overrides their styling.
-      if (el.classList && (el.classList.contains('tmw-sub') || el.classList.contains('tmw-am') || el.classList.contains('tmww'))) return false;
+      // (tmw-inq-scrim = the Request Info / interest-list modal: it has an email
+      // field, so the sniff below claimed it and repainted its purple CTA green.)
+      if (el.classList && (el.classList.contains('tmw-sub') || el.classList.contains('tmw-am') || el.classList.contains('tmww') || el.classList.contains('tmw-inq-scrim'))) return false;
+      // Blanket opt-out for any future TMW-owned overlay: mark it data-tmw-own.
+      if (el.hasAttribute && el.hasAttribute('data-tmw-own')) return false;
       try {
         var cs = window.getComputedStyle(el);
         if (cs.position !== 'fixed' && cs.position !== 'absolute') return false;

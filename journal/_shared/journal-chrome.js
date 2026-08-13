@@ -347,7 +347,7 @@
     // app's domains list or the SDK boots in Test Mode there.
     if (!document.querySelector('script[data-tmw-auth-loader]')) {
       var authScript = document.createElement('script');
-      authScript.src = '/_shared/journal-auth.js';
+      authScript.src = '/_shared/journal-auth.js?v=20260812a';   // BUMP on change
       authScript.defer = true;
       authScript.setAttribute('data-tmw-auth-loader', '');
       document.body.appendChild(authScript);
@@ -396,7 +396,7 @@
     // on every page so a [data-tmw-inquire] trigger works in articles too.
     if (!window.tmwInquire && !document.querySelector('script[data-tmw-inquire-loader]')) {
       var inqScript = document.createElement('script');
-      inqScript.src = '/_shared/tmw-inquire.js?v=20260812a';   // BUMP on any copy/behavior change
+      inqScript.src = '/_shared/tmw-inquire.js?v=20260812b';   // BUMP on any copy/behavior change
       inqScript.defer = true;
       inqScript.setAttribute('data-tmw-inquire-loader', '');
       document.body.appendChild(inqScript);
