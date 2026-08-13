@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-12",
+  "generated_at": "2026-08-13",
   "available_types": [
     {
       "type": "Residences",
@@ -11,7 +11,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 91
+      "count": 92
     },
     {
       "type": "Golf",
@@ -1023,7 +1023,7 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": 2029,
       "sm": "2026-12",
       "ci": "Miami",
@@ -17557,7 +17557,7 @@
     {
       "st": "FL",
       "ty": "Golf",
-      "sl": "Breaking Ground",
+      "sl": "Construction",
       "yr": null,
       "sm": "2026-12",
       "ci": "Port St. Lucie",
@@ -18218,7 +18218,7 @@
       "st": "CA",
       "ty": "Mixed-Use",
       "sl": "Announced",
-      "yr": null,
+      "yr": 2029,
       "sm": null,
       "ci": "Los Angeles",
       "u": 384,
@@ -23983,19 +23983,46 @@
           "eero-saarinen"
         ]
       ]
+    },
+    {
+      "st": "TN",
+      "ty": "Mixed-Use",
+      "sl": "Construction",
+      "yr": 2028,
+      "sm": "2021-12",
+      "ci": "Nashville",
+      "u": 824,
+      "k": 180,
+      "fl": 30,
+      "dv": [
+        [
+          "SomeraRoad",
+          "someraroad"
+        ]
+      ],
+      "ar": [
+        [
+          "ESa",
+          "esa"
+        ],
+        [
+          "Manuel Zeitlin Architects",
+          "manuel-zeitlin-architects"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 965,
+    "total_projects": 966,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 377,
+    "under_construction": 378,
     "opening_this_year": 124
   },
   "scale": {
-    "units": 346292,
-    "keys": 63301,
-    "floors": 17404
+    "units": 347116,
+    "keys": 63481,
+    "floors": 17434
   },
   "leaderboards": {
     "developers": [
@@ -24713,8 +24740,8 @@
       },
       {
         "name": "Nashville",
-        "sub": "27 developments \u00b7 30 developers",
-        "count": 27,
+        "sub": "28 developments \u00b7 30 developers",
+        "count": 28,
         "states": [
           "TN"
         ]
@@ -25027,15 +25054,15 @@
       },
       {
         "name": "Mixed-Use",
-        "sub": "9% of pipeline",
-        "count": 91,
+        "sub": "10% of pipeline",
+        "count": 92,
         "states": [
           "FL",
           "CN",
           "TX",
+          "TN",
           "UK",
           "JP",
-          "TN",
           "MX",
           "NC",
           "AE",
@@ -26133,9 +26160,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -27155,9 +27182,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -28054,9 +28081,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -29918,9 +29945,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -30008,6 +30035,15 @@
           ]
         },
         {
+          "name": "SomeraRoad",
+          "slug": "someraroad",
+          "sub": "Nashville",
+          "count": 2,
+          "states": [
+            "TN"
+          ]
+        },
+        {
           "name": "Southwest Value Partners",
           "slug": "southwest-value-partners",
           "sub": "Nashville",
@@ -30061,15 +30097,6 @@
             "TN",
             "PT",
             "ES"
-          ]
-        },
-        {
-          "name": "SomeraRoad",
-          "slug": "someraroad",
-          "sub": "Nashville",
-          "count": 1,
-          "states": [
-            "TN"
           ]
         },
         {
@@ -30309,7 +30336,7 @@
           "name": "ESa",
           "slug": "esa",
           "sub": "Nashville",
-          "count": 2,
+          "count": 3,
           "states": [
             "TN"
           ]
@@ -30600,8 +30627,8 @@
       "cities": [
         {
           "name": "Nashville",
-          "sub": "27 developments \u00b7 30 developers",
-          "count": 27,
+          "sub": "28 developments \u00b7 30 developers",
+          "count": 28,
           "states": [
             "TN"
           ]
@@ -30642,7 +30669,7 @@
       "types": [
         {
           "name": "Hotel",
-          "sub": "38% of pipeline",
+          "sub": "36% of pipeline",
           "count": 12,
           "states": [
             "FL",
@@ -30703,7 +30730,7 @@
         },
         {
           "name": "Residences",
-          "sub": "22% of pipeline",
+          "sub": "21% of pipeline",
           "count": 7,
           "states": [
             "FL",
@@ -30746,15 +30773,15 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "12% of pipeline",
-          "count": 4,
+          "sub": "15% of pipeline",
+          "count": 5,
           "states": [
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -31507,9 +31534,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -32335,9 +32362,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -33217,9 +33244,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -33855,9 +33882,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -34480,9 +34507,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -35209,9 +35236,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -36034,9 +36061,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -38208,9 +38235,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -39005,9 +39032,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -39335,9 +39362,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -39897,9 +39924,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -40591,9 +40618,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -40829,9 +40856,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -41110,9 +41137,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -42194,9 +42221,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -44319,9 +44346,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -44414,9 +44441,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -44803,9 +44830,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -46115,9 +46142,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -46433,9 +46460,9 @@
             "FL",
             "CN",
             "TX",
+            "TN",
             "UK",
             "JP",
-            "TN",
             "MX",
             "NC",
             "AE",
@@ -46749,11 +46776,11 @@
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 140
+          "count": 141
         },
         {
           "label": "Breaking Ground",
-          "count": 14
+          "count": 13
         },
         {
           "label": "Construction",
@@ -47213,13 +47240,13 @@
     },
     "TN": {
       "hero_stats": {
-        "total_projects": 32,
-        "under_construction": 13
+        "total_projects": 33,
+        "under_construction": 14
       },
       "scale": {
-        "units": 12076,
-        "keys": 2282,
-        "floors": 367
+        "units": 12900,
+        "keys": 2462,
+        "floors": 397
       },
       "status_distribution": [
         {
@@ -47232,7 +47259,7 @@
         },
         {
           "label": "Construction",
-          "count": 13
+          "count": 14
         },
         {
           "label": "Opening Soon",
@@ -53587,15 +53614,15 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 261
+      "count": 262
     },
     {
       "label": "Breaking Ground",
-      "count": 40
+      "count": 39
     },
     {
       "label": "Construction",
-      "count": 377
+      "count": 378
     },
     {
       "label": "Opening Soon",
@@ -53679,11 +53706,11 @@
     },
     {
       "year": 2028,
-      "count": 170
+      "count": 171
     },
     {
       "year": 2029,
-      "count": 77
+      "count": 78
     },
     {
       "year": 2030,
@@ -53719,7 +53746,7 @@
     {
       "code": "TN",
       "label": "Tennessee",
-      "count": 32
+      "count": 33
     },
     {
       "code": "SA",
@@ -54856,7 +54883,7 @@
       "title": "1 Hotel Austin",
       "city": "Austin",
       "delivery_date": "2026-08-15",
-      "days_out": 3,
+      "days_out": 2,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -54867,7 +54894,7 @@
       "title": "Faraway Jackson Hole",
       "city": "Teton Village",
       "delivery_date": "2026-08-15",
-      "days_out": 3,
+      "days_out": 2,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -54878,7 +54905,7 @@
       "title": "Fort\u00e9 Luxe",
       "city": "Jupiter",
       "delivery_date": "2026-09-01",
-      "days_out": 20,
+      "days_out": 19,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -54889,7 +54916,7 @@
       "title": "Malabar Residences",
       "city": "New York City",
       "delivery_date": "2026-09-01",
-      "days_out": 20,
+      "days_out": 19,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -54900,10 +54927,10 @@
       "title": "The Shepherd Mayfair",
       "city": "London",
       "delivery_date": "2026-09-01",
-      "days_out": 20,
+      "days_out": 19,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "20d",
+      "display_label": "19d",
       "display_precision": "day"
     },
     {
@@ -54911,10 +54938,10 @@
       "title": "Nobu Hotel Madrid",
       "city": "Madrid",
       "delivery_date": "2026-09-01",
-      "days_out": 20,
+      "days_out": 19,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "20d",
+      "display_label": "19d",
       "display_precision": "day"
     },
     {
@@ -54922,10 +54949,10 @@
       "title": "Wild Spring Dunes",
       "city": "Mount Enterprise",
       "delivery_date": "2026-09-08",
-      "days_out": 27,
+      "days_out": 26,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "27d",
+      "display_label": "26d",
       "display_precision": "day"
     },
     {
@@ -54933,7 +54960,7 @@
       "title": "The Brook Tennis and Pickleball",
       "city": "Boynton Beach",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -54944,7 +54971,7 @@
       "title": "9900 West",
       "city": "Bay Harbor Islands",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -54955,7 +54982,7 @@
       "title": "The Sound",
       "city": "West Palm Beach",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -54966,7 +54993,7 @@
       "title": "Rivani Miami Beach",
       "city": "Miami Beach",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -54977,7 +55004,7 @@
       "title": "Kalea Bay Tower 500",
       "city": "Naples",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -54988,7 +55015,7 @@
       "title": "The Elene",
       "city": "Napa",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -54999,7 +55026,7 @@
       "title": "The Kali Hotel and Rooftop",
       "city": "Inglewood",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -55010,7 +55037,7 @@
       "title": "\u02bbUlu o Lele",
       "city": "Lahaina",
       "delivery_date": "2026-09-15",
-      "days_out": 34,
+      "days_out": 33,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
