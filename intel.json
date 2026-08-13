@@ -16751,19 +16751,74 @@
       "delivery_date": "2028-12-31",
       "inflight_undated": 0,
       "pattern_summary": "Phased master plan — 1 components delivering through 2028; latest dated phase (Paseo South Gulch) ~2.5 years out."
+    },
+    "alam-al-roum": {
+      "estimate_years": 7.0,
+      "estimate_label": "~7 years",
+      "range_low": 4.3,
+      "range_high": 11.2,
+      "confidence": "low",
+      "comparable_count": 3,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.5,
+      "avg_distance_km": null,
+      "avg_distance_mi": null,
+      "scale_used": false,
+      "firm_signal": {
+        "firm": "Qatari Diar",
+        "count": 1,
+        "median_years": 4.0,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "Wasl Tower",
+          "slug": "wasl-tower",
+          "location": "Dubai",
+          "years": 9.0,
+          "score": 0.5
+        },
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.5
+        },
+        {
+          "name": "One Bangkok",
+          "slug": "one-bangkok",
+          "location": "Bangkok",
+          "years": 6.6,
+          "score": 0.5
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–11.2 years with phased delivery. Based on 3 completed mixed-use comparables, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": true
     }
   },
   "stats": {
     "high": 9,
     "medium": 25,
-    "low": 84,
+    "low": 85,
     "known_date": 553,
     "completed": 71,
     "skipped": 116,
     "no_type": 0,
-    "firm_boosted": 50,
+    "firm_boosted": 51,
     "speculative_softened": 227,
     "district": 14,
-    "mixed_use_adjusted": 34
+    "mixed_use_adjusted": 35
   }
 }
