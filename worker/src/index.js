@@ -15030,6 +15030,20 @@ export async function getFingerprint(env) {
 // same-genre exemplars, and judge candidates against the right shape.
 // Deterministic first (free): score the assignment text against each type's cue
 // + name tokens. Only genuinely ambiguous cases pay for a model call.
+// Signal table per known genre. Cue prose alone was too weak (real headlines
+// share almost no vocabulary with a cue sentence like "Star or billionaire backs
+// a venue"), so each type carries the words that ACTUALLY appear in our
+// headlines, plus a lead pattern where the genre announces itself up front.
+const STORY_SIGNALS = {
+  'transit-infrastructure': { w: ['airport','rail','railway','train','metro','subway','transit','bridge','station','terminal','concourse','people mover','monorail','tunnel','runway','port','ferry','aerotrain','brightline','highway','interchange'] },
+  'first-look-inside':      { w: ['first look','a look inside','step inside','tour of','walkthrough','we toured','photos inside'], lead: /^\s*(inside|a first look|first look|take a look inside)\b/i },
+  'restaurant-or-retail-opening': { w: ['restaurant','bakery','cafe','café','coffee','chef','eatery','dining room','steakhouse','sushi','bar and','cocktail bar','retailer','flagship store','boutique','outpost','location','michelin','omakase','trattoria','pizzeria','food hall'] },
+  'celebrity-venture':      { w: ['backed by','backs','teams up','partners with','his first','her first','members club','nightclub','beach club','celebrity','star','singer','rapper','dj','athlete','actor','founder of','joins forces'] },
+  'roundup-listicle':       { w: ['projects reshaping','reshaping','biggest projects','best','top 10','ranked','roundup','every project','the projects'], lead: /^\s*\d+\b/ },
+  'market-stat-trend':      { w: ['median','record','priciest','most expensive','sales','prices','percent','%','square foot','psf','ranking','ranks','fastest','absorption','inventory','demand','trend'] },
+  'civic-redevelopment':    { w: ['city approves','city selects','city council','redevelop','redevelopment','rezoning','rezone','public land','county','municipal','former','shuttered','reborn','master plan','site of the','vacant','blighted','mall'] },
+  'project-announcement':   { w: ['unveils','proposes','proposed','files','filed','plans','planned','breaks ground','breaking ground','tops out','topped out','tower','district','mixed-use','condo','condominium','residences','high-rise','supertall','development','resort','hotel','groundbreaking','reveals','announces'] },
+};
 const STORY_STOP = new Set(['the','a','an','or','and','of','in','on','to','for','with','new','news','piece','story','about','that','this','is','are','at','by','from','its','into']);
 function storyTypeTokens(t) {
   return String((t && (t.cue + ' ' + t.type)) || '').toLowerCase()
@@ -15040,15 +15054,24 @@ function storyTypeTokens(t) {
 export function classifyStoryTypeSync(text, fp) {
   const types = (fp && Array.isArray(fp.story_types)) ? fp.story_types : [];
   if (!types.length) return { type: '', skeleton: '', confident: false };
-  const hay = String(text || '').toLowerCase().replace(/[^a-z0-9\s'-]/g, ' ');
-  const scored = types.map(t => {
+  const raw = String(text || '');
+  const hay = raw.toLowerCase();
+  const scored = types.map((t) => {
     let score = 0;
+    const sig = STORY_SIGNALS[t.type];
+    if (sig) {
+      // Signal words are worth 2; a lead pattern is decisive (worth 4) because a
+      // piece that opens "Inside ..." is that genre no matter what else it says.
+      for (const w of sig.w) if (hay.includes(w)) score += 2;
+      if (sig.lead && sig.lead.test(raw)) score += 4;
+    }
     for (const tok of storyTypeTokens(t)) if (hay.includes(tok)) score += 1;
     return { t, score };
   }).sort((a, b) => b.score - a.score);
   const top = scored[0], runner = scored[1];
+  // Confident when there is a real winner: enough evidence AND clear daylight.
   const confident = !!top && top.score >= 2 && (!runner || top.score > runner.score);
-  return { type: confident ? top.t.type : '', skeleton: confident ? (top.t.skeleton || '') : '', confident, ranked: scored.slice(0, 3).map(x => x.t.type) };
+  return { type: confident ? top.t.type : '', skeleton: confident ? (top.t.skeleton || '') : '', confident, ranked: scored.slice(0, 3).map(x => x.t.type + ':' + x.score) };
 }
 // Model fallback for the ambiguous cases. One tiny call, capped tokens.
 export async function classifyStoryType(env, { topic = '', angle = '', facts = '', fp = null } = {}) {
