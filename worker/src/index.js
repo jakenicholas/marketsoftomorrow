@@ -8643,12 +8643,9 @@ async function handleSocialTopPostsPull(req, env, origin) {
     const items = [];
     let after = null, windowDone = false;
     for (let page = 0; page < 8 && !windowDone && items.length < maxPer; page++) {
-      const params = {
-        fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count',
-        limit: '50', access_token: token,
-      };
+      const params = { limit: '50' };
       if (after) params.after = after;
-      const media = await graphGet(igid + '/media', params);
+      const media = await igMediaPage(igid, params, token);
       if (media && media.error) { errors[a.key] = metaErr(media); break; }
       for (const m of ((media && media.data) || [])) {
         const ts = Math.floor(Date.parse(m.timestamp || '') / 1000) || 0;
@@ -8680,9 +8677,29 @@ async function handleSocialTopPostsPull(req, env, origin) {
         interactions: met.total_interactions != null ? met.total_interactions : null,
         saved: met.saved != null ? met.saved : null,
         shares: met.shares != null ? met.shares : null,
+        collabs: igCoauthors(m),
       };
     }));
     posts.push(...enriched);
+  }
+  // Name the co-authors on collab rows, using our own brand names where the
+  // handle is one of ours and the raw @handle for outside partners.
+  const known = {};
+  for (const a of accts) {
+    const h = norm(a.ig_handle);
+    if (h) known[h] = { handle: h, key: a.key || '', name: '' };
+  }
+  try {
+    for (const a of ((await env.DB.prepare(`SELECT key, name, ig_handle FROM social_accounts`).all()).results || [])) {
+      const h = norm(a.ig_handle);
+      if (h) known[h] = { handle: h, key: a.key || '', name: a.name || '' };
+    }
+  } catch (_) {}
+  for (const p of posts) {
+    if (p.collabs && p.collabs.length) {
+      p.collaborators = p.collabs.map((h) => known[h] || { handle: h, key: '', name: '' });
+    }
+    delete p.collabs;
   }
   posts.sort((x, y) => (y.views || 0) - (x.views || 0));
   return json({ ok: true, posts, days, max_per: maxPer, errors, pulled_at: new Date().toISOString() }, {}, env, origin);
@@ -8699,10 +8716,33 @@ async function ensureIgPosts(env) {
     interactions INTEGER, saved INTEGER, shares INTEGER, fetched_at INTEGER
   )`).run();
   try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS ig_posts_acct_ts ON ig_posts (account, ts)').run(); } catch (_) {}
+  // Co-author handles (JSON array) from Instagram's coauthor_producers — the
+  // only record that a post is a collab. Idempotent: no-op once it exists.
+  try { await env.DB.prepare('ALTER TABLE ig_posts ADD COLUMN collabs TEXT').run(); } catch (_) {}
 }
 // Walk media + insights for every connected brand account (FULL captions). Mirrors
 // the collection logic in handleSocialTopPostsPull; kept separate so the live
 // accounts-page endpoint is never at risk. Returns { posts, errors, accounts }.
+// One media-edge read, asking for co-authors first. `coauthor_producers` names
+// the accounts a post is a collab WITH — the only signal Instagram gives for
+// collabs, since the post never appears on the collaborator's own edge. Graph
+// fails the ENTIRE call on a field it doesn't recognise, so this drops the
+// co-author fields and retries once rather than taking the whole pull down
+// (same defensive shape as the insights metric-set fallback below).
+const IG_MEDIA_FIELDS = 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count';
+async function igMediaPage(igid, params, token) {
+  let last = null;
+  for (const fields of [IG_MEDIA_FIELDS + ',coauthor_producers{id,username}', IG_MEDIA_FIELDS]) {
+    last = await graphGet(igid + '/media', Object.assign({}, params, { fields, access_token: token }));
+    if (!(last && last.error)) return last;
+  }
+  return last;   // both shapes failed — hand the real error back to the caller
+}
+function igCoauthors(m) {
+  const d = (m && m.coauthor_producers && m.coauthor_producers.data) || [];
+  return d.map((x) => String((x && x.username) || '').replace(/^@/, '').toLowerCase().trim()).filter(Boolean);
+}
+
 async function collectBrandPosts(env, token, { days = 120, maxPer = 80, onlyKey = '' } = {}) {
   const sinceTs = days > 0 ? Math.floor(Date.now() / 1000) - days * 86400 : 0;
   let accts = [];
@@ -8726,9 +8766,9 @@ async function collectBrandPosts(env, token, { days = 120, maxPer = 80, onlyKey 
     if (!igid) { errors[a.key] = 'no IG user id'; continue; }
     const items = []; let after = null, windowDone = false;
     for (let pg = 0; pg < 8 && !windowDone && items.length < maxPer; pg++) {
-      const params = { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count', limit: '50', access_token: token };
+      const params = { limit: '50' };
       if (after) params.after = after;
-      const media = await graphGet(igid + '/media', params);
+      const media = await igMediaPage(igid, params, token);
       if (media && media.error) { errors[a.key] = metaErr(media); break; }
       for (const m of ((media && media.data) || [])) { const ts = Math.floor(Date.parse(m.timestamp || '') / 1000) || 0; if (sinceTs && ts && ts < sinceTs) { windowDone = true; break; } items.push(m); if (items.length >= maxPer) break; }
       after = media && media.paging && media.paging.cursors && media.paging.cursors.after;
@@ -8744,6 +8784,7 @@ async function collectBrandPosts(env, token, { days = 120, maxPer = 80, onlyKey 
         likes: (m.like_count != null) ? Number(m.like_count) : null, comments: (m.comments_count != null) ? Number(m.comments_count) : null,
         views: met.views != null ? met.views : null, reach: met.reach != null ? met.reach : null,
         interactions: met.total_interactions != null ? met.total_interactions : null, saved: met.saved != null ? met.saved : null, shares: met.shares != null ? met.shares : null,
+        collabs: igCoauthors(m),
       };
     }));
     posts.push(...enriched);
@@ -8760,11 +8801,13 @@ async function syncSocialPosts(env, { days = 120, maxPer = 80 } = {}) {
   for (const p of posts) {
     if (!p.id) continue;
     try {
-      await env.DB.prepare(`INSERT INTO ig_posts (id, account, caption, permalink, media_type, thumb, ts, likes, comments, views, reach, interactions, saved, shares, fetched_at)
-        VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)
+      await env.DB.prepare(`INSERT INTO ig_posts (id, account, caption, permalink, media_type, thumb, ts, likes, comments, views, reach, interactions, saved, shares, fetched_at, collabs)
+        VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)
         ON CONFLICT(id) DO UPDATE SET caption=excluded.caption, permalink=excluded.permalink, media_type=excluded.media_type, thumb=excluded.thumb,
-          likes=excluded.likes, comments=excluded.comments, views=excluded.views, reach=excluded.reach, interactions=excluded.interactions, saved=excluded.saved, shares=excluded.shares, fetched_at=excluded.fetched_at`)
-        .bind(p.id, p.account, String(p.caption || '').slice(0, 4000), p.permalink, p.media_type, p.thumb, p.ts, p.likes, p.comments, p.views, p.reach, p.interactions, p.saved, p.shares, now).run();
+          likes=excluded.likes, comments=excluded.comments, views=excluded.views, reach=excluded.reach, interactions=excluded.interactions, saved=excluded.saved, shares=excluded.shares, fetched_at=excluded.fetched_at,
+          collabs=COALESCE(NULLIF(excluded.collabs,'[]'), ig_posts.collabs)`)
+        .bind(p.id, p.account, String(p.caption || '').slice(0, 4000), p.permalink, p.media_type, p.thumb, p.ts, p.likes, p.comments, p.views, p.reach, p.interactions, p.saved, p.shares, now,
+              JSON.stringify(p.collabs || [])).run();
       synced++;
     } catch (_) {}
   }
@@ -8805,19 +8848,21 @@ async function syncSocialPostsLatest(env) {
     const igid = String(a.ig_user_id || (page && page.instagram_business_account && page.instagram_business_account.id) || '').trim();
     if (!igid) continue;
     let media = null;
-    try { media = await graphGet(igid + '/media', { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count', limit: '3', access_token: token }); } catch (_) { continue; }
+    try { media = await igMediaPage(igid, { limit: '3' }, token); } catch (_) { continue; }
     if (!media || media.error) continue;
     for (const m of ((media.data) || [])) {
       const ts = Math.floor(Date.parse(m.timestamp || '') / 1000) || 0;
       if (!m.id || !ts) continue;
       try {
-        await env.DB.prepare(`INSERT INTO ig_posts (id, account, caption, permalink, media_type, thumb, ts, likes, comments, fetched_at)
-          VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+        await env.DB.prepare(`INSERT INTO ig_posts (id, account, caption, permalink, media_type, thumb, ts, likes, comments, fetched_at, collabs)
+          VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)
           ON CONFLICT(id) DO UPDATE SET ts=excluded.ts, permalink=excluded.permalink,
             thumb=COALESCE(NULLIF(ig_posts.thumb,''),excluded.thumb),
-            likes=COALESCE(excluded.likes,ig_posts.likes), comments=COALESCE(excluded.comments,ig_posts.comments), fetched_at=excluded.fetched_at`)
+            likes=COALESCE(excluded.likes,ig_posts.likes), comments=COALESCE(excluded.comments,ig_posts.comments), fetched_at=excluded.fetched_at,
+            collabs=COALESCE(NULLIF(excluded.collabs,'[]'), ig_posts.collabs)`)
           .bind(m.id, a.key, String(m.caption || '').slice(0, 4000), m.permalink || '', m.media_product_type || m.media_type || '', m.thumbnail_url || m.media_url || '', ts,
-            (m.like_count != null ? Number(m.like_count) : null), (m.comments_count != null ? Number(m.comments_count) : null), now).run();
+            (m.like_count != null ? Number(m.like_count) : null), (m.comments_count != null ? Number(m.comments_count) : null), now,
+            JSON.stringify(igCoauthors(m))).run();
       } catch (_) {}
     }
   }
@@ -9467,6 +9512,56 @@ function onyxToolLabel(name, input) {
   return name.replace(/_/g, ' ') + (i.topic || i.query || i.name ? ': ' + String(i.topic || i.query || i.name).slice(0, 90) : '');
 }
 
+// ── Collab credit ───────────────────────────────────────────────────────────
+// Instagram only returns a post on the media edge of the account that OWNS it.
+// An invited collaborator never sees that post in its own /media response, so
+// ig_posts alone makes a collab account look silent — @rockiesoftomorrow read
+// "41d ago" while carrying a much more recent collab from @hotelsoftomorrow.
+//
+// The fix stays inside the rule this board runs on (the live feed is the only
+// source of truth, publish receipts are never trusted): Instagram itself names
+// the co-authors on the media object, via `coauthor_producers`. That covers
+// collabs nobody published through the studio, and it can't be faked by
+// hand-marking a carousel "posted". ig_posts.collabs caches those handles.
+//
+// Returns { verified: [{permalink, owner, ts, accounts:[{handle,key,name}]}] }.
+async function igCollabCredits(env) {
+  const empty = { verified: [] };
+  if (!env.DB) return empty;
+  let rows = [];
+  try {
+    await ensureIgPosts(env);
+    rows = (await env.DB.prepare(
+      `SELECT account, permalink, ts, collabs FROM ig_posts
+        WHERE collabs IS NOT NULL AND collabs <> '' AND collabs <> '[]'`).all()).results || [];
+  } catch (_) { return empty; }
+  if (!rows.length) return empty;
+  // Resolve handles against our own accounts so the UI can print brand names
+  // ("Rockies") and not just @handles; outside collaborators keep the handle.
+  const known = {};
+  try {
+    await ensureSocialAccountsTable(env);
+    for (const a of ((await env.DB.prepare(`SELECT key, name, ig_handle FROM social_accounts`).all()).results || [])) {
+      const h = String(a.ig_handle || '').replace(/^@/, '').toLowerCase().trim();
+      if (h) known[h] = { handle: h, key: a.key || '', name: a.name || '' };
+    }
+  } catch (_) {}
+  const verified = [];
+  for (const r of rows) {
+    let handles = [];
+    try { handles = JSON.parse(r.collabs || '[]') || []; } catch (_) { handles = []; }
+    handles = handles.map((s) => String(s || '').replace(/^@/, '').toLowerCase().trim()).filter(Boolean);
+    if (!handles.length) continue;
+    verified.push({
+      permalink: r.permalink || '',
+      owner: String(r.account || '').toLowerCase(),
+      ts: +r.ts || 0,
+      accounts: handles.map((h) => known[h] || { handle: h, key: '', name: '' }),
+    });
+  }
+  return { verified };
+}
+
 // ── Morning Desk feeds ──────────────────────────────────────────────────────
 // GET /admin/morning → real last-post-per-account from the daily IG archive
 // sync (ig_posts), so the desk's accounts board reflects actual Instagram
@@ -9482,7 +9577,18 @@ async function handleMorningData(req, env, origin) {
     ).bind(now - 90 * 86400).all();
     last = results || [];
   } catch (_) {}
-  const out = { last_posts: last };
+  // Collab posts live only in the OWNER's feed, so credit the invited accounts
+  // separately and let the board take whichever is fresher.
+  let collabPosts = [];
+  try {
+    const { verified } = await igCollabCredits(env);
+    collabPosts = verified.map((v) => ({
+      ts: v.ts, owner: v.owner, permalink: v.permalink,
+      handles: (v.accounts || []).map((a) => a.handle),
+      keys: (v.accounts || []).map((a) => a.key).filter(Boolean),
+    }));
+  } catch (_) {}
+  const out = { last_posts: last, collab_posts: collabPosts };
 
   // Reusable classifier: pro (Stripe trialing/active) > free (Memberstack) > anon.
   let memberSet = new Set(), paidSet = new Set(), trialingSet = new Set(), activeSet = new Set();
@@ -15704,8 +15810,52 @@ async function applyLesson(env, rec) {
     return;
   }
 
+  // ── NEAR-DUPLICATE GUARD (the reason the pool hit 966). The distill routines
+  // (corpus-distill, social-distill, carousel-distill, contrast-*) rediscover the
+  // same handful of lessons every month and each wrote a fresh note, so ~55% of
+  // the voice pool was eight ideas restated. A lesson we already hold is not new
+  // information: it REINFORCES the existing note (bump retrievals so it ranks
+  // higher and survives pruning) instead of adding another copy.
+  const dup = await brainFindSimilarNote(env, rec.note);
+  if (dup) {
+    try {
+      await env.DB.prepare(`UPDATE brand_notes SET retrievals = COALESCE(retrievals,0) + 1 WHERE id = ?1`).bind(dup.id).run();
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(now, rec.source, 'brain_dupe_blocked', JSON.stringify({ kept: dup.id, rejected: rec.note.slice(0, 200), overlap: dup.overlap })).run();
+    } catch (_) {}
+    return;
+  }
   await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES (?1,?2,?3,?4,?5,?6,?7,1)`)
     .bind('bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)), kind, 'learned', rec.note.slice(0, 2000), 'via ' + rec.source, 'brain-approve', now).run();
+}
+
+// Cheap lexical near-duplicate check against the live voice pool. Jaccard on
+// content words: no embedding call, no model, runs on every write. 0.6 catches
+// "lead with the number" vs "open on the arresting figure" restatements while
+// leaving genuinely different rules alone.
+const NOTE_STOP = new Set(['the','a','an','and','or','of','in','on','to','for','with','is','are','be','it','its','that','this','not','never','always','when','if','as','by','from','than','then','into','over','out','up','do','does','use','using','write','writing','should','must','can','make','makes','one','our','we','you','your','their','his','her','them']);
+function noteTokens(t) {
+  return new Set(String(t || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/)
+    .map(w => w.replace(/(ing|ed|es|s)$/, '')).filter(w => w.length > 2 && !NOTE_STOP.has(w)));
+}
+export async function brainFindSimilarNote(env, note, threshold = 0.6) {
+  try {
+    const a = noteTokens(note);
+    if (a.size < 4) return null;
+    const rows = ((await env.DB.prepare(
+      `SELECT id, note FROM brand_notes WHERE active=1 AND scope='voice' AND tier='pool' ORDER BY created_at DESC LIMIT 1200`
+    ).all()).results) || [];
+    let best = null;
+    for (const r of rows) {
+      const b = noteTokens(r.note);
+      if (!b.size) continue;
+      let inter = 0;
+      for (const w of a) if (b.has(w)) inter++;
+      const j = inter / (a.size + b.size - inter);
+      if (j >= threshold && (!best || j > best.overlap)) best = { id: r.id, overlap: Math.round(j * 100) / 100 };
+    }
+    return best;
+  } catch (_) { return null; }
 }
 
 // Deactivate notes + drop their vectors so retrieval can't resurface them.

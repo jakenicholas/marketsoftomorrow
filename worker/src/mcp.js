@@ -856,6 +856,47 @@ const TOOLS = [
     description: 'Retire one note from the brand brain by its id (from get_brand_brain) — use when a preference changes or a note was wrong.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
   },
+  {
+    name: 'list_brain_notes',
+    description: 'Read the raw brand-brain notes WITH THEIR IDS, page by page — what consolidation works from. get_brand_brain gives the assembled picture; this gives the inventory. Filter by tier (pool is the only one automation may touch: canon, format and editor are off limits), scope (voice notes are the ones that actually reach writing prompts), or a text query. Returns id, kind, note, scope, tier, created_at, retrievals (how often relevance has pulled it) so you can spot dead weight.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tier: { type: 'string', enum: ['pool', 'canon', 'format', 'editor'], description: 'Default pool.' },
+        scope: { type: 'string', enum: ['voice', 'data', 'bug', 'ops'], description: 'Default voice (the notes that reach writing prompts).' },
+        q: { type: 'string', description: 'Optional text filter on the note body.' },
+        never_retrieved: { type: 'boolean', description: 'Only notes relevance has never pulled — the likeliest dead weight.' },
+        limit: { type: 'number', description: 'Default 200, max 500.' },
+        offset: { type: 'number', description: 'For paging through the full pool.' },
+      },
+    },
+  },
+  {
+    name: 'consolidate_brain_notes',
+    description: 'THE COMPRESSION TOOL: write ONE consolidated principle and retire the notes it absorbs, atomically, in a single call. This is how the brain gets smaller and sharper instead of just bigger. Use it for every cluster in a consolidation pass: never record_preference the principle and then retire the originals separately, because a failure between the two halves leaves the pool bloated. Only pool-tier notes can be absorbed; canon, format and editor ids are ignored. The originals are ARCHIVED, not deleted, so the change is reversible.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        note: { type: 'string', description: 'The consolidated principle: imperative, specific enough to change a draft, the way a senior editor would say it out loud.' },
+        retire_ids: { type: 'array', items: { type: 'string' }, description: 'Ids of the pool notes this principle absorbs.' },
+        kind: { type: 'string', enum: ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'], description: 'Default rule.' },
+        evidence: { type: 'string', description: 'Optional: what the cluster was about, contradictions resolved, and how.' },
+      },
+      required: ['note', 'retire_ids'],
+    },
+  },
+  {
+    name: 'retire_brain_notes',
+    description: 'Retire MANY brand-brain notes at once by id (archived, not deleted, so it is reversible). For clearing dead weight in bulk during a consolidation pass: exact duplicates, stale one-offs about a single article, notes that contradict canon, and non-craft notes (bug reports, data gaps) that are sitting at scope voice and leaking into writing prompts. Pool tier only.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        ids: { type: 'array', items: { type: 'string' } },
+        reason: { type: 'string', description: 'One line on why, for the audit log.' },
+      },
+      required: ['ids'],
+    },
+  },
 
   // ── Contacts (Monday.com replacement) ───────────────────────────────────────
   // Lightweight CRM of the PR/brand contacts behind each post. One contact per
@@ -4640,6 +4681,71 @@ const IMPL = {
     return { ok: true, slug, title: row.title || '', pinned: !!on, total_pinned: n ? n.c : null,
       note: 'Pinned articles are injected into every future article-writing prompt as the voice to match.' };
   },
+  async list_brain_notes(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureBrandNotesTable(env);
+    const tier = ['pool', 'canon', 'format', 'editor'].includes(String(args.tier || '')) ? String(args.tier) : 'pool';
+    const scope = ['voice', 'data', 'bug', 'ops'].includes(String(args.scope || '')) ? String(args.scope) : 'voice';
+    const limit = Math.min(500, Math.max(1, parseInt(args.limit, 10) || 200));
+    const offset = Math.max(0, parseInt(args.offset, 10) || 0);
+    const where = ['active = 1', 'tier = ?1', 'scope = ?2'];
+    const binds = [tier, scope];
+    if (args.q) { binds.push('%' + String(args.q).toLowerCase() + '%'); where.push('LOWER(note) LIKE ?' + binds.length); }
+    if (args.never_retrieved) where.push('COALESCE(retrievals,0) = 0');
+    binds.push(limit, offset);
+    const rows = ((await env.DB.prepare(
+      `SELECT id, kind, note, scope, tier, category, created_at, COALESCE(retrievals,0) retrievals
+       FROM brand_notes WHERE ${where.join(' AND ')} ORDER BY created_at ASC LIMIT ?${binds.length - 1} OFFSET ?${binds.length}`
+    ).bind(...binds).all()).results) || [];
+    const total = await env.DB.prepare(`SELECT COUNT(*) c FROM brand_notes WHERE active=1 AND tier=?1 AND scope=?2`).bind(tier, scope).first();
+    return { items: rows, count: rows.length, total: (total && total.c) || 0, tier, scope, offset, note: 'Consolidate a cluster with consolidate_brain_notes (one principle + the ids it absorbs, atomic). Bulk-clear dead weight with retire_brain_notes.' };
+  },
+
+  async consolidate_brain_notes(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureBrandNotesTable(env);
+    const note = String(args.note || '').trim();
+    if (!note) throw new Error('note is required');
+    const ids = (Array.isArray(args.retire_ids) ? args.retire_ids : []).map((x) => String(x)).filter(Boolean);
+    if (!ids.length) throw new Error('retire_ids is required — a consolidation that absorbs nothing is just another note; use record_preference for that.');
+    // Pool only: canon/format/editor are sealed against automation.
+    const safe = ((await env.DB.prepare(
+      `SELECT id FROM brand_notes WHERE active=1 AND tier='pool' AND id IN (${ids.map((_, i) => '?' + (i + 1)).join(',')})`
+    ).bind(...ids.slice(0, 200)).all()).results || []).map((r) => r.id);
+    const refused = ids.filter((i) => !safe.includes(i));
+    const kind = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'].includes(String(args.kind || '')) ? String(args.kind) : 'rule';
+    const res = await brainWrite(env, {
+      type: 'merge', kind, note, source: _mcpActor || 'consolidation',
+      evidence: String(args.evidence || '').slice(0, 1200) || ('absorbs ' + safe.length + ' notes'),
+      retire_ids: safe,
+    });
+    const after = await env.DB.prepare(`SELECT COUNT(*) c FROM brand_notes WHERE active=1 AND tier='pool' AND scope='voice'`).first();
+    return {
+      ok: !!(res && (res.applied || res.proposed)), applied: !!(res && res.applied),
+      absorbed: safe.length, refused: refused.length ? refused : undefined,
+      voice_pool_now: (after && after.c) || null,
+      note: res && res.applied ? 'Applied: the principle is live and the ' + safe.length + ' originals are archived.' : 'Queued (daily budget reached); it applies on the next hourly pass.',
+    };
+  },
+
+  async retire_brain_notes(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureBrandNotesTable(env);
+    const ids = (Array.isArray(args.ids) ? args.ids : []).map((x) => String(x)).filter(Boolean).slice(0, 200);
+    if (!ids.length) throw new Error('ids is required');
+    const safe = ((await env.DB.prepare(
+      `SELECT id FROM brand_notes WHERE active=1 AND tier='pool' AND id IN (${ids.map((_, i) => '?' + (i + 1)).join(',')})`
+    ).bind(...ids).all()).results || []).map((r) => r.id);
+    if (safe.length) await retireBrandNotes(env, safe);
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), _mcpActor || 'consolidation', 'brain_auto',
+          JSON.stringify({ type: 'retire', retired: safe.length, reason: String(args.reason || '').slice(0, 300) })).run();
+    } catch (_) {}
+    const after = await env.DB.prepare(`SELECT COUNT(*) c FROM brand_notes WHERE active=1 AND tier='pool' AND scope='voice'`).first();
+    return { ok: true, retired: safe.length, skipped: ids.length - safe.length, voice_pool_now: (after && after.c) || null };
+  },
+
   async record_preference(args, env) {
     if (!env.DB) throw new Error('D1 not configured');
     await ensureBrandNotesTable(env);
