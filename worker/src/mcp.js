@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, handleReviseFeedback, handleMediaRenameFolder, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, fableLastError, handleReviseFeedback, handleMediaRenameFolder, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify, classifyStoryType } from './index.js';
 // Studio-admin read bridge: the connector reuses the SAME handler functions the
 // Access-gated admin pages hit, so the numbers can never drift from the Studio.
 import { handlePeople, handleTrendingSearches, handleSubStatus, handleAdminMemberHistory, handleAdminDeepCredits, handleFunnelStats, handleSubscriptions, handleAdminCategories, handleSocialAccountsList, handleFollowersGet, handleBrainProposed, handlePlacementStats, handleIntelStats, handleIntelRules, handleIntelExemplars, handleMarketsFollowed, handleAdminGiveawaysList, handleAdminFlowsList, handleAdminProIncome, handleEmailStats, handleDailyPulse } from './index.js';
@@ -2679,7 +2679,14 @@ const IMPL = {
         // A DB read hiccup must never block a legitimate first draft.
       }
     }
-    const brain = await assembleBrain(env, { topic, place: String(args.place || ''), surface: 'article' });
+    // ── GENRE ROUTING: decide WHAT KIND of story this is before anything else.
+    // The fingerprint carries a skeleton per genre; knowing the genre lets us
+    // inject that ONE skeleton, pull same-genre exemplars, and judge candidates
+    // against the right shape instead of a generic "good prose" bar.
+    const st = await classifyStoryType(env, {
+      topic, angle: String(args.angle || ''), facts: String(args.facts || ''),
+    }).catch(() => ({ type: '', skeleton: '' }));
+    const brain = await assembleBrain(env, { topic, place: String(args.place || ''), surface: 'article', storyType: st.type || '' });
     // ── THE DATABASE DOSSIER: our own tracked data is AUTHORITATIVE and free —
     // the subject project's full record, the local pipeline, and the developer's
     // track record. Feeds the writer (dense proprietary specifics, sprinkled
@@ -2727,6 +2734,11 @@ const IMPL = {
     ].filter(Boolean).join('\n\n');
     const usr = [
       'TOPIC: ' + topic,
+      // The genre and its measured skeleton lead the brief: shape first, then
+      // the specifics. Without this the writer had to infer the form from eight
+      // options in the spec, which is how announcements came back shaped like
+      // first-looks and vice versa.
+      st.type ? ('STORY TYPE: ' + st.type + (st.skeleton ? '\nSTRUCTURE THIS PIECE AS: ' + st.skeleton : '')) : '',
       args.angle ? 'ANGLE: ' + String(args.angle) : '',
       args.facts ? 'VERIFIED FACTS / SOURCE NOTES (ground the piece in these; do not contradict or exceed them):\n' + String(args.facts) : '',
     ].filter(Boolean).join('\n\n');
@@ -2794,6 +2806,7 @@ const IMPL = {
         // so a candidate that broke an explicit house rule could still win. Rule
         // adherence is now the first, decisive test.
         const pickSys = 'You are the executive editor of Markets of Tomorrow. Pick which candidate article reads MOST like our published work: judge prose (rhythm, ledes, how it lands, concreteness), not topic. Facts are identical across candidates; ignore factual differences. Output ONLY JSON: {"pick":<0-based index>,"why":"<one short sentence>"}.'
+          + (st.type ? '\n\nTHIS ASSIGNMENT IS A "' + st.type + '" STORY. The winner must follow that shape: ' + (st.skeleton || '') : '')
           + (brain.voice ? '\n\nHOUSE RULES (DECISIVE — check these FIRST). Any candidate that breaks one of these, especially in how it opens or how it ends, LOSES to one that follows them, even if its prose is otherwise nicer:\n' + brain.voice : '')
           + (fp0 ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp0) : '')
           + (gold ? '\n\nREAL PUBLISHED REFERENCE:\n' + gold.body.slice(0, 1800) : '');
@@ -2841,8 +2854,30 @@ const IMPL = {
           gen = fixed; voiceGate.revised = true;
           styleReport.lint_fixed = lint1.length; styleReport.critique_fixed = crit1.length;
           // Re-test the revision: deterministic re-score + one re-judge.
-          const vio2 = fp ? voiceScore(plain(gen.body_markdown), fp) : [];
-          const jud2 = await turingJudge(env, { draft: plain(gen.body_markdown), real: jury }).catch(() => ({ judged: false }));
+          let vio2 = fp ? voiceScore(plain(gen.body_markdown), fp) : [];
+          let jud2 = await turingJudge(env, { draft: plain(gen.body_markdown), real: jury }).catch(() => ({ judged: false }));
+          // ── SECOND PASS. The re-test used to be terminal: whatever it found,
+          // the draft shipped. Now a draft that STILL fails gets one more
+          // targeted fix against only what remains, then a final re-score. Two
+          // passes is the cap (a third rarely moves the needle and always costs).
+          const still2 = vio2.map((v) => 'SPEC: ' + v)
+            .concat(((jud2.tells || [])).map((t) => 'TELL: ' + t))
+            .concat(lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' }).map((w) => w.issue));
+          if (still2.length) {
+            const fixUsr3 = 'STILL BROKEN AFTER ONE REVISION, fix exactly these and nothing else:\n- ' + still2.join('\n- ')
+              + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
+            const raw3 = await fableGenerate(env, { system: fixSys, user: fixUsr3, maxTokens: GEN_TOKENS }).catch(() => '');
+            let fixed3 = null;
+            const m3 = raw3 && raw3.match(/\{[\s\S]*\}/);
+            if (m3) { try { fixed3 = JSON.parse(m3[0]); } catch (_) {} }
+            if (!fixed3 && raw3) fixed3 = repairTruncatedJson(raw3);
+            if (fixed3 && fixed3.body_markdown) {
+              fixed3.claims = fixed3.claims || gen.claims;
+              gen = fixed3; voiceGate.revised_twice = true;
+              vio2 = fp ? voiceScore(plain(gen.body_markdown), fp) : [];
+              jud2 = await turingJudge(env, { draft: plain(gen.body_markdown), real: jury }).catch(() => ({ judged: false }));
+            }
+          }
           voiceGate.final = { spec_violations: vio2, turing: jud2.judged ? (jud2.caught ? 'caught (' + jud2.confidence + ')' : 'passed') : 'skipped', tells: jud2.tells || [] };
         }
         styleReport.remaining = lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' }).map((w) => w.issue);
@@ -2989,7 +3024,7 @@ const IMPL = {
     }
     return {
       ok: true, slug: article.slug, edit_url: article.edit_url, title,
-      grounded_in: { voice: !!brain.voice, fingerprint: !!brain.fingerprint, gold_exemplars: (brain.articleExemplars || []).map((a) => a.slug), learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
+      grounded_in: { voice: !!brain.voice, fingerprint: !!brain.fingerprint, gold_exemplars: (brain.articleExemplars || []).map((a) => a.slug), learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length, story_type: st.type || 'unresolved', story_type_via: st.how || '' },
       best_of: bestOf,
       style_check: styleReport,
       voice_gate: voiceGate,

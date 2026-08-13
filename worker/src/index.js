@@ -7036,6 +7036,68 @@ export async function rejectedTopics(env, days = 120) {
 const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update','avenue','street','boulevard','million','billion','construction','renovation','oceanfront','announced','unveils','unveiled','launch','launches','renderings','backed','inside','transformation','storied','reopens','remade','wellness','retreat','debut','debuts','flagship','branded','private','marina','estates','collection',
   // added 2026-08-12 after the Martis Camp false positive
   'course','courses','america','americas','american','first','second','third','club','clubs','community','communities','destination','indoor','outdoor','world','worlds','largest','biggest','tallest','newest','longest','highest','national','international','exclusive','members','membership','residents','resident','acres','acreage','homesites','homesite','village','valley','mountain','mountains','island','islands','course','lakefront','ski','skiing','golfing','course','course','gated','amenities','amenity','clubhouse','neighborhood','neighbourhood','property','properties','homes','houses','building','buildings','tracked','feature','features','offering','offerings','experience','experiences','between','around','across','within','finally','already','before','after','during','through','because','without','another','several','various','multiple','including','includes','include','complete','completed','completes','completion','expansion','expands','expanded']);
+// ── KILL REASONS: learn from the drafts that never shipped ─────────────────
+// A deleted/abandoned draft is a stronger verdict than an edited one, and until
+// now it produced only topic suppression, never a lesson. POST /admin/draft-verdict
+// {slug, reason, note} banks the WHY: thin story / wrong voice / duplicate /
+// off-brand, each mapped to a durable rule proposal so the next run avoids the
+// same class of mistake rather than just that one story.
+const KILL_REASONS = {
+  thin:      { label: 'Thin story',   lesson: 'DO NOT PITCH: stories with this little substance. A story needs a concrete, dated, verifiable development to justify a piece. When sourcing is this thin, skip the story rather than padding it.' },
+  voice:     { label: 'Wrong voice',  lesson: 'VOICE MISS: this draft read off-voice for TMW. Re-read the gold-standard exemplars before writing this genre again.' },
+  duplicate: { label: 'Duplicate',    lesson: 'DUPLICATE: we already covered this story or project. Run the full dedup protocol (both draft tabs plus published search) before drafting.' },
+  offbrand:  { label: 'Not on brand', lesson: 'OFF BRAND: this subject is not TMW material. Luxury, hype and forward-looking only; skip subjects like this one.' },
+};
+export async function handleDraftVerdict(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '').trim();
+  const reason = String(b.reason || '').trim().toLowerCase();
+  if (!slug || !KILL_REASONS[reason]) return json({ error: 'slug and a valid reason (thin|voice|duplicate|offbrand) required' }, { status: 400 }, env, origin);
+  let post = null;
+  try { post = await env.DB.prepare(`SELECT id, slug, title, categories, project_slug, source FROM posts WHERE slug = ?1`).bind(slug).first(); } catch (_) {}
+  const title = String((post && post.title) || b.title || slug).slice(0, 200);
+  const ts = Math.floor(Date.now() / 1000);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(ts, 'editor', 'draft_verdict', JSON.stringify({
+        slug, title, reason, label: KILL_REASONS[reason].label,
+        note: String(b.note || '').slice(0, 400),
+        project_slug: (post && post.project_slug) || null,
+        category: (post && post.categories) || null,
+        source: (post && post.source) || null,
+      })).run();
+  } catch (_) {}
+  // Bank the lesson for human approval in the Teach tab. The note carries the
+  // killed headline so the reviewer can see the exact shape being ruled out.
+  try {
+    await brainWrite(env, {
+      type: 'voice', kind: reason === 'voice' ? 'voice' : 'story-selection',
+      source: 'draft-verdict',
+      note: KILL_REASONS[reason].lesson + (b.note ? ' Editor note: ' + String(b.note).slice(0, 240) : ''),
+      evidence: 'Killed draft: "' + title + '" (' + slug + ') — reason: ' + KILL_REASONS[reason].label,
+    });
+  } catch (_) {}
+  return json({ ok: true, slug, reason, label: KILL_REASONS[reason].label, learned: true }, {}, env, origin);
+}
+// GET /admin/draft-verdicts — the kill log, newest first, for the Teach tab and
+// for a routine to read before choosing what to write.
+export async function handleDraftVerdictList(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const days = Math.min(365, Math.max(7, parseInt((url && url.searchParams.get('days')) || '120', 10)));
+  const cut = Math.floor(Date.now() / 1000) - days * 86400;
+  let rows = [];
+  try {
+    rows = ((await env.DB.prepare(`SELECT ts, props_json FROM events WHERE event_name='draft_verdict' AND ts > ?1 ORDER BY ts DESC LIMIT 300`).bind(cut).all()).results || [])
+      .map(r => { try { const p = JSON.parse(r.props_json); p.at = r.ts; return p; } catch { return null; } }).filter(Boolean);
+  } catch (_) {}
+  const byReason = {};
+  rows.forEach(r => { byReason[r.reason] = (byReason[r.reason] || 0) + 1; });
+  return json({ items: rows, by_reason: byReason, days }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
+}
+
 export async function topicRejected(env, topic, days = 120) {
   const rejected = await rejectedTopics(env, days);
   if (!rejected.length) return null;
@@ -14960,6 +15022,53 @@ export async function getFingerprint(env) {
 
 // Render the fingerprint as the injectable prompt spec. Compact by design —
 // numbers and patterns, not essays.
+// ── STORY-TYPE ROUTING (genre awareness) ────────────────────────────────────
+// The fingerprint carries per-genre skeletons (project-announcement,
+// celebrity-venture, first-look-inside…), but nothing ever told the writer WHICH
+// one this assignment is, so every piece got the generic "here are all eight,
+// pick one" dump. Classifying up front lets us inject ONE skeleton, retrieve
+// same-genre exemplars, and judge candidates against the right shape.
+// Deterministic first (free): score the assignment text against each type's cue
+// + name tokens. Only genuinely ambiguous cases pay for a model call.
+const STORY_STOP = new Set(['the','a','an','or','and','of','in','on','to','for','with','new','news','piece','story','about','that','this','is','are','at','by','from','its','into']);
+function storyTypeTokens(t) {
+  return String((t && (t.cue + ' ' + t.type)) || '').toLowerCase()
+    .replace(/[^a-z0-9\s'-]/g, ' ').split(/\s+/)
+    .map(w => w.replace(/(ing|es|s)$/,'' ))
+    .filter(w => w.length > 2 && !STORY_STOP.has(w));
+}
+export function classifyStoryTypeSync(text, fp) {
+  const types = (fp && Array.isArray(fp.story_types)) ? fp.story_types : [];
+  if (!types.length) return { type: '', skeleton: '', confident: false };
+  const hay = String(text || '').toLowerCase().replace(/[^a-z0-9\s'-]/g, ' ');
+  const scored = types.map(t => {
+    let score = 0;
+    for (const tok of storyTypeTokens(t)) if (hay.includes(tok)) score += 1;
+    return { t, score };
+  }).sort((a, b) => b.score - a.score);
+  const top = scored[0], runner = scored[1];
+  const confident = !!top && top.score >= 2 && (!runner || top.score > runner.score);
+  return { type: confident ? top.t.type : '', skeleton: confident ? (top.t.skeleton || '') : '', confident, ranked: scored.slice(0, 3).map(x => x.t.type) };
+}
+// Model fallback for the ambiguous cases. One tiny call, capped tokens.
+export async function classifyStoryType(env, { topic = '', angle = '', facts = '', fp = null } = {}) {
+  const f = fp || await getFingerprint(env);
+  const types = (f && Array.isArray(f.story_types)) ? f.story_types : [];
+  if (!types.length) return { type: '', skeleton: '' };
+  const text = [topic, angle, String(facts).slice(0, 600)].filter(Boolean).join(' \n ');
+  const quick = classifyStoryTypeSync(text, f);
+  if (quick.confident) return { type: quick.type, skeleton: quick.skeleton, how: 'keyword' };
+  try {
+    const sys = 'Classify the assignment into exactly one story type. Output ONLY the type name, nothing else.\n\nTYPES:\n'
+      + types.map(t => '- ' + t.type + ': ' + t.cue).join('\n');
+    const raw = String(await fableGenerate(env, { system: sys, user: text.slice(0, 1200), maxTokens: 24 }) || '').trim().toLowerCase();
+    const hit = types.find(t => raw.includes(String(t.type).toLowerCase()));
+    if (hit) return { type: hit.type, skeleton: hit.skeleton || '', how: 'model' };
+  } catch (_) {}
+  const first = types[0];
+  return { type: '', skeleton: '', how: 'unresolved', ranked: quick.ranked || (first ? [first.type] : []) };
+}
+
 export function fingerprintSpecText(fp, storyType = '') {
   if (!fp) return '';
   const L = [];
@@ -15196,7 +15305,7 @@ function stripLearnedOutro(text) {
   return blocks.join('\n\n');
 }
 
-export async function articleExemplars(env, { topic = '', place = '', limit = 3, excludeSlug = '', perChars = 1500 } = {}) {
+export async function articleExemplars(env, { topic = '', place = '', limit = 3, excludeSlug = '', perChars = 1500, storyType = '' } = {}) {
   if (!env || !env.DB) return [];
   const exclude = String(excludeSlug || '').toLowerCase();
   const q = [topic, place].filter(Boolean).join(' ').trim();
@@ -15225,7 +15334,24 @@ export async function articleExemplars(env, { topic = '', place = '', limit = 3,
     if (relScore) pins.sort((a, b) => (relScore.get(b) || 0) - (relScore.get(a) || 0));
     pins.forEach(add);
   } catch (_) {}
-  // 2) AUTO-FILL — best relevance matches, then top-viewed, until we reach limit.
+  // 2) SAME-GENRE FIRST, then relevance. A first-look-inside piece teaches a
+  // first-look-inside piece far better than a topically-similar announcement
+  // does, so when we know the genre, published pieces of the SAME genre lead
+  // the auto-fill (scored by relevance among themselves).
+  if (chosen.length < limit && storyType) {
+    try {
+      const fpG = await getFingerprint(env);
+      const cand = (await env.DB.prepare(
+        `SELECT slug, title FROM posts WHERE status='published' AND LENGTH(COALESCE(body_html,'')) > 800
+         ORDER BY published_at DESC LIMIT 400`
+      ).all()).results || [];
+      const same = cand
+        .filter(r => classifyStoryTypeSync(String(r.title || ''), fpG).type === storyType)
+        .map(r => String(r.slug || '').toLowerCase())
+        .sort((a, b) => ((relScore && relScore.get(b)) || 0) - ((relScore && relScore.get(a)) || 0));
+      same.slice(0, Math.max(1, limit - chosen.length)).forEach(add);
+    } catch (_) {}
+  }
   if (chosen.length < limit && relScore && relScore.size) {
     [...relScore.entries()].sort((a, b) => b[1] - a[1]).forEach(([s]) => add(s));
   }
@@ -15264,7 +15390,7 @@ export async function articleExemplars(env, { topic = '', place = '', limit = 3,
 // ARTICLE surface it also few-shots real gold-standard articles (articleExemplars).
 // Every piece is best-effort; a failure just omits that piece. Returns { text }
 // ready to drop into a system prompt, plus the structured parts.
-export async function assembleBrain(env, { topic = '', place = '', voice = true, surface = '', maxKnowledge = 4, maxFacts = 6, excludeSlug = '' } = {}) {
+export async function assembleBrain(env, { topic = '', place = '', voice = true, surface = '', maxKnowledge = 4, maxFacts = 6, excludeSlug = '', storyType = '' } = {}) {
   const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], format: '', text: '', injected_ids: [], articleExemplars: [], fingerprint: '', editPairs: [] };
   if (!env || !env.DB) return out;
   if (voice) {
@@ -15323,8 +15449,8 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
   // ARTICLE surface: the voice fingerprint (measured spec) + gold-standard full
   // articles (pinned-first, topic-matched). This is the load-bearing voice signal.
   if (surface === 'article') {
-    try { const fp = await getFingerprint(env); if (fp) out.fingerprint = fingerprintSpecText(fp); } catch (_) {}
-    try { out.articleExemplars = await articleExemplars(env, { topic, place, limit: 3, excludeSlug }); } catch (_) {}
+    try { const fp = await getFingerprint(env); if (fp) out.fingerprint = fingerprintSpecText(fp, storyType); } catch (_) {}
+    try { out.articleExemplars = await articleExemplars(env, { topic, place, limit: 3, excludeSlug, storyType }); } catch (_) {}
     // The editor's hand: recent before→after pairs from human edits of AI drafts.
     try {
       const rows = (await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='edit_pair' ORDER BY ts DESC LIMIT 4`).all()).results || [];
@@ -18443,6 +18569,12 @@ export default {
         if (fm && request.method === 'DELETE') return await handleAdminFlowDelete(env, origin, decodeURIComponent(fm[1]));
       }
       // ── TMW Pro income series (Stripe, admin) ──
+      if (request.method === 'POST' && url.pathname === '/admin/draft-verdict') {
+        return await handleDraftVerdict(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/admin/draft-verdicts') {
+        return await handleDraftVerdictList(request, env, origin, url);
+      }
       if (url.pathname === '/admin/morning') {
         return await handleMorningData(request, env, origin);
       }
