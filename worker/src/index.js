@@ -7048,6 +7048,80 @@ const KILL_REASONS = {
   duplicate: { label: 'Duplicate',    lesson: 'DUPLICATE: we already covered this story or project. Run the full dedup protocol (both draft tabs plus published search) before drafting.' },
   offbrand:  { label: 'Not on brand', lesson: 'OFF BRAND: this subject is not TMW material. Luxury, hype and forward-looking only; skip subjects like this one.' },
 };
+// POST /admin/brain/drain — apply every pending proposal at once (autopilot
+// catch-up). Used once to clear the backlog Jake never wants to review, and by
+// the nightly cron so nothing can silently pile up again.
+// Hourly autopilot. Two jobs, both silent: apply anything that queued (only
+// possible when a day blew the budget), and keep the pool from growing without
+// bound. Notes that have NEVER been retrieved and are older than 60 days are
+// archived, oldest first, whenever the pool exceeds its ceiling. Retrieval only
+// ever reads 6 notes per piece, so an unbounded pool is pure dilution.
+const BRAIN_POOL_MAX = 600;
+async function maybeBrainAutopilot(env) {
+  if (!env.DB) return;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const last = await env.DB.prepare(`SELECT ts FROM events WHERE event_name='brain_autopilot' ORDER BY ts DESC LIMIT 1`).first();
+    if (last && now - last.ts < 3300) return;                       // ~hourly
+    const drained = await drainBrainProposals(env, 120);
+    let archived = 0;
+    try {
+      const c = await env.DB.prepare(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='pool'`).first();
+      const over = ((c && c.n) || 0) - BRAIN_POOL_MAX;
+      if (over > 0) {
+        const stale = ((await env.DB.prepare(
+          `SELECT id FROM brand_notes WHERE active=1 AND tier='pool' AND COALESCE(retrievals,0)=0 AND created_at < ?1
+           ORDER BY created_at ASC LIMIT ?2`
+        ).bind(now - 60 * 86400, Math.min(over, 100)).all()).results || []).map(r => r.id);
+        if (stale.length) { await retireBrandNotes(env, stale); archived = stale.length; }
+      }
+    } catch (_) {}
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(now, 'autopilot', 'brain_autopilot', JSON.stringify({ ...drained, archived })).run();
+  } catch (_) {}
+}
+
+export async function handleBrainDrain(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const res = await drainBrainProposals(env, 500);
+  return json({ ok: true, ...res }, {}, env, origin);
+}
+export async function drainBrainProposals(env, limit = 200) {
+  let applied = 0, skipped = 0, seen = 0;
+  try {
+    const rows = ((await env.DB.prepare(
+      `SELECT ts, props_json FROM events WHERE event_name='brain_proposed' ORDER BY ts ASC LIMIT ?1`
+    ).bind(limit).all()).results) || [];
+    // Resolved proposals are recorded as 'brain_resolved' with the same id, so
+    // anything already handled by a human is left alone.
+    let done = new Set();
+    try {
+      const rs = ((await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='brain_resolved' ORDER BY ts DESC LIMIT 800`).all()).results) || [];
+      rs.forEach((r) => { try { const p = JSON.parse(r.props_json); if (p && p.id) done.add(p.id); } catch (_) {} });
+    } catch (_) {}
+    const notes = new Set();
+    for (const row of rows) {
+      seen++;
+      let rec = null; try { rec = JSON.parse(row.props_json); } catch (_) {}
+      if (!rec || !rec.id || done.has(rec.id)) { skipped++; continue; }
+      // De-dupe within the drain itself: the backlog is full of near-identical
+      // lessons from repeated runs, and applying all of them just bloats the pool.
+      const key = String(rec.note || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (key && notes.has(key)) { skipped++; continue; }
+      if (key) notes.add(key);
+      if (rec.type === 'promote') { rec.type = 'voice'; rec.canon_id = null; }   // canon stays sealed
+      try {
+        await applyLesson(env, rec);
+        applied++;
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(Math.floor(Date.now() / 1000), 'autopilot', 'brain_resolved', JSON.stringify({ id: rec.id, action: 'auto-approved' })).run();
+      } catch (_) { skipped++; }
+    }
+  } catch (_) {}
+  return { seen, applied, skipped };
+}
+
 export async function handleDraftVerdict(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
@@ -15526,7 +15600,25 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
 // default (review !== false) it STAGES the lesson as a proposed learning
 // (events 'brain_proposed') for human approval in the Teach tab — nothing
 // mutates the live brain until approved. Best-effort; never throws.
-export async function brainWrite(env, lesson, { review = true } = {}) {
+// ── AUTOPILOT (Jake, 2026-08-12: "I don't want to look at the brain at all") ──
+// Lessons now APPLY themselves. Nothing queues for approval. The guardrails
+// below replace the human review that used to be the safety net:
+//   • canon is sealed. Auto-learning lands in the POOL tier and can never
+//     write or promote into the constitution, so a bad lesson can dull a
+//     draft but can never rewrite the house rules.
+//   • a daily budget caps how much the brain can change on its own.
+//   • every auto-application is logged ('brain_auto') and retirement archives
+//     rather than deletes, so any bad day is reversible.
+// Pass { review: true } explicitly if a caller ever wants the old queue.
+const BRAIN_AUTO_DAILY_MAX = 40;
+async function brainAutoBudgetLeft(env) {
+  try {
+    const cut = Math.floor(Date.now() / 1000) - 86400;
+    const r = await env.DB.prepare(`SELECT COUNT(*) n FROM events WHERE event_name='brain_auto' AND ts > ?1`).bind(cut).first();
+    return BRAIN_AUTO_DAILY_MAX - ((r && r.n) || 0);
+  } catch (_) { return BRAIN_AUTO_DAILY_MAX; }
+}
+export async function brainWrite(env, lesson, { review = false } = {}) {
   try {
     if (!env || !env.DB || !lesson) return { ok: false };
     const rec = {
@@ -15549,8 +15641,21 @@ export async function brainWrite(env, lesson, { review = true } = {}) {
         .bind(ts, rec.source, 'brain_proposed', JSON.stringify(rec)).run();
       return { ok: true, proposed: true, id: rec.id };
     }
+    // Canon is sealed against autopilot: a promote becomes a normal pool note.
+    if (rec.type === 'promote') { rec.type = 'voice'; rec.canon_id = null; }
+    const left = await brainAutoBudgetLeft(env);
+    if (left <= 0) {
+      // Over budget: park it as a proposal rather than dropping the signal.
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(ts, rec.source, 'brain_proposed', JSON.stringify(rec)).run();
+      return { ok: true, proposed: true, deferred: 'daily brain budget reached', id: rec.id };
+    }
     await applyLesson(env, rec);
-    return { ok: true, applied: true, id: rec.id };
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(ts, rec.source, 'brain_auto', JSON.stringify({ id: rec.id, type: rec.type, kind: rec.kind, source: rec.source, note: rec.note.slice(0, 300), retired: (rec.retire_ids || []).length })).run();
+    } catch (_) {}
+    return { ok: true, applied: true, auto: true, id: rec.id };
   } catch (_) { return { ok: false }; }
 }
 
@@ -18592,6 +18697,9 @@ export default {
         if (fm && request.method === 'DELETE') return await handleAdminFlowDelete(env, origin, decodeURIComponent(fm[1]));
       }
       // ── TMW Pro income series (Stripe, admin) ──
+      if (request.method === 'POST' && url.pathname === '/admin/brain/drain') {
+        return await handleBrainDrain(request, env, origin);
+      }
       if (request.method === 'POST' && url.pathname === '/admin/draft-verdict') {
         return await handleDraftVerdict(request, env, origin);
       }
@@ -19068,6 +19176,7 @@ export default {
     // free tier resets daily, so the quota-errored blast rows drain themselves
     // within the 80/day budget starting at the next UTC midnight.
     ctx.waitUntil(maybeWallhitRetry(env));       // 2-hourly, budget-guarded, self-draining
+    ctx.waitUntil(maybeBrainAutopilot(env));     // hourly: apply any queued lesson, cap the pool (nothing to review, ever)
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeSocialSyncLatest(env));   // light latest-post sync (~90s) so "last posted" reflects fresh posts fast
