@@ -41,7 +41,7 @@
       '.tmw-inq-h{font-family:Fraunces,Georgia,serif;font-size:23px;font-weight:600;line-height:1.12;letter-spacing:-.01em;margin:0}',
       '.tmw-inq-sub{font-size:13.5px;color:#9AA39C;line-height:1.5;margin:9px 0 0}',
       '.tmw-inq-bd{padding:18px 26px 26px;display:flex;flex-direction:column;gap:11px}',
-      '.tmw-inq input,.tmw-inq textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:12px;color:#fff;font:15px/1.4 inherit;padding:13px 15px;outline:none;transition:border-color .15s}',
+      '.tmw-inq input,.tmw-inq textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:12px;color:#fff;font:15px/1.4 Inter,-apple-system,system-ui,sans-serif;padding:13px 15px;outline:none;transition:border-color .15s}',
       '.tmw-inq input:focus,.tmw-inq textarea:focus{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18)}',
       '.tmw-inq input::placeholder,.tmw-inq textarea::placeholder{color:#7b847c}',
       '.tmw-inq textarea{resize:vertical;min-height:64px}',
@@ -117,7 +117,7 @@
       '<input data-f="name" type="text" placeholder="Full name" autocomplete="name" required>' +
       '<input data-f="email" type="email" placeholder="Email" autocomplete="email" inputmode="email">' +
       '<input data-f="phone" type="tel" placeholder="Phone" autocomplete="tel" inputmode="tel">' +
-      '<textarea data-f="message" placeholder="Anything specific? Budget, timeline, membership information, unit size… (optional)"></textarea>' +
+      '<textarea data-f="message" placeholder="Anything specific? Budget, timeline, membership information, unit size…"></textarea>' +
       '<div class="tmw-inq-err" data-err></div>' +
       '<button class="tmw-inq-go" type="submit">Request info</button>' +
       '<p class="tmw-inq-fine" data-fine>No spam, ever. Markets of Tomorrow is a publisher, not a brokerage, and may be compensated by the developers we refer you to.</p>' +

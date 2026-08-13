@@ -396,7 +396,7 @@
     // on every page so a [data-tmw-inquire] trigger works in articles too.
     if (!window.tmwInquire && !document.querySelector('script[data-tmw-inquire-loader]')) {
       var inqScript = document.createElement('script');
-      inqScript.src = '/_shared/tmw-inquire.js?v=20260812b';   // BUMP on any copy/behavior change
+      inqScript.src = '/_shared/tmw-inquire.js?v=20260812c';   // BUMP on any copy/behavior change
       inqScript.defer = true;
       inqScript.setAttribute('data-tmw-inquire-loader', '');
       document.body.appendChild(inqScript);
