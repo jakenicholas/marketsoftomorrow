@@ -7057,11 +7057,11 @@ const KILL_REASONS = {
 // archived, oldest first, whenever the pool exceeds its ceiling. Retrieval only
 // ever reads 6 notes per piece, so an unbounded pool is pure dilution.
 const BRAIN_POOL_MAX = 600;
-async function maybeBrainAutopilot(env) {
+async function maybeBrainQueueDrain(env) {
   if (!env.DB) return;
   try {
     const now = Math.floor(Date.now() / 1000);
-    const last = await env.DB.prepare(`SELECT ts FROM events WHERE event_name='brain_autopilot' ORDER BY ts DESC LIMIT 1`).first();
+    const last = await env.DB.prepare(`SELECT ts FROM events WHERE event_name='brain_queue_drain' ORDER BY ts DESC LIMIT 1`).first();
     if (last && now - last.ts < 3300) return;                       // ~hourly
     const drained = await drainBrainProposals(env, 120);
     let archived = 0;
@@ -7077,7 +7077,7 @@ async function maybeBrainAutopilot(env) {
       }
     } catch (_) {}
     await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
-      .bind(now, 'autopilot', 'brain_autopilot', JSON.stringify({ ...drained, archived })).run();
+      .bind(now, 'autopilot', 'brain_queue_drain', JSON.stringify({ ...drained, archived })).run();
   } catch (_) {}
 }
 
@@ -19176,7 +19176,7 @@ export default {
     // free tier resets daily, so the quota-errored blast rows drain themselves
     // within the 80/day budget starting at the next UTC midnight.
     ctx.waitUntil(maybeWallhitRetry(env));       // 2-hourly, budget-guarded, self-draining
-    ctx.waitUntil(maybeBrainAutopilot(env));     // hourly: apply any queued lesson, cap the pool (nothing to review, ever)
+    ctx.waitUntil(maybeBrainQueueDrain(env));    // hourly: apply any queued lesson, cap the pool (nothing to review, ever)
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeSocialSyncLatest(env));   // light latest-post sync (~90s) so "last posted" reflects fresh posts fast
