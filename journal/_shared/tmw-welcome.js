@@ -186,7 +186,7 @@
   var LOGO_IMG = '<img src="https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow">';
   var TICKER =
     '<div class="g-ticker">' +
-      '<div class="tk"><div class="v">1,600+</div><div class="k">Tracked projects</div></div>' +
+      '<div class="tk"><div class="v">1,000+</div><div class="k">Tracked projects</div></div>' +
       '<div class="tk"><div class="v">8.1M</div><div class="k">Monthly views</div></div>' +
       '<div class="tk"><div class="v">40+</div><div class="k">Markets</div></div>' +
     '</div>';
@@ -284,7 +284,7 @@
           ? '<h2 class="g-h">One step from <em>everything.</em></h2>' +
             '<p class="g-sub">Create your account and your 14-day free trial starts right after. No charge for 14 days, cancel anytime.</p>'
           : '<h2 class="g-h">The world of tomorrow, <em>tracked live.</em></h2>' +
-            '<p class="g-sub">1,600+ verified developments, the interactive Map and Atlas, and Onyx, our intelligence engine. Create a free account to continue.</p>') +
+            '<p class="g-sub">1,000+ verified developments, the interactive Map and Atlas, and Onyx, our intelligence engine. Create a free account to continue.</p>') +
         '<form class="g-form" novalidate>' +
           '<div class="g-row">' +
             '<input class="in" type="email" name="email" placeholder="you@example.com" autocomplete="email" value="' + esc(opts.email || '') + '" required>' +

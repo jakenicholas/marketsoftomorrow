@@ -2276,7 +2276,7 @@ function wallhitEmail(kind) {
     '<p style="font-size:12px;color:#6b5b8a;margin:12px 0 0;text-align:center">No charge for 14 days &middot; Cancel anytime in your account</p>' +
     // brand stats strip (same trio as the welcome screens)
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout:fixed;margin:22px 0 0;border-top:1px solid #ece6fb"><tr>' +
-    '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">1,600+</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Tracked projects</div></td>' +
+    '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">1,000+</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Tracked projects</div></td>' +
     '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">8.1M</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Monthly views</div></td>' +
     '<td align="center" style="padding-top:16px"><div style="font-family:Georgia,serif;color:#1e0a3c;font-size:19px;font-weight:700">40+</div><div style="color:#9a8fb8;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-top:4px">Markets</div></td>' +
     '</tr></table>' +
