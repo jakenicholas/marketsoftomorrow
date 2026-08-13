@@ -103,6 +103,10 @@
     return null;
   }
 
+  // Do we actually have a line into this project's sales team? The same signal
+  // the worker uses to decide whether a referral email even goes out.
+  function hasPartner() { return /@/.test(String(_ctx.partner_email || '')); }
+
   function bodyMarkup() {
     return '<div class="tmw-inq-hd"><button class="tmw-inq-x" type="button" aria-label="Close">×</button>' +
       '<div class="tmw-inq-eye" data-eye>Markets of Tomorrow</div>' +
@@ -116,7 +120,7 @@
       '<textarea data-f="message" placeholder="Anything specific? Budget, timeline, unit size… (optional)"></textarea>' +
       '<div class="tmw-inq-err" data-err></div>' +
       '<button class="tmw-inq-go" type="submit">Request info</button>' +
-      '<p class="tmw-inq-fine">We’ll connect you with the team behind this project. No spam.</p>' +
+      '<p class="tmw-inq-fine" data-fine>No spam, ever. Markets of Tomorrow is a publisher, not a brokerage, and may be compensated by the developers we refer you to.</p>' +
       '</form>';
   }
   // (Re)render the form into the dialog and wire it. Called on EVERY open so a
@@ -153,20 +157,30 @@
     };
     var proj = _ctx.project_title || '';
     var eye = _scrim.querySelector('[data-eye]'), h = _scrim.querySelector('[data-h]'), sub = _scrim.querySelector('[data-sub]');
+    // Only PARTNER projects (a real sales contact wired via tmw:partner-email)
+    // may promise that the developer's team follows up — we can't speak for the
+    // other 900. Everywhere else the promise is ours to keep, not theirs.
+    var partnered = hasPartner();
+    eye.textContent = proj || 'Markets of Tomorrow';
     if (_ctx.intent === 'interest-list') {
-      eye.textContent = proj || 'Markets of Tomorrow';
       h.textContent = proj ? 'Join the ' + proj + ' interest list' : 'Join the interest list';
-      sub.textContent = 'First access to pricing, availability, and private tours, straight from the source.';
+      sub.textContent = partnered
+        ? 'First access to pricing, availability, and private tours, straight from the source.'
+        : 'We track this project. Tell us what you’re after and we’ll make some magic happen.';
       _scrim.querySelector('.tmw-inq-go').textContent = 'Join the list';
     } else if (_ctx.intent === 'tour') {
-      eye.textContent = proj || 'Markets of Tomorrow';
-      h.textContent = proj ? 'Book a private tour of ' + proj : 'Book a private tour';
-      sub.textContent = 'Tell us how to reach you and we’ll arrange it with the team.';
+      h.textContent = partnered
+        ? (proj ? 'Book a private tour of ' + proj : 'Book a private tour')
+        : (proj ? 'Ask about touring ' + proj : 'Ask about a tour');
+      sub.textContent = partnered
+        ? 'Tell us how to reach you and we’ll arrange it with the team.'
+        : 'Tell us how to reach you and when you’re around. We’ll see what we can line up.';
       _scrim.querySelector('.tmw-inq-go').textContent = 'Request a tour';
     } else {
-      eye.textContent = proj || 'Markets of Tomorrow';
-      h.textContent = proj ? 'Request information on ' + proj : 'Request information';
-      sub.textContent = 'Tell us where to send pricing, availability, and private-tour details.';
+      h.textContent = proj ? 'Request info on ' + proj : 'Request info';
+      sub.textContent = partnered
+        ? 'Tell us where to send pricing, availability, and private-tour details.'
+        : 'We track this project. Tell us what you’re after and we’ll make some magic happen.';
       _scrim.querySelector('.tmw-inq-go').textContent = 'Request info';
     }
     document.documentElement.style.overflow = 'hidden';
@@ -201,10 +215,16 @@
       .then(function () {
         try { if (window.tmwTrack) window.tmwTrack('inquire_submit', { project: _ctx.project_slug, source: _ctx.source, intent: _ctx.intent }); } catch (e) {}
         var inq = _scrim.querySelector('.tmw-inq');
+        var who = esc(_ctx.project_title) || 'this project';
+        // Never tell a buyer a third party will call them unless we've actually
+        // wired that third party. Otherwise the promise is ours: we stay on it.
+        var done = hasPartner()
+          ? '<h3>You’re on the list.</h3><p>Your details are with the ' + who + ' sales team. They’ll follow up directly. Keep an eye on your inbox.</p>'
+          : '<h3>Request received.</h3><p>We’ll stay in touch on ' + who + '. Keep an eye on your inbox.</p>';
         inq.innerHTML =
           '<button class="tmw-inq-x" type="button" aria-label="Close">×</button>' +
           '<div class="tmw-inq-done"><div class="ok"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>' +
-          '<h3>You’re on the list.</h3><p>The team behind ' + (esc(_ctx.project_title) || 'this project') + ' will reach out with pricing and tour details. Keep an eye on your inbox.</p></div>';
+          done + '</div>';
         inq.querySelector('.tmw-inq-x').addEventListener('click', close);
       })
       .catch(function (ex) { err.textContent = ex.message || 'Something went wrong. Try again.'; btn.disabled = false; btn.textContent = orig; });
