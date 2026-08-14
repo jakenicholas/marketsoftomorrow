@@ -408,6 +408,10 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 /* analytics: gold month pill for recurring (date-less) rows */
 .mc-monthpill{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); background:rgba(230,197,116,.09); border:1px solid rgba(230,197,116,.34); padding:3px 8px 4px; border-radius:4px; font-weight:700; line-height:1; text-shadow:0 0 8px rgba(230,197,116,.25)}
 
+/* analytics: values still to be supplied. Deliberately loud — a half-filled
+   card must never read as finished, and a blank cell must never be mistaken
+   for a zero by a client. */
+.mc-pending{display:inline-block; font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#f0b6b6; background:rgba(248,113,113,.10); border:1px solid rgba(248,113,113,.34); padding:2px 6px 3px; border-radius:4px; font-weight:700; line-height:1}
 /* analytics: latest-month glow */
 .mc-month.latest{border-color:rgba(230,197,116,.4); box-shadow:0 18px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(230,197,116,.22) inset, inset 0 1px 0 rgba(255,255,255,.07), 0 0 44px -10px rgba(230,197,116,.42)}
 .mc-month.latest .mc-name{text-shadow:0 0 22px rgba(230,197,116,.22)}
@@ -1342,10 +1346,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           </table>
         </div>
       </article>
-      <article class="mc-month glass reveal latest d3">
+      <article class="mc-month glass reveal d3">
         <div class="mc-head">
           <div class="mc-name">June 2026</div>
-          <div class="mc-latest-pill">Latest</div>
         </div>
         <div class="mc-table-wrap">
           <table class="mc-table">
@@ -1415,6 +1418,96 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <td>150</td>
           <td>43</td>
           <td>8</td>
+          <td><span class="mc-none">&mdash;</span></td>
+        </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <!-- JULY 2026 — PARTIAL. Impressions + URL Clicks are first-party tracked
+           figures (Jul 2-31; Jul 1 is beyond the 44-day retention of the daily
+           series). Interactions and Email Sends are NOT sourced yet and are
+           marked TBD rather than estimated.
+           RECONCILIATION NOTE: the 152,084 total includes website-banner
+           impressions, which this page has never itemised as its own row (the
+           Waldorf page does, as "Website Banner Ad"). June's total of 64,169 is
+           the sum of its four listed pieces only. So either add a Website
+           Banner Ad row here, or restate the total to match June's basis —
+           do NOT ship this card with the two conventions mixed. -->
+      <article class="mc-month glass reveal latest d3">
+        <div class="mc-head">
+          <div class="mc-name">July 2026</div>
+          <div class="mc-latest-pill">Latest</div>
+        </div>
+        <div class="mc-table-wrap">
+          <table class="mc-table">
+            <thead>
+              <tr><th>Date</th><th>Piece</th><th>Impressions</th><th>Interactions</th><th>URL Clicks</th><th>Email Sends</th></tr>
+            </thead>
+            <tbody>
+              <tr class="mc-totals">
+                <td></td>
+                <td class="mc-totals-lab">Monthly totals</td>
+                <td>152,084</td>
+                <td><span class="mc-pending">TBD</span></td>
+                <td>822</td>
+                <td><span class="mc-pending">TBD</span></td>
+              </tr>
+        <tr>
+          <td class="mc-date">Jul 7</td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2026-07-07.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-none">&mdash;</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+        </tr>
+        <tr>
+          <td class="mc-date">Jul 15</td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2026-07-15.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-none">&mdash;</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+        </tr>
+        <tr>
+          <td class="mc-date">Jul 21</td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2026-07-21.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-none">&mdash;</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+        </tr>
+        <tr>
+          <td class="mc-date">Jul 28</td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/newsletter/digest-archive/2026-07-28.html" target="_blank" rel="noopener">Newsletter Banner Ad <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-none">&mdash;</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+        </tr>
+        <tr>
+          <td class="mc-date"><span class="mc-monthpill">JUL 26</span></td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/map/?fullscreen=true&project=poncepark" target="_blank" rel="noopener">Map of Tomorrow <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-none">&mdash;</span></td>
+        </tr>
+        <tr>
+          <td class="mc-date"><span class="mc-monthpill">JUL 26</span></td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/?q=Ponce+Park+Coral+Gables" target="_blank" rel="noopener">TMW Intelligence <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-none">&mdash;</span></td>
+        </tr>
+        <tr>
+          <td class="mc-date"><span class="mc-monthpill">JUL 26</span></td>
+          <td class="mc-piece"><a class="mc-link" href="https://www.oftmw.com/atlas/?project=poncepark" target="_blank" rel="noopener">Atlas <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9 9 3M5 3h4v4"/></svg></a></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
+          <td><span class="mc-pending">TBD</span></td>
           <td><span class="mc-none">&mdash;</span></td>
         </tr>
             </tbody>
