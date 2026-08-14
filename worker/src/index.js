@@ -10071,12 +10071,21 @@ async function handleCarouselsList(req, env, origin, url) {
   await ensureCarouselTable(env);
   const limit  = Math.min(Math.max(parseInt(url.searchParams.get('limit')  || '50', 10), 1), 200);
   const status = url.searchParams.get('status'); // optional filter
-  const sql = status
-    ? `SELECT * FROM carousels WHERE status = ?1 ORDER BY updated_at DESC LIMIT ?2`
-    : `SELECT * FROM carousels ORDER BY updated_at DESC LIMIT ?1`;
-  const stmt = status
-    ? env.DB.prepare(sql).bind(status, limit)
-    : env.DB.prepare(sql).bind(limit);
+  // status=active is "everything not filed away". Filtering client-side would
+  // work today and quietly rot: the board posts several carousels a day, so
+  // once archives outnumber the limit the active list would start coming back
+  // empty. Older rows predate the column, hence the NULL arm.
+  let sql, stmt;
+  if (status === 'active') {
+    sql = `SELECT * FROM carousels WHERE status IS NULL OR status != 'archived' ORDER BY updated_at DESC LIMIT ?1`;
+    stmt = env.DB.prepare(sql).bind(limit);
+  } else if (status) {
+    sql = `SELECT * FROM carousels WHERE status = ?1 ORDER BY updated_at DESC LIMIT ?2`;
+    stmt = env.DB.prepare(sql).bind(status, limit);
+  } else {
+    sql = `SELECT * FROM carousels ORDER BY updated_at DESC LIMIT ?1`;
+    stmt = env.DB.prepare(sql).bind(limit);
+  }
   const { results } = await stmt.all();
   return json({ items: (results || []).map(rowToCarousel), count: (results || []).length }, {}, env, origin);
 }
