@@ -88,6 +88,19 @@ DEEP_PACK_25_PRICE = "price_1Topid5aTtxuiasCjNchCxFP"
 [triggers]
 crons = ["* * * * *"]
 
+# Durable Object — one object per Onyx run. The agent loop lives here instead of
+# inside the SSE response, because a response-bound loop dies the instant the
+# browser navigates (and ctx.waitUntil only buys 30s past disconnect, while a
+# run takes minutes). Chained alarms drive it with no client attached, so a run
+# survives switching studio tabs, a reload, or closing the laptop.
+[[durable_objects.bindings]]
+name = "ONYX_RUN"
+class_name = "OnyxRun"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["OnyxRun"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "tmw_events"

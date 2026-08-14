@@ -9333,33 +9333,263 @@ async function handleStudioThreadClear(req, env, origin) {
   return json({ ok: true, cleared: userKey }, {}, env, origin);
 }
 
+// ---------------------------------------------------------------------------
+// DURABLE RUNS. The agent loop used to live inside the response stream, which
+// meant the run WAS the connection: navigating from /onyx.html to any other
+// studio page unloaded the document, aborted the fetch, and killed the worker
+// mid-flight. A six-minute article generation died the moment Jake clicked
+// "Contacts". ctx.waitUntil() is NOT a fix — it only extends execution 30s past
+// client disconnect, and these runs take minutes.
+//
+// So the run moved into a Durable Object driven by CHAINED ALARMS: alarms are
+// guaranteed to execute without any incoming request keeping the object alive,
+// and each one runs exactly ONE round (model call + its tool calls) before
+// scheduling the next. Every SSE event is appended to the object's own SQLite
+// log, so the browser is now a pure spectator — it can leave, come back, land
+// on a different page, or reconnect from another device, and it replays from a
+// cursor. Closing the laptop no longer cancels an article.
+//
+// The alarm body NEVER throws: a thrown alarm is retried by the runtime, and a
+// retried round would re-run tool calls that already had side effects (a second
+// draft, a second post). Errors are caught and terminate the run instead.
+const ONYX_RUN_TTL_MS = 6 * 60 * 60 * 1000;   // keep a finished run replayable for 6h
+
+export class OnyxRun {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+    this.sql = state.storage.sql;
+    state.blockConcurrencyWhile(async () => {
+      this.sql.exec('CREATE TABLE IF NOT EXISTS ev (seq INTEGER PRIMARY KEY AUTOINCREMENT, payload TEXT)');
+      this.sql.exec('CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT)');
+    });
+  }
+
+  // convo grows past the 128KiB per-key ceiling of the KV-style storage API
+  // (a single tool_result is capped at 60k chars), so state rides in SQLite.
+  get(k) {
+    const c = this.sql.exec('SELECT v FROM kv WHERE k = ?', k).toArray();
+    return c.length ? c[0].v : null;
+  }
+  getJSON(k, dflt) { try { const v = this.get(k); return v ? JSON.parse(v) : dflt; } catch (_) { return dflt; } }
+  put(k, v) { this.sql.exec('INSERT INTO kv (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v', k, String(v)); }
+  putJSON(k, v) { this.put(k, JSON.stringify(v)); }
+  emit(ev) { try { this.sql.exec('INSERT INTO ev (payload) VALUES (?)', JSON.stringify(ev)); } catch (_) {} }
+
+  async fetch(req) {
+    const url = new URL(req.url);
+    if (url.pathname === '/start') {
+      const b = await req.json();
+      this.putJSON('convo', b.convo || []);
+      this.put('sys', b.sys || '');
+      this.put('userKey', b.userKey || '');
+      this.putJSON('meta', {
+        status: 'running', round: 0, cancel: 0, title: String(b.title || 'Working'),
+        createdAt: Date.now(), updatedAt: Date.now(), lastText: '', step: 'Thinking',
+      });
+      await this.state.storage.setAlarm(Date.now());
+      return Response.json({ ok: true });
+    }
+    if (url.pathname === '/events') {
+      const from = Number(url.searchParams.get('from') || 0) || 0;
+      const rows = this.sql.exec('SELECT seq, payload FROM ev WHERE seq > ? ORDER BY seq LIMIT 400', from).toArray();
+      const meta = this.getJSON('meta', null);
+      return Response.json({
+        events: rows.map((r) => ({ seq: r.seq, ev: JSON.parse(r.payload) })),
+        status: meta ? meta.status : 'gone',
+        step: meta ? meta.step : '',
+        title: meta ? meta.title : '',
+      });
+    }
+    if (url.pathname === '/stop') {
+      const meta = this.getJSON('meta', null);
+      if (meta && meta.status === 'running') { meta.cancel = 1; this.putJSON('meta', meta); }
+      return Response.json({ ok: true });
+    }
+    return new Response('not found', { status: 404 });
+  }
+
+  async finish(status, errMsg) {
+    const meta = this.getJSON('meta', {}) || {};
+    if (status === 'error' && errMsg) this.emit({ t: 'error', m: String(errMsg).slice(0, 400) });
+    // Bank durable house rules + record the exchange in the shared studio
+    // thread, exactly as the streaming version did at the end of its loop.
+    if (status === 'done' || status === 'stopped') {
+      try {
+        const convo = this.getJSON('convo', []);
+        const lastUser = [...convo].reverse().find((m) => m.role === 'user' && Array.isArray(m.content) && m.content.some((b) => b && b.type === 'text' && !/^ATTACHED FILE/.test(b.text || '')));
+        const utxt = lastUser ? lastUser.content.filter((b) => b && b.type === 'text').map((b) => b.text).join('\n') : '';
+        const banked = await onyxAutoLearn(this.env, utxt, meta.lastText || '');
+        for (const n of banked) this.emit({ t: 'learned', m: n });
+        await threadAppend(this.env, this.get('userKey') || '', [
+          { surface: 'Onyx page', role: 'user', text: utxt },
+          { surface: 'Onyx page', role: 'assistant', text: meta.lastText || '' },
+        ]);
+        await maybeCompactThread(this.env, this.get('userKey') || '');
+      } catch (_) {}
+    }
+    meta.status = status; meta.updatedAt = Date.now(); meta.step = '';
+    this.putJSON('meta', meta);
+    this.emit({ t: 'done' });
+    try {
+      await this.env.DB.prepare('UPDATE onyx_runs SET status=?, updated_at=? WHERE id=?')
+        .bind(status, Date.now(), this.state.id.toString()).run();
+    } catch (_) {}
+    // Free the storage once nobody could still be replaying it.
+    try { await this.state.storage.setAlarm(Date.now() + ONYX_RUN_TTL_MS); } catch (_) {}
+  }
+
+  async touch(step) {
+    const meta = this.getJSON('meta', {}) || {};
+    meta.step = String(step || '').slice(0, 160); meta.updatedAt = Date.now();
+    this.putJSON('meta', meta);
+    try {
+      await this.env.DB.prepare('UPDATE onyx_runs SET step=?, updated_at=? WHERE id=?')
+        .bind(meta.step, Date.now(), this.state.id.toString()).run();
+    } catch (_) {}
+  }
+
+  async alarm() {
+    const meta = this.getJSON('meta', null);
+    if (!meta) return;
+    // The post-completion sweep: the run already ended, this is the TTL firing.
+    if (meta.status !== 'running') {
+      try { this.sql.exec('DELETE FROM ev'); this.sql.exec('DELETE FROM kv'); } catch (_) {}
+      try { await this.state.storage.deleteAll(); } catch (_) {}
+      return;
+    }
+    try {
+      await this.runRound(meta);
+    } catch (e) {
+      // Never rethrow: a thrown alarm is RETRIED, and a retried round repeats
+      // tool calls that already wrote (duplicate drafts, duplicate posts).
+      await this.finish('error', e && e.message ? e.message : String(e));
+    }
+  }
+
+  async runRound(meta) {
+    if (meta.cancel) { this.emit({ t: 'status', m: 'Stopped.', bad: true }); return await this.finish('stopped'); }
+    if (meta.round >= ONYX_MAX_ROUNDS) return await this.finish('done');
+
+    const env = this.env;
+    resetStudioCaches();
+    setStudioActor('onyx-admin');
+
+    const tools = studioToolDefs();
+    if (tools.length) tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
+    tools.push({ type: 'web_search_20250305', name: 'web_search', max_uses: 16 });
+
+    const convo = this.getJSON('convo', []);
+    const sysText = this.get('sys') || '';
+
+    await this.touch(meta.round === 0 ? 'Thinking' : 'Thinking (step ' + (meta.round + 1) + ')');
+
+    let resp;
+    try {
+      resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: ONYX_MODEL,
+          max_tokens: 8000,
+          thinking: { type: 'adaptive' },
+          system: [{ type: 'text', text: sysText, cache_control: { type: 'ephemeral', ttl: '1h' } }],
+          tools,
+          messages: convo,
+        }),
+      });
+    } catch (e) { return await this.finish('error', 'network error calling the model: ' + (e.message || e)); }
+    if (!resp.ok) {
+      const t = await resp.text().catch(() => '');
+      return await this.finish('error', 'model HTTP ' + resp.status + ' ' + t.slice(0, 300));
+    }
+    const d = await resp.json();
+    if (d.stop_reason === 'refusal') return await this.finish('error', 'The model declined that request. Rephrase it and try again.');
+
+    const content = Array.isArray(d.content) ? d.content : [];
+    for (const b of content) if (b.type === 'text' && b.text) meta.lastText = b.text;
+    this.emit({ t: 'round', n: meta.round });
+    for (const b of content) {
+      if (b.type === 'text' && b.text) this.emit({ t: 'text', m: b.text });
+      if (b.type === 'server_tool_use' && b.name === 'web_search') {
+        const q = b.input && b.input.query; if (q) this.emit({ t: 'status', tool: 'web_search', m: 'Searching: ' + String(q).slice(0, 120) });
+      }
+      if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) {
+        const srcs = b.content.filter((x) => x && x.url).slice(0, 6).map((x) => ({ url: x.url, title: String(x.title || '').slice(0, 120) }));
+        if (srcs.length) this.emit({ t: 'sources', items: srcs });
+      }
+    }
+    // Replay the assistant turn VERBATIM (thinking + server-tool blocks must go
+    // back unmodified or the API rejects the next request).
+    convo.push({ role: 'assistant', content });
+
+    const calls = content.filter((b) => b.type === 'tool_use');
+    if (!calls.length) { this.putJSON('convo', convo); this.putJSON('meta', meta); return await this.finish('done'); }
+
+    const results = [];
+    for (const call of calls) {
+      const label = onyxToolLabel(call.name, call.input);
+      this.emit({ t: 'status', tool: call.name, m: label });
+      await this.touch(label);
+      let payload, isErr = false;
+      try {
+        const r = await studioCallTool(call.name, call.input || {}, env);
+        payload = JSON.stringify(r).slice(0, 60000);
+        for (const a of onyxArtifacts(call.name, r)) this.emit({ t: 'artifact', ...a });
+      } catch (e) {
+        isErr = true;
+        payload = 'Error: ' + (e && e.message ? e.message : String(e));
+        this.emit({ t: 'status', tool: call.name, m: 'failed: ' + payload.slice(0, 160), bad: true });
+      }
+      results.push({ type: 'tool_result', tool_use_id: call.id, content: payload, is_error: isErr || undefined });
+      // Re-read the cancel flag between tools so Stop lands mid-run, not just
+      // between rounds (a single round can be minutes long).
+      const fresh = this.getJSON('meta', meta);
+      if (fresh && fresh.cancel) {
+        convo.push({ role: 'user', content: results });
+        this.putJSON('convo', convo); meta.cancel = 1; this.putJSON('meta', meta);
+        this.emit({ t: 'status', m: 'Stopped.', bad: true });
+        return await this.finish('stopped');
+      }
+    }
+    convo.push({ role: 'user', content: results });
+    meta.round += 1; meta.updatedAt = Date.now();
+    this.putJSON('convo', convo);
+    this.putJSON('meta', meta);
+    // Chain straight into the next round. Alarms do not need a client.
+    await this.state.storage.setAlarm(Date.now());
+  }
+}
+
+async function ensureOnyxRunsTable(env) {
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS onyx_runs (
+      id TEXT PRIMARY KEY, status TEXT, title TEXT, step TEXT,
+      created_at INTEGER, updated_at INTEGER)`).run();
+  } catch (_) {}
+}
+
+// Starts a run and returns its id immediately. The browser then attaches to
+// /admin/onyx-stream, which it can drop and re-open from any studio page.
 async function handleOnyxChat(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 503 }, env, origin);
+  if (!env.ONYX_RUN) return json({ error: 'ONYX_RUN durable object not bound' }, { status: 503 }, env, origin);
   let body; try { body = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const incoming = Array.isArray(body.messages) ? body.messages.slice(-24) : [];
   if (!incoming.length) return json({ error: 'messages required' }, { status: 400 }, env, origin);
-
-  resetStudioCaches();
-  setStudioActor('onyx-admin');
-
-  // The shared catalog, Anthropic-shaped, with the big block prompt-cached at
-  // 1h (a chat turn-taking session re-sends these ~37k tokens every round).
-  const tools = studioToolDefs();
-  if (tools.length) tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
-  tools.push({ type: 'web_search_20250305', name: 'web_search', max_uses: 16 });
 
   const convo = incoming.map((m) => ({
     role: m.role === 'assistant' ? 'assistant' : 'user',
     content: m.content,
   }));
 
-  // Built ONCE per request (it embeds the house brain) and reused every round.
-  // The shared studio memory rides along, so this chat continues the SAME
-  // conversation the editor Polish chats are part of, across sessions.
+  // Built ONCE per run (it embeds the house brain) and reused every round.
   const userKey = studioUserKey(req);
-  // No fixed draft here, so the newest message is the focus signal: ask about
-  // Equinox on the Onyx page and it surfaces the editor turns about Equinox.
   let focusText = '';
   try {
     const lastU = [...incoming].reverse().find((m) => m.role !== 'assistant');
@@ -9369,113 +9599,63 @@ async function handleOnyxChat(req, env, origin) {
   } catch (_) {}
   const memBlock = await threadMemoryBlock(env, userKey, { focus: focusText.slice(0, 300) });
   const sysText = (await onyxSystem(env)) + (memBlock ? '\n\n' + memBlock : '');
-  let lastAssistantText = '';
 
+  await ensureOnyxRunsTable(env);
+  const id = env.ONYX_RUN.newUniqueId();
+  const runId = id.toString();
+  const title = (focusText || 'Working').replace(/\s+/g, ' ').trim().slice(0, 90);
+  try {
+    await env.DB.prepare('INSERT INTO onyx_runs (id,status,title,step,created_at,updated_at) VALUES (?,?,?,?,?,?)')
+      .bind(runId, 'running', title, 'Thinking', Date.now(), Date.now()).run();
+  } catch (_) {}
+
+  const stub = env.ONYX_RUN.get(id);
+  await stub.fetch('https://onyx/start', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ convo, sys: sysText, userKey, title }),
+  });
+  return json({ run_id: runId, title }, {}, env, origin);
+}
+
+// SSE tail over the run's durable event log. Attaching is idempotent and
+// cursor-based, so N pages can watch the same run and a reconnect after
+// navigation replays only what was missed.
+async function handleOnyxStream(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  const runId = url.searchParams.get('run') || '';
+  if (!runId || !env.ONYX_RUN) return json({ error: 'run required' }, { status: 400 }, env, origin);
+  let stub;
+  try { stub = env.ONYX_RUN.get(env.ONYX_RUN.idFromString(runId)); }
+  catch (_) { return json({ error: 'bad run id' }, { status: 400 }, env, origin); }
+
+  let cursor = Number(url.searchParams.get('from') || 0) || 0;
   const enc = new TextEncoder();
   const stream = new ReadableStream({
     async start(ctrl) {
       const send = (o) => { try { ctrl.enqueue(enc.encode('data: ' + JSON.stringify(o) + '\n\n')); } catch (_) {} };
-      const fail = (m) => { send({ t: 'error', m: String(m).slice(0, 400) }); send({ t: 'done' }); try { ctrl.close(); } catch (_) {} };
+      let beat = 0;
       try {
-        for (let round = 0; round < ONYX_MAX_ROUNDS; round++) {
-          let resp;
+        for (;;) {
+          let d;
           try {
-            resp = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'x-api-key': env.ANTHROPIC_API_KEY,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: ONYX_MODEL,
-                max_tokens: 8000,
-                thinking: { type: 'adaptive' },
-                system: [{ type: 'text', text: sysText, cache_control: { type: 'ephemeral', ttl: '1h' } }],
-                tools,
-                messages: convo,
-              }),
-            });
-          } catch (e) { return fail('network error calling the model: ' + (e.message || e)); }
-          if (!resp.ok) {
-            const t = await resp.text().catch(() => '');
-            return fail('model HTTP ' + resp.status + ' ' + t.slice(0, 300));
+            const r = await stub.fetch('https://onyx/events?from=' + cursor);
+            d = await r.json();
+          } catch (e) {
+            send({ t: 'error', m: 'lost the run: ' + (e.message || e) }); send({ t: 'done' }); break;
           }
-          const d = await resp.json();
-          if (d.stop_reason === 'refusal') return fail('The model declined that request. Rephrase it and try again.');
-
-          const content = Array.isArray(d.content) ? d.content : [];
-          for (const b of content) if (b.type === 'text' && b.text) lastAssistantText = b.text;
-          // Round boundary: lets the UI treat everything before the LAST round
-          // as progress narration and render only the final round as the answer.
-          send({ t: 'round', n: round });
-          // Surface the prose for this round, plus any web sources it consulted.
-          for (const b of content) {
-            if (b.type === 'text' && b.text) send({ t: 'text', m: b.text });
-            if (b.type === 'server_tool_use' && b.name === 'web_search') {
-              const q = b.input && b.input.query; if (q) send({ t: 'status', tool: 'web_search', m: 'Searching: ' + String(q).slice(0, 120) });
-            }
-            if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) {
-              const srcs = b.content.filter((x) => x && x.url).slice(0, 6).map((x) => ({ url: x.url, title: String(x.title || '').slice(0, 120) }));
-              if (srcs.length) send({ t: 'sources', items: srcs });
-            }
-          }
-          // Replay the assistant turn VERBATIM (thinking + server-tool blocks
-          // must go back unmodified or the API rejects the next request).
-          convo.push({ role: 'assistant', content });
-
-          const calls = content.filter((b) => b.type === 'tool_use');
-          if (!calls.length) break;   // end_turn: the agent is done talking
-
-          const results = [];
-          for (const call of calls) {
-            send({ t: 'status', tool: call.name, m: onyxToolLabel(call.name, call.input) });
-            let payload, isErr = false;
-            // KEEPALIVE. generate_article_draft alone runs best-of-3 Fable
-            // drafts + a judge + the QA/fact passes, which can be minutes of
-            // total silence on the wire — long enough for the proxy or the
-            // browser to drop the stream ("Connection error: network error").
-            // An SSE comment every 8s keeps it warm without touching the UI.
-            let ping = null;
-            const beat = () => { try { ctrl.enqueue(enc.encode(': keepalive\n\n')); } catch (_) {} };
-            const startBeat = () => { ping = setInterval(beat, 8000); };
-            const stopBeat = () => { if (ping) { clearInterval(ping); ping = null; } };
-            try {
-              startBeat();
-              const r = await studioCallTool(call.name, call.input || {}, env);
-              stopBeat();
-              payload = JSON.stringify(r).slice(0, 60000);
-              for (const a of onyxArtifacts(call.name, r)) send({ t: 'artifact', ...a });
-            } catch (e) {
-              stopBeat();
-              isErr = true;
-              payload = 'Error: ' + (e && e.message ? e.message : String(e));
-              send({ t: 'status', tool: call.name, m: 'failed: ' + payload.slice(0, 160), bad: true });
-            }
-            results.push({ type: 'tool_result', tool_use_id: call.id, content: payload, is_error: isErr || undefined });
-          }
-          convo.push({ role: 'user', content: results });
+          const evs = d.events || [];
+          for (const row of evs) { cursor = row.seq; send({ ...row.ev, seq: row.seq }); }
+          if (evs.some((row) => row.ev && row.ev.t === 'done')) break;
+          if (d.status !== 'running' && !evs.length) { send({ t: 'done' }); break; }
+          // Keep the proxy and the browser warm through long silent tool calls.
+          if (++beat % 16 === 0) { try { ctrl.enqueue(enc.encode(': keepalive\n\n')); } catch (_) {} }
+          await new Promise((res) => setTimeout(res, 500));
         }
-        // Bank any durable house rules the founder just stated, and say so.
-        try {
-          const lastUser = [...convo].reverse().find((m) => m.role === 'user' && Array.isArray(m.content) && m.content.some((b) => b && b.type === 'text' && !/^ATTACHED FILE/.test(b.text || '')));
-          const utxt = lastUser ? lastUser.content.filter((b) => b && b.type === 'text').map((b) => b.text).join('\n') : '';
-          const banked = await onyxAutoLearn(env, utxt, lastAssistantText);
-          for (const n of banked) send({ t: 'learned', m: n });
-          // Record this exchange in the shared thread so the editor Polish chats
-          // (and the next session) pick the conversation up exactly here.
-          await threadAppend(env, userKey, [
-            { surface: 'Onyx page', role: 'user', text: utxt },
-            { surface: 'Onyx page', role: 'assistant', text: lastAssistantText },
-          ]);
-          await maybeCompactThread(env, userKey);
-        } catch (_) {}
-        send({ t: 'done' });
-        try { ctrl.close(); } catch (_) {}
-      } catch (e) { fail(e && e.message ? e.message : String(e)); }
+      } catch (e) { send({ t: 'error', m: String(e && e.message ? e.message : e).slice(0, 300) }); send({ t: 'done' }); }
+      try { ctrl.close(); } catch (_) {}
     },
   });
-
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream; charset=utf-8',
@@ -9485,6 +9665,33 @@ async function handleOnyxChat(req, env, origin) {
       ...corsHeaders(env, origin),
     },
   });
+}
+
+// "Is anything running?" — what every other studio page asks on load so the
+// dock can appear without the browser having stored a run id.
+async function handleOnyxActive(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureOnyxRunsTable(env);
+  let row = null;
+  try {
+    const r = await env.DB.prepare(
+      "SELECT id,status,title,step,created_at,updated_at FROM onyx_runs WHERE status='running' AND updated_at > ? ORDER BY updated_at DESC LIMIT 1"
+    ).bind(Date.now() - 30 * 60 * 1000).all();
+    row = (r.results || [])[0] || null;
+  } catch (_) {}
+  return json({ run: row }, {}, env, origin);
+}
+
+async function handleOnyxStop(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  const runId = url.searchParams.get('run') || '';
+  if (!runId || !env.ONYX_RUN) return json({ error: 'run required' }, { status: 400 }, env, origin);
+  try {
+    const stub = env.ONYX_RUN.get(env.ONYX_RUN.idFromString(runId));
+    await stub.fetch('https://onyx/stop', { method: 'POST' });
+    await env.DB.prepare('UPDATE onyx_runs SET status=? , updated_at=? WHERE id=?').bind('stopped', Date.now(), runId).run();
+  } catch (_) {}
+  return json({ ok: true }, {}, env, origin);
 }
 // Human-readable label for the tool trail ("Writing the article with Fable"),
 // so the UI reads like progress instead of a function log.
@@ -18680,6 +18887,9 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/dl')                  return await handleAdminDownload(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/email-weeks')         return await handleEmailWeeks(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/onyx-chat')           return await handleOnyxChat(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/onyx-stream')         return await handleOnyxStream(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/admin/onyx-active')         return await handleOnyxActive(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/onyx-stop')           return await handleOnyxStop(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/design-chat')         return await handleDesignChat(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-feedback')     return await handleReviseFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
