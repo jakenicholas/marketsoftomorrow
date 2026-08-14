@@ -8775,10 +8775,19 @@ const IG_MEDIA_FIELDS = 'id,caption,media_type,media_product_type,permalink,thum
 // didn't. Recorded to sync_state each sync ('ig_coauthor_field') — without it
 // "no collabs found" is indistinguishable from "the API refused the field",
 // and those need completely different fixes.
+// VERDICT (2026-08-14, measured): Instagram answers `coauthor_producers` with
+// "(#100) Tried accessing nonexisting field". The Graph API does not expose
+// collaborators on read at all, so a collab is invisible to us from the feed.
+// The probe stays, because Meta ships fields without warning and the day this
+// starts working the collab board fixes itself — but it runs ONCE per isolate
+// and then stops, instead of burning a failed request on every media page.
 let _igCoauthorState = null;
 async function igMediaPage(igid, params, token) {
+  const shapes = _igCoauthorState && _igCoauthorState.indexOf('unsupported') === 0
+    ? [IG_MEDIA_FIELDS]                                            // already ruled out
+    : [IG_MEDIA_FIELDS + ',coauthor_producers{id,username}', IG_MEDIA_FIELDS];
   let last = null;
-  for (const fields of [IG_MEDIA_FIELDS + ',coauthor_producers{id,username}', IG_MEDIA_FIELDS]) {
+  for (const fields of shapes) {
     const withCoauthors = fields.indexOf('coauthor') !== -1;
     last = await graphGet(igid + '/media', Object.assign({}, params, { fields, access_token: token }));
     if (!(last && last.error)) {
