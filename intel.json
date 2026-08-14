@@ -15692,10 +15692,10 @@
       "delivery_speculative": true
     },
     "the-langham-diriyah": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 870,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 0.4,
+      "estimate_label": "~5 months",
+      "days_out": 139,
+      "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
@@ -15703,7 +15703,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~5 months based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -15726,57 +15726,21 @@
       "delivery_speculative": true
     },
     "8-eaton-lane": {
-      "estimate_years": 2.6,
-      "estimate_label": "~2.6 years",
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "low",
-      "comparable_count": 14,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.43,
-      "avg_distance_km": 6937.0,
-      "avg_distance_mi": 4310.4,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 0.4,
+      "estimate_label": "~5 months",
+      "days_out": 139,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "London",
-      "comparables": [
-        {
-          "name": "Eturna Beachside Residences",
-          "slug": "eturna-beachside-residences",
-          "location": "Hollywood",
-          "years": 2.2,
-          "score": 0.64,
-          "distance_km": 7098.3,
-          "distance_mi": 4410.7
-        },
-        {
-          "name": "Alba",
-          "slug": "alba",
-          "location": "West Palm Beach",
-          "years": 2.8,
-          "score": 0.49,
-          "distance_km": 7035.9,
-          "distance_mi": 4371.9
-        },
-        {
-          "name": "The Village at Coral Gables",
-          "slug": "the-village-at-coral-gables",
-          "location": "Coral Gables",
-          "years": 2.3,
-          "score": 0.49,
-          "distance_km": 7132.4,
-          "distance_mi": 4431.9
-        }
-      ],
-      "pattern_summary": "Among 14 comparable residences projects in TMW's data, the median build time is 2.6 years (range 2–4.8).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~5 months.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "iota-seoul": {
       "estimate_years": 6.4,
@@ -16935,8 +16899,8 @@
   "stats": {
     "high": 9,
     "medium": 25,
-    "low": 88,
-    "known_date": 552,
+    "low": 87,
+    "known_date": 553,
     "completed": 71,
     "skipped": 115,
     "no_type": 0,
