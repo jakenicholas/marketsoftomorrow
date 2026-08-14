@@ -80,20 +80,19 @@ export const TRAVEL_STOPS = {
     vibe:'A day among the canals: the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
-  { loc:'Lake Como, Italy or Dubrovnik, Croatia', nights:'3 Nights · Sept 11 → 14', stayPending:'Looking for a hotel partner', pending:true, inworks:true, noClient:true,
-    in:{ date:'Sept 11', mode:'flight', note:'Verona → Lake Como or Dubrovnik' },
-    vibe:'Two options for these three nights, and we are open to both: Lake Como or Dubrovnik. The right hotel partnership decides the destination.',
-    logi:[], imgs:[
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Bellagio_and_Lake_Como_from_Menaggio-Varenna_ferry.jpg/1920px-Bellagio_and_Lake_Como_from_Menaggio-Varenna_ferry.jpg',
-      'https://www.geoex.com/_next/image?url=https%3A%2F%2Fkxn3vdktxmez55pl.public.blob.vercel-storage.com%2FDubrovnik_AdobeStock_142786819_1920x1080.png&w=2048&q=75'] },
+  { loc:'Lake Como & Milan, Italy', nights:'3 Nights · Sept 11 → 14', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 11', mode:'train', note:'Verona → Milan' },
+    vibe:'Three nights between the lake and the city: Como’s villa-lined shoreline, with Italy’s design capital an hour south.',
+    logi:[['Transit','Train from Verona to Milan.']],
+    imgs:['https://imageio.forbes.com/specials-images/imageserve/646b6b45d9b20ac15900fd8a/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds'] },
 
   // ── Part 1: The Greek Isles & Mainland ──
   { loc:'Mykonos', nights:'2 Nights · Sept 14 → 16', stay:'Cali Mykonos', confirmed:true,
-    in:{ date:'Sept 14', mode:'flight', note:'Como or Dubrovnik → Mykonos' },
+    in:{ date:'Sept 14', mode:'flight', note:'Milan → Mykonos' },
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock, an ultra-exclusive escape away from the intense Mykonos crowds.',
-    logi:[['Transit','Fly Aegean the morning of Sept 14, connecting through Athens (ATH), landing in Mykonos at <b>2:10 PM</b>.']],
+    logi:[['Transit','Fly Air Serbia from Milan on Sept 14, landing in Mykonos at <b>3:50 PM</b>.']],
     todo:[
-      { a:'Dinner', t:'Apollo Bar', partner:'J/PR', img:'https://www.calimykonos.com/sites/default/files/2026-06/Cali-Apollo_dusk-1200x1600.jpg' }
+      { a:'Dinner', t:'Apollo Restaurant', partner:'J/PR', img:'https://www.calimykonos.com/sites/default/files/2026-06/Cali-Apollo_dusk-1200x1600.jpg' }
     ],
     imgs:[
       'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
@@ -102,33 +101,22 @@ export const TRAVEL_STOPS = {
   { loc:'Santorini, Greece', nights:'2 Nights · Sept 16 → 18', stay:'Andronis Arcadia', confirmed:true,
     in:{ date:'Sept 16', mode:'ferry', note:'Ferry to Santorini' },
     vibe:'Classic Cycladic white-plaster cave suites built into the dramatic volcanic cliffs of Oia, every suite with its own private infinity or heated cave plunge pool facing the deep-blue caldera, and the famous clifftop, candlelit Lycabettus restaurant above the sea.',
-    logi:[['Transit','Ferry from Mykonos to Santorini, about <b>2.5 hours</b>.']],
+    logi:[['Transit','Ferry from Mykonos to Santorini, <b>11:30 AM → 1:40 PM</b>.']],
     imgs:[
       'https://media.cntraveler.com/photos/6638fe33e2d99e8ecd3db913/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Pacman%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg',
       'https://cdn.sanity.io/images/nxpteyfv/goguides/9ca4581e7f31535984243dfa9c08c12c8a30ffeb-1600x1066.jpg',
       'https://media.cntraveler.com/photos/6638fe274f34977b03728a03/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Main%2520Pool%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg'] },
 
-  { loc:'Athens Riviera', nights:'2 Nights · Sept 18 → 20', stay:'Four Seasons Astir Palace', inworks:true,
+  { loc:'Athens, Greece', nights:'5 Nights · Sept 18 → 23', stayPending:'In the works', pending:true, inworks:true,
     in:{ date:'Sept 18', mode:'ferry', note:'Santorini → Port of Piraeus' },
-    vibe:'The crown jewel of the Athens Riviera, in the prestigious enclave of Vouliagmeni, a glamorous 75-acre pine-clad peninsula bringing the golden era of the 1960s Riviera into the present. Three private beaches, a 300-meter waterfront boardwalk, fine dining including Matsuhisa by Nobu and a beachfront Greek taverna, and an exceptional spa, a resort escape just 30 minutes from the city.',
-    logi:[['Transit','Ferry from Santorini to the <b>Port of Piraeus</b>.'],['The Drive','<b>~43-minute drive</b> from Piraeus to Vouliagmeni.']],
+    vibe:'Five nights across the city and the coast: the Acropolis and the Plaka on foot, and the pine-clad Riviera at Vouliagmeni half an hour south. The hotel partnership is still being set.',
+    logi:[['Transit','Ferry from Santorini to the <b>Port of Piraeus</b>.']],
     imgs:[
+      'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg',
       'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
-      'https://www.fourseasons.com/content/dam/fourseasons/images/web/APL/APL_137_original.jpg'] },
+      'https://www.thedolli.com/wp-content/uploads/2026/01/01-grecotel-hotels-resorts-the-dolli-athens-city-center-1536x1046.jpg'] },
 
-  { loc:'Athens · Historic Center', nights:'3 Nights · Sept 20 → 23', stay:'The Dolli at Acropolis', inworks:true,
-    in:{ date:'Sept 20', mode:'car', note:'Vouliagmeni → Athens · private transfer' },
-    vibe:'An acclaimed boutique hotel celebrated for its personalized luxury and a world-class rooftop lounge that places you at eye level with the Acropolis, an ideal base for walking the Plaka and exploring the ancient landmarks.',
-    logi:[['Transit','~30-minute private transfer from Vouliagmeni to central Athens.']],
-    imgs:[
-      'https://www.thedolli.com/wp-content/uploads/2026/01/01-grecotel-hotels-resorts-the-dolli-athens-city-center-1536x1046.jpg',
-      'https://www.thehotelguru.com/_images/98/6f/986fedf825c85c605b4319783c4df931/s1654x900.jpg',
-      'https://latteluxurynews.com/wp-content/uploads/2023/11/16-acropolis-luxury-junior-suite-the-dolli-boutique-hotel-athens-1132x560-1.jpg',
-      'https://www.thedolli.com/wp-content/uploads/2026/06/05-the-dolli-fosters-magic-happenings-grecotel-1536x1046.jpg',
-      'https://www.thedolli.com/wp-content/uploads/2026/01/02-grecotel-the-dolli-hotels-resorts-wines-cocktails-768x613.jpg',
-      'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg'] },
-
-  { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 23 → 27', stay:'Private Stay', noClient:true,
+  { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 23 → 27', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 23', mode:'flight', note:'Athens → Ljubljana, then a 45-minute drive' },
     vibe:'A private lakeside retreat on Slovenia’s storied glacial lake, with its island church and clifftop castle above the emerald water.',
     logi:[['Transit','Taxi to ATH, then the non-stop Aegean flight to Ljubljana (LJU), about <b>2 hours</b>. Pick up the rental at the airport.'],['The Drive','<b>~45-minute drive</b> northwest to Lake Bled.']],
@@ -143,18 +131,10 @@ export const TRAVEL_STOPS = {
     imgs:[
       'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto'] },
 
-  { loc:'St. Moritz, Switzerland', nights:'2 Nights · Sept 30 → Oct 2', stay:'Badrutt’s Palace Hotel', inworks:true,
-    in:{ date:'Sept 30', mode:'car', note:'Italy → Engadin · ~3.5h over the passes' },
-    vibe:'A legendary, historic lakeside palace known as the cradle of alpine luxury. It balances old-world European glamour, vibrant grand dining rooms, and an elite infinity-pool cave complex overlooking Lake St. Moritz.',
-    logi:[['The Drive','<b>~3.5-hour drive</b> (200 km) across the Swiss border into the Engadin valley.']],
-    imgs:[
-      'https://assets.vogue.com/photos/65ccb18a486b55e585379e53/master/w_2560%2Cc_limit/GettyImages-1353085015.jpg',
-      'https://cdn.mos.cms.futurecdn.net/5ZzMN2nehoCLa4BdMUTnxX.jpg',
-      'https://www.engadin.ch/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fy9q53f1k%2Fproduction%2F26b0df592c1566071b17cdf46da1bf609d4d56d4-2400x1600.jpg%3Ffm%3Dwebp%26q%3D90%26w%3D2760%26h%3D1572&w=3840&q=80'] },
-
-  { loc:'Zurich or Geneva, Switzerland', nights:'3 Nights · Oct 2 → 5', stayPending:'Looking for a hotel partner', pending:true,
-    in:{ date:'Oct 2', mode:'car', note:'St. Moritz → Zurich / Geneva' },
-    vibe:'', logi:[], imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
+  { loc:'Zurich or Geneva, Switzerland', nights:'5 Nights · Sept 30 → Oct 5', stayPending:'Looking for a hotel partner', pending:true,
+    in:{ date:'Sept 30', mode:'car', note:'The Dolomites → Zurich / Geneva' },
+    vibe:'Five nights to close the trip in Switzerland. The right hotel partnership decides the city.',
+    logi:[], imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 ],
 };
 
