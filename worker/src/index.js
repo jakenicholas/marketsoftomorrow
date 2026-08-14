@@ -7787,6 +7787,9 @@ async function ensureClientsTable(env) {
     created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
   )`).run();
   try { await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_clients_firm ON clients(rep_firm)`).run(); } catch (_) {}
+  // Starred = a client we're APPROVED to work with. Pinned to its own section
+  // at the top of the Clients view. Idempotent: no-op once the column exists.
+  try { await env.DB.prepare(`ALTER TABLE clients ADD COLUMN approved INTEGER DEFAULT 0`).run(); } catch (_) {}
 }
 function clientClean(b) {
   const s = (v, n) => { const t = String(v == null ? '' : v).trim(); return t ? t.slice(0, n) : null; };
@@ -7829,6 +7832,22 @@ async function handleClientsUpsert(req, env, origin) {
   }
   const row = await env.DB.prepare(`SELECT * FROM clients WHERE id = ?1`).bind(id).first();
   return json({ ok: true, client: row }, {}, env, origin);
+}
+// POST /clients/<id>/approve { approved: true|false } — the star toggle.
+// Deliberately NOT folded into the upsert: that one requires a full record and
+// would blank any field the caller omitted, which is the wrong risk to carry
+// on a one-click control in a 515-row list.
+async function handleClientApprove(req, env, origin, id) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureClientsTable(env);
+  let b = {}; try { b = await req.json(); } catch (_) {}
+  const on = b.approved === true || b.approved === 1 || b.approved === '1';
+  const now = Math.floor(Date.now() / 1000);
+  const res = await env.DB.prepare(`UPDATE clients SET approved=?1, updated_at=?2 WHERE id=?3`)
+    .bind(on ? 1 : 0, now, String(id)).run();
+  if (!res || !res.meta || !res.meta.changes) return json({ error: 'client not found' }, { status: 404 }, env, origin);
+  return json({ ok: true, id: String(id), approved: on ? 1 : 0 }, {}, env, origin);
 }
 async function handleClientsDelete(req, env, origin, id) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
@@ -8752,13 +8771,30 @@ async function ensureIgPosts(env) {
 // co-author fields and retries once rather than taking the whole pull down
 // (same defensive shape as the insights metric-set fallback below).
 const IG_MEDIA_FIELDS = 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count';
+// Whether Instagram actually served the co-author field, and why not if it
+// didn't. Recorded to sync_state each sync ('ig_coauthor_field') — without it
+// "no collabs found" is indistinguishable from "the API refused the field",
+// and those need completely different fixes.
+let _igCoauthorState = null;
 async function igMediaPage(igid, params, token) {
   let last = null;
   for (const fields of [IG_MEDIA_FIELDS + ',coauthor_producers{id,username}', IG_MEDIA_FIELDS]) {
+    const withCoauthors = fields.indexOf('coauthor') !== -1;
     last = await graphGet(igid + '/media', Object.assign({}, params, { fields, access_token: token }));
-    if (!(last && last.error)) return last;
+    if (!(last && last.error)) {
+      if (withCoauthors && _igCoauthorState !== 'ok') _igCoauthorState = 'ok';
+      return last;
+    }
+    if (withCoauthors) _igCoauthorState = 'unsupported: ' + String(metaErr(last) || 'unknown').slice(0, 180);
   }
   return last;   // both shapes failed — hand the real error back to the caller
+}
+async function noteCoauthorState(env) {
+  if (!env.DB || !_igCoauthorState) return;
+  try {
+    await env.DB.prepare(`INSERT INTO sync_state (key,value,updated_at) VALUES ('ig_coauthor_field',?1,?2)
+      ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?2`).bind(_igCoauthorState, Math.floor(Date.now() / 1000)).run();
+  } catch (_) {}
 }
 function igCoauthors(m) {
   const d = (m && m.coauthor_producers && m.coauthor_producers.data) || [];
@@ -8834,6 +8870,7 @@ async function syncSocialPosts(env, { days = 120, maxPer = 80 } = {}) {
     } catch (_) {}
   }
   try { await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('social_sync_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run(); } catch (_) {}
+  await noteCoauthorState(env);
   return { ok: true, synced, accounts, errors };
 }
 async function maybeSocialSync(env) {
@@ -8889,6 +8926,7 @@ async function syncSocialPostsLatest(env) {
     }
   }
   try { await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('social_latest_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run(); } catch (_) {}
+  await noteCoauthorState(env);
 }
 async function maybeSocialSyncLatest(env) {
   if (!env.META_SYSTEM_TOKEN || !env.DB) return;
@@ -19451,6 +19489,8 @@ export default {
       {
         const mCl = url.pathname.match(/^\/clients\/([^/]+)$/);
         if (mCl && request.method === 'DELETE') return await handleClientsDelete(request, env, origin, decodeURIComponent(mCl[1]));
+        const mAp = url.pathname.match(/^\/clients\/([^/]+)\/approve$/);
+        if (mAp && request.method === 'POST') return await handleClientApprove(request, env, origin, decodeURIComponent(mAp[1]));
       }
       if (url.pathname === '/contacts' || url.pathname === '/contacts/') {
         if (request.method === 'GET')  return await handleContactsList(request, env, origin, url);
