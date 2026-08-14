@@ -3224,6 +3224,25 @@ async function handleReviseDraft(req, env, origin) {
   const row = await env.DB.prepare('SELECT id, title, status, body_html FROM posts WHERE slug=?1').bind(slug).first();
   if (!row) return json({ error: 'no draft with that slug' }, { status: 404 }, env, origin);
   if (row.status !== 'draft') return json({ error: 'only drafts can be revised here' }, { status: 400 }, env, origin);
+
+  // Studio actions first. A selected passage is an unambiguous copy edit, so it
+  // skips this entirely and pays no extra round-trip; anything else gets the
+  // full tool catalog before falling through to the voice path.
+  if (!target) {
+    const act = await onyxStudioAct(env, {
+      message: instruction, context, surface: 'article editor', subject: row.title || slug,
+    });
+    if (act) {
+      try {
+        const uk = studioUserKey(req);
+        await threadAppend(env, uk, [
+          { surface: 'article editor', role: 'user', text: instruction, ref: row.title || slug },
+          { surface: 'article editor', role: 'assistant', text: act.reply, ref: row.title || slug },
+        ]);
+      } catch (_) {}
+      return json({ ok: true, reply: act.reply, did: act.did }, {}, env, origin);
+    }
+  }
   const body = String(row.body_html || '');
   const title = String(row.title || '');
   const stripTags = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -3397,6 +3416,24 @@ async function handleDesignChat(req, env, origin) {
   if (!instruction) instruction = target.kind === 'caption'
     ? 'Rewrite the Instagram caption in TMW voice — tighter, more on-brand, same facts.'
     : 'Rewrite the selected slide text in TMW voice — tighter and more on-brand, same fact.';
+
+  // Same deal as the article editor: Onyx carries its whole toolkit onto this
+  // page, and only prose work falls through to the voice path below.
+  if (!target) {
+    const act = await onyxStudioAct(env, {
+      message: instruction, context, surface: 'carousel Design editor', subject: title,
+    });
+    if (act) {
+      try {
+        const uk0 = studioUserKey(req);
+        await threadAppend(env, uk0, [
+          { surface: 'carousel editor', role: 'user', text: instruction, ref: title || '' },
+          { surface: 'carousel editor', role: 'assistant', text: act.reply, ref: title || '' },
+        ]);
+      } catch (_) {}
+      return json({ ok: true, reply: act.reply, edits: [], did: act.did }, {}, env, origin);
+    }
+  }
 
   let brainText = '';
   try { const brain = await assembleBrain(env, { topic: title || instruction, voice: true, surface: 'carousel', maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
@@ -9651,6 +9688,85 @@ export class OnyxRun {
     // Chain straight into the next round. Alarms do not need a client.
     await this.state.storage.setAlarm(Date.now());
   }
+}
+
+// ---------------------------------------------------------------------------
+// ONYX EVERYWHERE. The in-editor chats (article Polish, carousel Design) were
+// single-shot copy editors with NO tools, so Onyx correctly but uselessly told
+// Jake that adding a project to the database was "outside my reach from the
+// editor". It is the same assistant on every studio page, so it gets the same
+// catalog everywhere — the surface changes what it is LOOKING at, never what it
+// can DO.
+//
+// This runs as a pass BEFORE the surface's own copy-edit path. If the message
+// is really about rewriting the open draft, the model answers DEFER and the
+// caller falls through to the untouched voice path (which is Fable, and stays
+// Fable — routing prose through the orchestrator would cost voice quality).
+const ONYX_ACT_ROUNDS = 8;
+async function onyxStudioAct(env, { message, context, surface, subject }) {
+  if (!env || !env.ANTHROPIC_API_KEY || !message) return null;
+  resetStudioCaches();
+  setStudioActor('onyx-' + (surface || 'studio'));
+
+  const tools = studioToolDefs();
+  if (!tools.length) return null;
+  tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
+  tools.push({ type: 'web_search_20250305', name: 'web_search', max_uses: 8 });
+
+  const sys = [
+    'You are Onyx, the Markets of Tomorrow studio assistant. You are the SAME assistant on every page of the studio, with the same tools, and right now you are being spoken to from inside the ' + (surface || 'studio') + '.',
+    subject ? ('THE COLLEAGUE IS WORKING ON: ' + String(subject).slice(0, 300)) : '',
+    'Decide which of two things this message is:',
+    '1. A STUDIO ACTION or a QUESTION you can settle with your tools: creating or updating a project, firm, contact or list, looking something up, checking what exists, searching the web, reading analytics. DO IT with your tools, then reply in one or two sentences saying what you did, naming what you created or found. If a tool fails, say plainly what failed and why.',
+    '2. A request to REWRITE OR EDIT THE OPEN DRAFT ITSELF (its prose, headline, caption or slide text). You must NOT handle that here.',
+    'If and only if it is case 2, reply with exactly the single word DEFER and nothing else. Never explain the deferral, never apologise, never mention DEFER in any other situation.',
+    'NEVER tell the colleague that something is outside your reach because of which page they are on. If a tool for it exists, use it. Only say you cannot do something when no tool covers it.',
+    'Never invent an outcome you did not get from a tool.',
+  ].filter(Boolean).join('\n\n');
+
+  const convo = [{ role: 'user', content: String(message) + (context ? ('\n\nREFERENCE MATERIAL the colleague pasted:\n' + String(context).slice(0, 4000)) : '') }];
+  const did = [];
+  let lastText = '';
+  for (let round = 0; round < ONYX_ACT_ROUNDS; round++) {
+    let resp;
+    try {
+      resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: ONYX_MODEL, max_tokens: 3000,
+          system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral', ttl: '1h' } }],
+          tools, messages: convo,
+        }),
+      });
+    } catch (_) { return null; }                 // never break the editor: fall through
+    if (!resp.ok) return null;
+    const d = await resp.json().catch(() => null);
+    if (!d || !Array.isArray(d.content)) return null;
+    for (const b of d.content) if (b.type === 'text' && b.text) lastText = b.text;
+    convo.push({ role: 'assistant', content: d.content });
+    const calls = d.content.filter((b) => b.type === 'tool_use');
+    if (!calls.length) break;
+    const results = [];
+    for (const call of calls) {
+      let payload, isErr = false;
+      try {
+        const r = await studioCallTool(call.name, call.input || {}, env);
+        payload = JSON.stringify(r).slice(0, 40000);
+        did.push(onyxToolLabel(call.name, call.input));
+      } catch (e) {
+        isErr = true;
+        payload = 'Error: ' + (e && e.message ? e.message : String(e));
+        did.push(call.name + ' (failed)');
+      }
+      results.push({ type: 'tool_result', tool_use_id: call.id, content: payload, is_error: isErr || undefined });
+    }
+    convo.push({ role: 'user', content: results });
+  }
+  // DEFER means "this is a copy edit" — hand it back to the surface untouched.
+  if (!did.length && /^\s*DEFER\b/i.test(lastText.trim())) return null;
+  if (!lastText.trim()) return null;
+  return { reply: lastText.trim().slice(0, 1500), did };
 }
 
 async function ensureOnyxRunsTable(env) {
