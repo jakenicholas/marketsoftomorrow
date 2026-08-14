@@ -3418,11 +3418,13 @@ async function handleDesignChat(req, env, origin) {
     '- A QUESTION, discussion, or a request for IDEAS/OPTIONS: answer in `reply` only. NO edits, NO caption unless they clearly asked you to APPLY a change.',
     '- A change to SLIDE TEXT: return `edits` — whole-box replacements addressed by slide + box index from the DECK below — plus a short `reply` saying what you did.',
     '- A change to the INSTAGRAM CAPTION: return the FULL new `caption` plus a `reply`. The caption is the post text under the carousel, not a slide.',
+    '- A request for a NEW SLIDE (more slides, "add a slide about X", a fact that deserves its own beat): return `new_slides`. You CAN create slides and place them anywhere in the deck. Each one is a text slide: `headline` is the line that carries it, and it is inserted AFTER the slide number you give (`after: 0` puts it first). Number `after` against the deck EXACTLY as shown below, before any of your other changes; they are placed for you.',
     (target && target.kind === 'caption' ? 'THE COLLEAGUE IS WORKING ON THE CAPTION right now — unless they say otherwise, edits go to the caption.' : ''),
     (target && target.kind === 'box' ? ('THE COLLEAGUE SELECTED slide ' + target.slide + ' box ' + target.index + ' — unless they say otherwise, edit THAT box.') : ''),
     'SLIDE TEXT RULES: one punchy line per box, lead with a concrete fact; keep each headline roughly 40-80 characters; match the deck\'s punctuation and case; no hashtags, no emojis, no clickbait, no em dashes; preserve exact spellings and diacritics; never invent facts.',
     'CAPTION RULES: first line is the hook (it shows before "more"); short paragraphs with real line breaks; keep every verified fact, number and name; no em dashes; hashtags ONLY if the colleague asks for them; under 2,200 characters.',
-    'OUTPUT: return ONLY JSON, no fences: {"reply":"<chat message>","edits":[{"slide":<n>,"index":<box index>,"text":"<new box text>"}],"caption":"<full new caption ONLY if changing it>"}. `edits` and `caption` are OPTIONAL; `reply` is ALWAYS present.',
+    'OUTPUT: return ONLY JSON, no fences: {"reply":"<chat message>","edits":[{"slide":<n>,"index":<box index>,"text":"<new box text>"}],"new_slides":[{"after":<n>,"headline":"<the line on the new slide>"}],"caption":"<full new caption ONLY if changing it>"}. `edits`, `new_slides` and `caption` are OPTIONAL; `reply` is ALWAYS present.',
+    'NEVER tell the colleague you cannot create slides, and never ask them to duplicate a slide for you to fill in. Returning `new_slides` builds them.',
   ].filter(Boolean).join('\n\n');
 
   const usr = 'MESSAGE:\n' + instruction
@@ -3453,17 +3455,34 @@ async function handleDesignChat(req, env, origin) {
     if (txt === s.texts[bi].content) continue;
     outEdits.push({ slide: sn, index: bi, text: txt });
   }
+  // NEW SLIDES. `after` is numbered against the deck as the model was shown it,
+  // so the client inserts from the BOTTOM UP — inserting top-down would shift
+  // every later target by one and scatter the slides.
+  const outNew = [];
+  for (const s of (Array.isArray(parsed.new_slides) ? parsed.new_slides.slice(0, 6) : [])) {
+    const head = deDash(s && (s.headline || s.text)).trim().slice(0, 300);
+    if (!head) continue;
+    let after = parseInt(s && s.after, 10);
+    if (!Number.isFinite(after)) after = Number.isFinite(parseInt(s && s.before, 10)) ? parseInt(s.before, 10) - 1 : slides.length;
+    after = Math.max(0, Math.min(after, slides.length));
+    const out = { after, headline: head };
+    const tag = deDash(s && s.tagline).trim().slice(0, 120);
+    if (tag) out.tagline = tag;
+    outNew.push(out);
+  }
+  outNew.sort((a, b) => b.after - a.after);   // bottom-up, so earlier targets stay valid
+
   const newCaption = (parsed.caption != null && String(parsed.caption).trim() && deDash(parsed.caption).trim() !== caption.trim())
     ? deDash(parsed.caption).trim().slice(0, 2200) : '';
   // Same continuous thread as the Onyx page + article editor.
   try {
     await threadAppend(env, userKey, [
       { surface: 'carousel editor', role: 'user', text: instruction, ref: title || '' },
-      { surface: 'carousel editor', role: 'assistant', text: reply + (outEdits.length ? ' [applied ' + outEdits.length + ' slide edit(s)]' : '') + (newCaption ? ' [rewrote the caption]' : ''), ref: title || '' },
+      { surface: 'carousel editor', role: 'assistant', text: reply + (outEdits.length ? ' [applied ' + outEdits.length + ' slide edit(s)]' : '') + (outNew.length ? ' [added ' + outNew.length + ' slide(s)]' : '') + (newCaption ? ' [rewrote the caption]' : ''), ref: title || '' },
     ]);
     await maybeCompactThread(env, userKey);
   } catch (_) {}
-  return json({ ok: true, reply, edits: outEdits, caption: newCaption || undefined }, {}, env, origin);
+  return json({ ok: true, reply, edits: outEdits, new_slides: outNew, caption: newCaption || undefined }, {}, env, origin);
 }
 
 // POST /admin/revise-feedback { slug, signal:'up'|'down'|'manual', before, after, instruction?, summary? }
