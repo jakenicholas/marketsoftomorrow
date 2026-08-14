@@ -14251,6 +14251,34 @@
         // re-collide once it settles (no flicker / disappearing).
         map.on('moveend', refreshFeatLabels);
         map.on('zoomend', refreshFeatLabels);
+        // CLIENT REPORTING — a project's IMPRESSION on the Map row is its pin
+        // being in view. Fires when a slug ENTERS the viewport (present now,
+        // absent at the last settle), so sitting still doesn't re-count and
+        // panning back counts again — the same "every time shown" rule the
+        // banner carousel uses. Clustered pins aren't counted: nothing legible
+        // is on screen for that project until the cluster breaks apart.
+        (function trackMapImpressions(){
+          if (!window.tmwTrack || !window.tmwTrack.view) return;
+          var lastSeen = new Set();
+          function sweep(){
+            try {
+              var layers = ['unclustered-point','unclustered-point-completed'].filter(function(l){ return map.getLayer(l); });
+              if (!layers.length) return;
+              var feats = map.queryRenderedFeatures({ layers: layers }) || [];
+              var now = new Set();
+              for (var i = 0; i < feats.length; i++) {
+                var pr = feats[i] && feats[i].properties; if (!pr || !pr.slug) continue;
+                var slug = String(pr.slug); if (now.has(slug)) continue;
+                now.add(slug);
+                if (!lastSeen.has(slug)) window.tmwTrack.view(slug, 'project', pr.title || '', 'map');
+              }
+              lastSeen = now;
+            } catch (e) {}
+          }
+          map.on('moveend', sweep);
+          map.on('zoomend', sweep);
+          map.on('idle', function once(){ map.off('idle', once); sweep(); });   // the first paint
+        })();
         // Same trigger as featured labels: re-evaluate mover visibility only
         // when the gesture settles (not every frame). buildMoving() also calls
         // applyMoverVis at the end so a fresh build picks up the current zoom.
