@@ -68,7 +68,7 @@
   // eagerly here so it's ready before any ad/partner renders on any journal page.
   if (!document.querySelector('script[data-tmw-track]')) {
     var _tk = document.createElement('script');
-    _tk.src = '/_shared/track.js';
+    _tk.src = '/_shared/track.js?v=20260814a';   // BUMP on any track.js change
     _tk.defer = true;
     _tk.setAttribute('data-tmw-track', '1');
     document.head.appendChild(_tk);
