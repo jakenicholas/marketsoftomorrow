@@ -16097,6 +16097,15 @@
         currentFeature = f;
         fromSource = source || 'tile';
         const p = f.properties;
+        // CLIENT REPORTING — opening a project's modal is an "interaction" on
+        // the Map row of that client's monthly report (impression → interaction
+        // → URL click). Keyed by project slug so it rolls up per development.
+        // Wrapped: tracking must never be able to stop a modal from opening.
+        try {
+          if (window.tmwTrack && window.tmwTrack.act && p && p.slug) {
+            window.tmwTrack.act(String(p.slug), 'project', p.title || p.name || '', 'map');
+          }
+        } catch (e) {}
 
         // Always paint the matching pin TMW-intel purple to show which
         // project is open. showPopup() does this when the modal is
@@ -16413,6 +16422,16 @@
         }
         // "Project Profile" (gold) \u2192 the project's full page; always available.
         if (learnBtn) learnBtn.href = projectShareUrl(p.title);
+        // CLIENT REPORTING — leaving for the development's OWN site is the
+        // "URL clicks" column. onclick (not addEventListener) so reopening the
+        // modal for a different project rebinds instead of stacking handlers,
+        // matching how Request Info below is wired.
+        if (websiteLink) {
+          const _wSlug = p.slug || projectSlug(p.title);
+          websiteLink.onclick = function () {
+            try { if (window.tmwTrack && window.tmwTrack.click) window.tmwTrack.click(String(_wSlug), 'project', p.title || '', 'map'); } catch (e) {}
+          };
+        }
         // Request Info \u2192 opens the lead-capture modal for THIS project. onclick
         // (not addEventListener) so re-opening the modal for another project
         // rebinds cleanly instead of stacking handlers.

@@ -8,6 +8,8 @@
 //
 // Public API:  window.tmwTrack.view(id, type, label)
 //              window.tmwTrack.click(id, type, label)   // type: 'ad' | 'partner'
+//              window.tmwTrack.act(id, type, label, surface)        // engaged, no click-out
+//              window.tmwTrack.viewOnce(el, id, type, label, surface) // impression when on screen
 //              window.tmwTrack.bindClick(anchorEl, id, type, label)  // convenience
 // ---------------------------------------------------------------------------
 (function () {
@@ -41,10 +43,36 @@
     if (!id) return;
     push({ id: id, type: type || 'ad', event: 'view', label: label || '', surface: surface || 'journal' });
   }
+  // The middle tier of a client report: the project was ENGAGED WITH (its map
+  // modal opened, its Atlas card expanded) without necessarily clicking out to
+  // the client's own site. Batched like a view — it never navigates away.
+  function act(id, type, label, surface) {
+    if (!id) return;
+    push({ id: id, type: type || 'project', event: 'act', label: label || '', surface: surface || 'journal' });
+  }
   function click(id, type, label, surface) {
     if (!id) return;
     push({ id: id, type: type || 'ad', event: 'click', label: label || '', surface: surface || 'journal' });
     flush();  // the click may navigate away — don't wait for the batch timer
+  }
+
+  // Impressions on a scrolling surface (Atlas cards, map list rows) should count
+  // when the thing is actually ON SCREEN, and once per element — otherwise a
+  // long scroll inflates every client's numbers. One shared observer does it.
+  var seen = new WeakSet(), io = null;
+  function viewOnce(el, id, type, label, surface) {
+    if (!el || !id || seen.has(el)) return;
+    seen.add(el);
+    if (!('IntersectionObserver' in window)) { view(id, type, label, surface); return; }
+    if (!io) io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        var e = entries[i]; if (!e.isIntersecting) continue;
+        var d = e.target._tmwPlc; if (d) view(d.id, d.type, d.label, d.surface);
+        io.unobserve(e.target);
+      }
+    }, { threshold: 0.5 });
+    el._tmwPlc = { id: id, type: type || 'project', label: label || '', surface: surface || 'journal' };
+    io.observe(el);
   }
 
   // Convenience: attach a click beacon to an <a> without swallowing its default
@@ -66,7 +94,8 @@
   // journal-dock defined, so both window.tmwTrack(name,params) and
   // window.tmwTrack.view/.click work.
   var api = window.tmwTrack || {};
-  api.view = view; api.click = click; api.bindClick = bindClick; api.flush = flush;
+  api.view = view; api.act = act; api.click = click; api.bindClick = bindClick;
+  api.viewOnce = viewOnce; api.flush = flush;
   api._plc = true;   // marks the real placement methods as installed (vs dock's no-op stubs)
   window.tmwTrack = api;
 })();

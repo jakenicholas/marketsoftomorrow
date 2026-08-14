@@ -2408,6 +2408,33 @@
       </section>`;
     }
 
+    // ── CLIENT REPORTING ────────────────────────────────────────────────
+    // Atlas is a row on every client's monthly report, so each tracked project
+    // needs the same three tiers as the banner ads: it was SHOWN (card scrolled
+    // into view), it was ENGAGED (card opened), it drove a CLICK-OUT.
+    // Impressions fire via tmwTrack.viewOnce, which only counts a card once and
+    // only when it's actually on screen — Atlas renders the whole filtered set,
+    // so counting at render time would credit every client for a scroll they
+    // never saw. Re-run after every render; viewOnce de-dupes per element.
+    function bindAtlasTracking() {
+      if (!window.tmwTrack || !window.tmwTrack.viewOnce) return;
+      document.querySelectorAll('.apcards .card-link[href*="/projects/"]').forEach(function (a) {
+        var m = (a.getAttribute('href') || '').match(/\/projects\/([^/?#]+)/);
+        if (!m) return;
+        var slug = decodeURIComponent(m[1]);
+        var card = a.closest('.card') || a;
+        var titleEl = card.querySelector('.card-title');
+        var label = titleEl ? titleEl.textContent.trim().slice(0, 120) : '';
+        window.tmwTrack.viewOnce(card, slug, 'project', label, 'atlas');
+        if (!a._tmwAtlas) {
+          a._tmwAtlas = true;
+          a.addEventListener('click', function () {
+            try { window.tmwTrack.act(slug, 'project', label, 'atlas'); } catch (e) {}
+          }, { capture: true });
+        }
+      });
+    }
+
     function renderFootnote() {
       const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || '';
       return `<div class="atlas-foot-note">
@@ -4269,6 +4296,7 @@
         ['ac-place', 'ac-cat', 'ac-year'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', applyCalc); });
       }
       wireMasterSearch();
+      bindAtlasTracking();
       // Project-card grid "load more" — reveal the next batch.
       const pcardMore = document.querySelector('[data-pcard-more]');
       if (pcardMore) {

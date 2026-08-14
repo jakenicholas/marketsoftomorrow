@@ -14547,7 +14547,7 @@ const PLACEMENT_NEW_TABLE =
   "CREATE TABLE IF NOT EXISTS placement_stats (" +
   "id TEXT NOT NULL, day TEXT NOT NULL, surface TEXT NOT NULL DEFAULT 'journal', " +
   "type TEXT NOT NULL DEFAULT 'ad', label TEXT, " +
-  "views INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, " +
+  "views INTEGER NOT NULL DEFAULT 0, acts INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, " +
   "clicks_bot INTEGER NOT NULL DEFAULT 0, " +
   "updated_at INTEGER, PRIMARY KEY (id, day, surface))";
 let _plcTableReady = false;
@@ -14576,6 +14576,12 @@ async function ensurePlacementStatsTable(env) {
     const cols = (info.results || []).map(c => c.name);
     if (!cols.includes('clicks_bot')) {
       try { await env.DB.prepare('ALTER TABLE placement_stats ADD COLUMN clicks_bot INTEGER NOT NULL DEFAULT 0').run(); } catch (_) {}
+    }
+    // acts = the middle tier of the client report: shown (views) → engaged
+    // (acts) → clicked out (clicks). A map pin rendered is a view; opening its
+    // modal is an act; hitting the project's own website is a click.
+    if (!cols.includes('acts')) {
+      try { await env.DB.prepare('ALTER TABLE placement_stats ADD COLUMN acts INTEGER NOT NULL DEFAULT 0').run(); } catch (_) {}
     }
   } catch (_) {}
   _plcTableReady = true;
@@ -14651,16 +14657,21 @@ async function handleTrack(req, env, origin) {
     if (!e || typeof e !== 'object') continue;
     const id = String(e.id || '').trim();
     if (!PLACEMENT_ID_RE.test(id)) continue;
-    const ev = e.event === 'click' ? 'click' : (e.event === 'view' ? 'view' : '');
+    const ev = e.event === 'click' ? 'click' : (e.event === 'act' ? 'act' : (e.event === 'view' ? 'view' : ''));
     if (!ev) continue;
-    const type = e.type === 'partner' ? 'partner' : 'ad';
-    const surface = e.surface === 'newsletter' ? 'newsletter' : 'journal';
+    // 'project' = a CLIENT's development tracked wherever it surfaces in the
+    // product (map pin, Atlas card, an Onyx answer citing it), keyed by the
+    // project slug. Same table, same bot filter, same rollup as the ad units.
+    const type = e.type === 'partner' ? 'partner' : (e.type === 'project' ? 'project' : 'ad');
+    const SURFACES = ['newsletter', 'map', 'atlas', 'intel', 'article'];
+    const surface = SURFACES.indexOf(e.surface) !== -1 ? e.surface : 'journal';
     const label = (e.label != null && String(e.label).trim()) ? String(e.label).slice(0, 160) : null;
     const k = id + '' + surface;
-    const cur = agg.get(k) || { id: id, surface: surface, type: type, label: null, views: 0, clicks: 0, clicks_bot: 0 };
+    const cur = agg.get(k) || { id: id, surface: surface, type: type, label: null, views: 0, acts: 0, clicks: 0, clicks_bot: 0 };
     cur.type = type;
     if (label) cur.label = label;
     if (ev === 'view') { if (!isBot) cur.views += 1; }          // drop bot views
+    else if (ev === 'act') { if (!isBot) cur.acts += 1; }       // engagement, bots dropped
     else if (isBot) cur.clicks_bot += 1; else cur.clicks += 1;  // split human/bot clicks
     agg.set(k, cur);
   }
@@ -14669,16 +14680,64 @@ async function handleTrack(req, env, origin) {
   try {
     await ensurePlacementStatsTable(env);
     const stmt = env.DB.prepare(
-      'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, clicks_bot, updated_at) ' +
-      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ' +
-      'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, clicks_bot = clicks_bot + ?8, ' +
-      'label = COALESCE(?5, label), type = ?4, updated_at = ?9'
+      'INSERT INTO placement_stats (id, day, surface, type, label, views, acts, clicks, clicks_bot, updated_at) ' +
+      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10) ' +
+      'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, acts = acts + ?7, clicks = clicks + ?8, clicks_bot = clicks_bot + ?9, ' +
+      'label = COALESCE(?5, label), type = ?4, updated_at = ?10'
     );
     const batch = [];
-    for (const v of agg.values()) batch.push(stmt.bind(v.id, day, v.surface, v.type, v.label, v.views, v.clicks, v.clicks_bot, now));
+    for (const v of agg.values()) batch.push(stmt.bind(v.id, day, v.surface, v.type, v.label, v.views, v.acts, v.clicks, v.clicks_bot, now));
     await env.DB.batch(batch);
   } catch (_) {}
   return ok();
+}
+
+// GET /client-report?ids=<a,b,c>&from=YYYY-MM-DD&to=YYYY-MM-DD  (admin)
+// One month of a client's campaign, assembled from what we already log, so the
+// media/<client>/ analytics page stops being hand-typed HTML.
+//
+// `ids` is every identifier that belongs to that client: their banner ad id,
+// their partner id, their tracked-link ids, and their project slug(s). One
+// client legitimately spans several — the Waldorf runs a banner AND is a
+// tracked project — so the caller passes the set and we group by surface.
+//
+// Rows come back shaped like the report's columns: impressions / interactions
+// / URL clicks, per surface, per month.
+async function handleClientReport(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensurePlacementStatsTable(env);
+  const ids = String(url.searchParams.get('ids') || '').split(',').map(x => x.trim()).filter(x => PLACEMENT_ID_RE.test(x)).slice(0, 40);
+  if (!ids.length) return json({ error: 'ids required (comma-separated placement ids / project slugs)' }, { status: 400 }, env, origin);
+  const DAY = /^\d{4}-\d{2}-\d{2}$/;
+  const from = DAY.test(url.searchParams.get('from') || '') ? url.searchParams.get('from') : '1970-01-01';
+  const to   = DAY.test(url.searchParams.get('to')   || '') ? url.searchParams.get('to')   : '9999-12-31';
+  const ph = ids.map((_, i) => '?' + (i + 3)).join(',');
+  let rows = [];
+  try {
+    rows = (await env.DB.prepare(
+      `SELECT substr(day,1,7) AS month, surface, type, id, label,
+              SUM(views) AS views, SUM(acts) AS acts, SUM(clicks) AS clicks
+         FROM placement_stats
+        WHERE day >= ?1 AND day <= ?2 AND id IN (${ph})
+        GROUP BY month, surface, id
+        ORDER BY month ASC, surface ASC`).bind(from, to, ...ids).all()).results || [];
+  } catch (_) {}
+
+  // The report's rows are SURFACES ("Website Banner Ad", "Map of Tomorrow"),
+  // not raw ids — a client with two project slugs shows one Map line.
+  const LABELS = { journal: 'Website Banner Ad', newsletter: 'Newsletter Banner Ad', map: 'Map of Tomorrow', atlas: 'Atlas', intel: 'TMW Intelligence', article: 'Article', link: 'Tracked Link' };
+  const months = new Map();
+  for (const r of rows) {
+    const m = months.get(r.month) || { month: r.month, rows: new Map(), totals: { views: 0, acts: 0, clicks: 0 } };
+    const cur = m.rows.get(r.surface) || { surface: r.surface, piece: LABELS[r.surface] || r.surface, views: 0, acts: 0, clicks: 0 };
+    cur.views += +r.views || 0; cur.acts += +r.acts || 0; cur.clicks += +r.clicks || 0;
+    m.rows.set(r.surface, cur);
+    m.totals.views += +r.views || 0; m.totals.acts += +r.acts || 0; m.totals.clicks += +r.clicks || 0;
+    months.set(r.month, m);
+  }
+  const out = [...months.values()].map(m => ({ month: m.month, totals: m.totals, rows: [...m.rows.values()] }));
+  return json({ ok: true, ids, from, to, months: out }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
 }
 
 // GET /r?id=<placement>&s=newsletter — newsletter click tracker. Email can't
@@ -19005,6 +19064,7 @@ export default {
       if (request.method === 'GET' && url.pathname === '/px') {
         return await handlePlacementPixel(request, env, origin, url);
       }
+      if (request.method === 'GET' && url.pathname === '/client-report') return await handleClientReport(request, env, origin, url);
       if (request.method === 'GET' && url.pathname === '/placements') {
         return await handlePlacementStats(request, env, origin);
       }
