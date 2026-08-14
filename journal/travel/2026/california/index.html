@@ -877,5 +877,12 @@ function gateHtml(){
   });
 })();
 </script>
+<!-- The Departure Board veil is raised by the PREVIOUS page (/travel/) and is
+     lifted by whichever page you land on. These itinerary pages deliberately
+     skip journal-chrome.js (they carry their own cream design, no site header),
+     which also left them without the loader — so nothing ever consumed the
+     handoff and the veil's last painted frame stayed on screen until something
+     forced a repaint (switching tabs and back). Self-contained; adds no chrome. -->
+<script src="/_shared/tmw-loader.js?v=20260812a" defer></script>
 </body>
 </html>
