@@ -115,6 +115,13 @@ DIGEST_TITLES = {
     '2026-07-07': 'Groundbreakings, Luxury Condos & Wellness',
     '2026-07-15': 'New Condos, Wellness & New Features',
     '2026-07-21': 'Home Premiums, New Hotels & More',
+    # STOPGAP (2026-08-14): the RESEND_API_KEY in CI is send-only and 403s on
+    # GET /broadcasts, so the automatic titles above are not reaching this yet.
+    # Delete this line once the key has read access — the broadcast name says
+    # exactly the same thing. Aug 4 and Aug 11 are deliberately NOT hand-added:
+    # their names were only seen truncated, and a guessed title is worse than a
+    # wrong one nobody trusts.
+    '2026-07-28': 'New Heights, Hotels & Wellness Concepts',
 }
 DIGEST_SKIP = {'2026-06-03', '2026-06-10'}
 
