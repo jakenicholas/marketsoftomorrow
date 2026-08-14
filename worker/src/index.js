@@ -8442,7 +8442,29 @@ async function publishInstagram(igUserId, slides, caption, collaborators, token)
   const pub = await metaPost(`${igUserId}/media_publish`, { creation_id: creationId, access_token: token });
   if (!pub.id) throw new Error('Instagram publish failed — ' + metaErr(pub));
   const perm = await graphGet(`${pub.id}`, { fields: 'permalink', access_token: token });
-  return { id: pub.id, url: perm.permalink || '' };
+
+  // COLLABORATOR INVITES FAIL SILENTLY. Meta accepts the container either way,
+  // so a successful post proves nothing about whether the invite went out. An
+  // invite is dropped without any API error when the target is private, is not
+  // a Business/public account, or has collaboration invites turned off, and
+  // Instagram does not expose that preference through the API, so it cannot be
+  // checked beforehand. Read the published media back so the UI can report what
+  // actually stuck instead of always claiming "will invite".
+  let collab = { requested: collaborators, state: collaborators.length ? 'unconfirmed' : 'none', accepted: [] };
+  if (collaborators.length) {
+    try {
+      const chk = await graphGet(`${pub.id}`, { fields: 'collaborators', access_token: token });
+      const rows = chk && chk.collaborators && Array.isArray(chk.collaborators.data) ? chk.collaborators.data : null;
+      if (rows) {
+        collab.accepted = rows.map((x) => String(x.username || '')).filter(Boolean);
+        collab.state = collab.accepted.length ? 'pending' : 'dropped';
+      } else if (chk && chk.error) {
+        collab.state = 'unreadable';   // field not granted on this app/token
+        collab.note = metaErr(chk);
+      }
+    } catch (_) {}
+  }
+  return { id: pub.id, url: perm.permalink || '', collab };
 }
 // Facebook: post slide 1 as a Page photo with the caption (link lives in the caption text).
 async function publishFacebook(pageId, imageUrl, caption, token) {
@@ -9989,7 +10011,7 @@ async function handlePublish(req, env, origin) {
           .bind(JSON.stringify(dist), Math.floor(Date.now() / 1000), slug).run();
       } catch (_) {}
     }
-    return json({ ok: true, platform, id: result.id, url: result.url }, {}, env, origin);
+    return json({ ok: true, platform, id: result.id, url: result.url, collab: result.collab || null }, {}, env, origin);
   } catch (e) {
     return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin);
   }
