@@ -180,7 +180,12 @@ jobs:
       # /releases archive: picks up new consumer digests from
       # newsletter/digest-archive/ automatically (backend editions are
       # data in the script itself).
+      # Digest titles come from the Resend broadcast names (the only place the
+      # newsletter's own title exists). Without the key the script still runs
+      # and falls back to its override map, so this is not a hard dependency.
       - name: Generate releases archive
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: python3 generate_releases.py
 
       - name: Check for changes

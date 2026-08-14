@@ -43,7 +43,70 @@ def _date_label(iso):
     y, m, d = iso.split('-')
     return f"{MONTHS[int(m)-1]} {int(d)}, {y}"
 
-# Curated title overrides + editions to skip (Jake, 2026-07-13).
+# The real title of a digest is its RESEND BROADCAST NAME ("July 28 - New
+# Heights, Hotels & Wellness Concepts"); strip the date prefix and you have it.
+# The digest HTML does not carry that title anywhere, which is why the scrape
+# below falls back to the preheader and returns the first story's summary
+# instead ("Cipriani Residences topped out at 950 feet over Brickell…") — and
+# not even uniquely, since two sends can share a lede. That is what broke every
+# title from July 28 on: the hand-maintained map underneath simply ran out.
+#
+# Fetching the names keeps this correct without anyone maintaining a list.
+# Non-fatal by design: no key, no network, or an API change just falls through
+# to the override map and then the scrape, exactly as before.
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '').strip()
+_MONTH_NUM = {m.lower(): i + 1 for i, m in enumerate(
+    ['January','February','March','April','May','June','July','August',
+     'September','October','November','December'])}
+
+def _broadcast_titles():
+    """{'YYYY-MM-DD': 'Title'} from the Resend broadcast names."""
+    if not RESEND_API_KEY:
+        return {}
+    try:
+        import json as _json, urllib.request
+        req = urllib.request.Request(
+            'https://api.resend.com/broadcasts',
+            headers={'Authorization': 'Bearer ' + RESEND_API_KEY})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            payload = _json.loads(r.read().decode('utf-8'))
+    except Exception as exc:                       # noqa: BLE001 - never fail the build
+        print(f"  releases: could not read Resend broadcasts ({exc}); using overrides only")
+        return {}
+    out = {}
+    for b in (payload.get('data') or []):
+        name = str(b.get('name') or '').strip()
+        # "July 28 - New Heights, Hotels & Wellness Concepts"
+        m = re.match(r'^\s*([A-Za-z]+)\s+(\d{1,2})\s*[-–—]\s*(.+)$', name)
+        if not m:
+            continue
+        mon = _MONTH_NUM.get(m.group(1).lower())
+        if not mon:
+            continue
+        title = m.group(3).strip()
+        # Year comes from the send date, not the name — the name never carries one.
+        sent = str(b.get('sent_at') or b.get('created_at') or '')[:10]
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', sent):
+            continue
+        year, sent_mon = int(sent[:4]), int(sent[5:7])
+        # New Year's wrap: a "December 29" edition that goes out on January 2
+        # belongs to the PREVIOUS year, or it files itself a year in the future.
+        if mon == 12 and sent_mon == 1:
+            year -= 1
+        elif mon == 1 and sent_mon == 12:
+            year += 1
+        # Key on BOTH the name's date and the actual send date. Archive files are
+        # named by send date, so if the two ever disagree by a day either one
+        # still finds its digest; they carry the same title so there is no clash.
+        title_for = f"{year}-{mon:02d}-{int(m.group(2)):02d}"
+        out[title_for] = title
+        out.setdefault(sent, title)
+    if out:
+        print(f"  releases: {len(out)} titles from Resend broadcast names")
+    return out
+
+# Curated title overrides + editions to skip (Jake, 2026-07-13). These still WIN
+# over the broadcast name, so a title can always be corrected by hand.
 DIGEST_TITLES = {
     '2026-06-09': 'First U.S. Restaurant, Private Clubs & New Schools',
     '2026-06-16': 'Restaurant and District Expansions, New Hotels & More',
@@ -57,6 +120,7 @@ DIGEST_SKIP = {'2026-06-03', '2026-06-10'}
 
 def discover_digests():
     out = []
+    broadcast = _broadcast_titles()
     for fp in sorted(glob.glob(DIGEST_SRC + "/*.html"), reverse=True):
         base = os.path.basename(fp)[:-5]   # YYYY-MM-DD
         if not re.match(r'^\d{4}-\d{2}-\d{2}$', base):
@@ -64,7 +128,9 @@ def discover_digests():
         if base in DIGEST_SKIP:
             continue
         txt = open(fp, encoding='utf-8', errors='replace').read()
-        title = DIGEST_TITLES.get(base) or _digest_title(txt)
+        # hand override > broadcast name > scrape (which is a last resort and
+        # returns the preheader, not a title)
+        title = DIGEST_TITLES.get(base) or broadcast.get(base) or _digest_title(txt)
         out.append({'date': base, 'date_label': _date_label(base),
                     'title': title, 'src': fp})
     return out
