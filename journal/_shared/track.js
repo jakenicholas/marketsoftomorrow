@@ -78,13 +78,40 @@
   // Convenience: attach a click beacon to an <a> without swallowing its default
   // navigation. sendBeacon is fire-and-forget and safe during unload, so the
   // browser follows the href normally right after.
-  function bindClick(el, id, type, label) {
+  function bindClick(el, id, type, label, surface) {
     if (!el || el._tmwTracked) return;
     el._tmwTracked = true;
-    el.addEventListener('click', function () { click(id, type, label); }, { capture: true });
+    el.addEventListener('click', function () { click(id, type, label, surface); }, { capture: true });
     // auxclick covers middle-click / cmd-click "open in new tab".
-    el.addEventListener('auxclick', function (e) { if (e.button === 1) click(id, type, label); }, { capture: true });
+    el.addEventListener('auxclick', function (e) { if (e.button === 1) click(id, type, label, surface); }, { capture: true });
   }
+
+  // ── Project pages: the "Official Website" click ──────────────────────────
+  // URL clicks on the Map and Atlas report rows are the visitor leaving for the
+  // CLIENT's own site, and on /projects/<slug>/ that's the .btn-website link.
+  // Bound here rather than in the page template because those pages are
+  // generated — 1,000+ of them — and this way every existing and future one is
+  // covered with no regeneration.
+  //
+  // The surface is taken from the REFERRER, so the click lands on the report row
+  // that actually sent the visitor: arriving from Atlas credits Atlas, from the
+  // map credits Map. Direct hits fall back to 'article'.
+  function bindProjectWebsite() {
+    var m = location.pathname.match(/^\/projects\/([^/]+)\/?$/);
+    if (!m) return;
+    var slug = decodeURIComponent(m[1]);
+    var t = document.querySelector('h1');
+    var label = t ? t.textContent.trim().slice(0, 120) : '';
+    var ref = '';
+    try { ref = (document.referrer || '').toLowerCase(); } catch (e) {}
+    var surface = /\/atlas/.test(ref) ? 'atlas'
+                : (/\/map|map\.oftmw\.com/.test(ref) ? 'map'
+                : (/\/intelligence|\/onyx/.test(ref) ? 'intel' : 'article'));
+    var links = document.querySelectorAll('.btn-website, a[href][data-official-website]');
+    for (var i = 0; i < links.length; i++) bindClick(links[i], slug, 'project', label, surface);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindProjectWebsite);
+  else bindProjectWebsite();
 
   window.addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
