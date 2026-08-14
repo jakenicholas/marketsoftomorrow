@@ -6462,3 +6462,42 @@
     }
   } catch(_){}
 })();
+
+/* ── CLIENT REPORTING · TMW Intelligence ───────────────────────────────────
+   The Intelligence row of a client's monthly report:
+     impression  = the project appeared in an answer (answers can rerender many
+                   times per session, and each appearance counts — same rule as
+                   a banner slide rotating back into view)
+     interaction = the project was clicked in search
+     URL click   = handled elsewhere: leaving for the client's own site from the
+                   project page, attributed to 'intel' by referrer (track.js)
+
+   Every result card already carries data-projslug, so one observer over the
+   overlay covers every render path (grid, answer body, project view) without
+   touching each one. viewOnce only fires when a card is actually on screen and
+   only once per element, so the paged/hidden cards don't inflate anyone. */
+(function tmwIntelReporting() {
+  'use strict';
+  function sweep() {
+    if (!window.tmwTrack || !window.tmwTrack.viewOnce) return;
+    var els = document.querySelectorAll('[data-projslug]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], slug = el.getAttribute('data-projslug');
+      if (!slug) continue;
+      var lab = el.querySelector('.tmw-ov-pcard-title, .tmw-ov-pcard-name, h3, h4');
+      window.tmwTrack.viewOnce(el, slug, 'project', lab ? lab.textContent.trim().slice(0, 120) : '', 'intel');
+    }
+  }
+  var t = null;
+  try {
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(sweep, 150); })
+      .observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-projslug]') : null;
+    if (!el || !window.tmwTrack || !window.tmwTrack.act) return;
+    var slug = el.getAttribute('data-projslug');
+    if (slug) { try { window.tmwTrack.act(slug, 'project', '', 'intel'); } catch (err) {} }
+  }, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sweep); else sweep();
+})();
