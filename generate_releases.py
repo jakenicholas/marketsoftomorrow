@@ -65,9 +65,17 @@ def _broadcast_titles():
         return {}
     try:
         import json as _json, urllib.request, urllib.error
+        # The User-Agent is REQUIRED, not decoration. api.resend.com sits behind
+        # Cloudflare, which blocks urllib's default "Python-urllib/3.x" signature
+        # and answers 403 with the body "error code: 1010" — a CLOUDFLARE code,
+        # nothing to do with the API key. Proved by probing the same endpoint
+        # with a deliberately invalid key: default UA gives 403/1010, a real UA
+        # gives 400 "API key is invalid", i.e. the request actually arrives.
         req = urllib.request.Request(
             'https://api.resend.com/broadcasts',
-            headers={'Authorization': 'Bearer ' + RESEND_API_KEY})
+            headers={'Authorization': 'Bearer ' + RESEND_API_KEY,
+                     'User-Agent': 'TMW-Releases/1.0 (+https://www.oftmw.com)',
+                     'Accept': 'application/json'})
         try:
             with urllib.request.urlopen(req, timeout=20) as r:
                 payload = _json.loads(r.read().decode('utf-8'))
@@ -81,9 +89,12 @@ def _broadcast_titles():
             except Exception:                      # noqa: BLE001
                 pass
             hint = ''
-            if http_exc.code in (401, 403):
-                hint = ('  -> listing broadcasts needs a FULL ACCESS Resend key; '
-                        'a sending-only or domain-restricted key returns this.')
+            if '1010' in body:
+                hint = ('  -> that is a CLOUDFLARE block on the client signature, NOT a key '
+                        'problem. Check the User-Agent header on this request.')
+            elif http_exc.code in (401, 403):
+                hint = ('  -> the key was rejected by Resend itself; listing broadcasts '
+                        'needs a full-access key.')
             print(f"  releases: Resend broadcasts HTTP {http_exc.code}: {body or http_exc.reason}")
             if hint:
                 print(hint)
