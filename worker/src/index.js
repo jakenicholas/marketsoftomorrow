@@ -8578,16 +8578,27 @@ async function refreshThreadsTokens(env) {
     if (!env.DB) return;
     await ensureThreadsTokensTable(env);
     const now = Math.floor(Date.now() / 1000);
-    const { results } = await env.DB.prepare(`SELECT account_key, access_token, updated_at FROM threads_tokens WHERE expires_at < ?1`).bind(now + 7 * 86400).all();
+    const { results } = await env.DB.prepare(`SELECT account_key, access_token, updated_at, expires_at FROM threads_tokens WHERE expires_at < ?1`).bind(now + 7 * 86400).all();
     for (const r of (results || [])) {
       if (now - (r.updated_at || 0) < 86400) continue;   // must be ≥24h old to refresh
-      const rr = await fetch('https://graph.threads.net/refresh_access_token?' + new URLSearchParams({ grant_type: 'th_refresh_token', access_token: r.access_token })).then(x => x.json()).catch(() => ({}));
+      // ALREADY EXPIRED is terminal: Threads only refreshes a LIVE token, so
+      // once it lapses the account needs reconnecting by hand. Silence here is
+      // how Threads stopped posting without anyone noticing — the refresh kept
+      // failing every hour and nothing said so.
+      if ((r.expires_at || 0) <= now) {
+        console.warn('[threads] token EXPIRED for ' + r.account_key + ' — reconnect it on the Accounts page; refresh cannot recover a lapsed token');
+        continue;
+      }
+      const rr = await fetch('https://graph.threads.net/refresh_access_token?' + new URLSearchParams({ grant_type: 'th_refresh_token', access_token: r.access_token })).then(x => x.json()).catch((e) => ({ _err: String(e && e.message || e) }));
       if (rr.access_token) {
         await env.DB.prepare(`UPDATE threads_tokens SET access_token=?1, expires_at=?2, updated_at=?3 WHERE account_key=?4`)
           .bind(rr.access_token, now + (rr.expires_in || 5184000), now, r.account_key).run();
+      } else {
+        console.warn('[threads] refresh FAILED for ' + r.account_key + ' (expires ' +
+          new Date((r.expires_at || 0) * 1000).toISOString().slice(0, 10) + '): ' + (rr._err || metaErr(rr)));
       }
     }
-  } catch (_) {}
+  } catch (e) { try { console.warn('[threads] refresh sweep failed: ' + (e && e.message || e)); } catch (_) {} }
 }
 
 // ── Public follower counts ──────────────────────────────────────────────────
