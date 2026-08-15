@@ -8299,6 +8299,155 @@ async function handleThreadsDisconnect(req, env, origin) {
   await env.DB.prepare(`DELETE FROM threads_tokens WHERE account_key = ?1`).bind(key).run();
   return json({ ok: true }, {}, env, origin);
 }
+// ── TIKTOK — Content Posting API (photo carousels with auto-added music) ─────
+// Mirrors the Threads flow above: per-account OAuth → tokens in D1 → publish.
+// Secrets: TIKTOK_CLIENT_KEY + TIKTOK_CLIENT_SECRET (Jake's developer app).
+// TikTok access tokens expire in 24 HOURS (refresh tokens ~1 year and ROTATE on
+// every refresh — both must be re-stored), so tiktokFreshToken refreshes lazily
+// at publish time; nothing works if the refresh chain is dropped.
+// Until the app passes TikTok's audit, posts are forced private (SELF_ONLY) —
+// creator_info tells us what privacy levels the account may use, so the same
+// code posts private pre-audit and public after, with no flag to flip.
+function tiktokRedirect(env) { return env.TIKTOK_REDIRECT || 'https://tmw.jake-ab7.workers.dev/tiktok/callback'; }
+function tiktokErr(j) {
+  const e = j && j.error;
+  if (e && e.code && e.code !== 'ok') return (e.message || e.code) + (e.log_id ? ' (log ' + e.log_id + ')' : '');
+  return (j && (j.error_description || j.message)) || 'unknown TikTok error';
+}
+async function ensureTikTokTokensTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS tiktok_tokens (
+    account_key TEXT PRIMARY KEY, open_id TEXT, access_token TEXT, refresh_token TEXT,
+    expires_at INTEGER, refresh_expires_at INTEGER, updated_at INTEGER)`).run();
+}
+async function tiktokStoreToken(env, key, tk) {
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`INSERT INTO tiktok_tokens (account_key, open_id, access_token, refresh_token, expires_at, refresh_expires_at, updated_at) VALUES (?1,?2,?3,?4,?5,?6,?7)
+    ON CONFLICT(account_key) DO UPDATE SET open_id=?2, access_token=?3, refresh_token=?4, expires_at=?5, refresh_expires_at=?6, updated_at=?7`)
+    .bind(key, String(tk.open_id || ''), String(tk.access_token), String(tk.refresh_token || ''),
+      now + (tk.expires_in || 86400), now + (tk.refresh_expires_in || 31536000), now).run();
+}
+async function handleTikTokConnectUrl(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.TIKTOK_CLIENT_KEY || !env.SESSION_SECRET) return json({ error: 'TikTok not configured (need TIKTOK_CLIENT_KEY + TIKTOK_CLIENT_SECRET secrets on the worker).' }, { status: 500 }, env, origin);
+  const key = (url.searchParams.get('key') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  if (!key) return json({ error: 'key required' }, { status: 400 }, env, origin);
+  const state = await signPayload({ tt: key, exp: Math.floor(Date.now() / 1000) + 600 }, env.SESSION_SECRET);
+  const auth = 'https://www.tiktok.com/v2/auth/authorize/?' + new URLSearchParams({
+    client_key: env.TIKTOK_CLIENT_KEY, scope: 'user.info.basic,video.upload,video.publish',
+    response_type: 'code', redirect_uri: tiktokRedirect(env), state,
+  });
+  return json({ url: auth }, {}, env, origin);
+}
+async function handleTikTokCallback(req, env, origin, url) {
+  const html = (msg, ok) => new Response(
+    '<!doctype html><meta charset=utf-8><body style="font:15px system-ui;background:#0b0e0c;color:#fff;padding:48px;text-align:center">'
+    + (ok ? '✅ ' : '⚠️ ') + msg + '<br><br><a style="color:#A78BFA" href="https://admin.oftmw.com/social-accounts.html">Back to Accounts →</a>',
+    { status: ok ? 200 : 400, headers: { 'content-type': 'text/html' } });
+  const code = url.searchParams.get('code') || '', state = url.searchParams.get('state') || '';
+  if (url.searchParams.get('error')) return html('TikTok denied the connection: ' + (url.searchParams.get('error_description') || url.searchParams.get('error')), false);
+  if (!code || !state) return html('Missing code/state.', false);
+  if (!env.TIKTOK_CLIENT_KEY || !env.TIKTOK_CLIENT_SECRET || !env.SESSION_SECRET) return html('TikTok not configured on the worker.', false);
+  const s = await verifyPayload(state, env.SESSION_SECRET);
+  if (!s || !s.tt) return html('Invalid or expired connect link — start again from the Accounts page.', false);
+  try {
+    const tk = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, client_secret: env.TIKTOK_CLIENT_SECRET, code, grant_type: 'authorization_code', redirect_uri: tiktokRedirect(env) }),
+    }).then(r => r.json());
+    if (!tk.access_token) return html('Token exchange failed: ' + tiktokErr(tk), false);
+    await ensureTikTokTokensTable(env);
+    await tiktokStoreToken(env, s.tt, tk);
+    return html('TikTok connected for <b>' + s.tt + '</b>. You can close this tab.', true);
+  } catch (e) { return html('Connect error: ' + String(e && e.message || e), false); }
+}
+async function handleTikTokStatus(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureTikTokTokensTable(env);
+  const { results } = await env.DB.prepare(`SELECT account_key, open_id, expires_at, refresh_expires_at FROM tiktok_tokens`).all();
+  return json({ items: results || [] }, {}, env, origin);
+}
+async function handleTikTokDisconnect(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body; try { body = await req.json(); } catch { body = {}; }
+  const key = String(body.key || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  if (!key) return json({ error: 'key required' }, { status: 400 }, env, origin);
+  await ensureTikTokTokensTable(env);
+  await env.DB.prepare(`DELETE FROM tiktok_tokens WHERE account_key = ?1`).bind(key).run();
+  return json({ ok: true }, {}, env, origin);
+}
+// A valid access token for the account, refreshing (and re-storing BOTH rotated
+// tokens) when within 10 minutes of expiry.
+async function tiktokFreshToken(env, key) {
+  await ensureTikTokTokensTable(env);
+  const row = await env.DB.prepare(`SELECT * FROM tiktok_tokens WHERE account_key = ?1`).bind(key).first();
+  if (!row || !row.access_token) throw new Error(`TikTok isn't connected for @${key}. Connect it on the Accounts page.`);
+  const now = Math.floor(Date.now() / 1000);
+  if ((row.expires_at || 0) > now + 600) return { token: row.access_token, open_id: row.open_id };
+  if ((row.refresh_expires_at || 0) < now) throw new Error(`TikTok's refresh token for @${key} expired — reconnect on the Accounts page.`);
+  const tk = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, client_secret: env.TIKTOK_CLIENT_SECRET, grant_type: 'refresh_token', refresh_token: row.refresh_token }),
+  }).then(r => r.json());
+  if (!tk.access_token) throw new Error('TikTok token refresh failed — ' + tiktokErr(tk) + '. Reconnect on the Accounts page.');
+  await tiktokStoreToken(env, key, tk);
+  return { token: tk.access_token, open_id: tk.open_id || row.open_id };
+}
+// Photo-mode direct post: TikTok pulls the slides from media.oftmw.com
+// (PULL_FROM_URL needs the URL prefix verified in the developer portal) and
+// auto_add_music drops TikTok's auto-picked sound on it — the same music the
+// app adds to photo posts. Photos ONLY: video slides are reported as skipped,
+// never silently dropped.
+async function publishTikTok(env, key, handle, slides, caption) {
+  const images = slides.filter(s => s.type !== 'video').map(s => s.url).slice(0, 10);
+  const skippedVideos = slides.length - slides.filter(s => s.type !== 'video').length;
+  if (!images.length) throw new Error('TikTok photo posts need at least one image slide (video decks post from the phone).');
+  const { token } = await tiktokFreshToken(env, key);
+  const H = { 'authorization': 'Bearer ' + token, 'content-type': 'application/json; charset=UTF-8' };
+  // What privacy may this account use? Pre-audit the API only offers SELF_ONLY;
+  // post-audit PUBLIC_TO_EVERYONE appears and we take it automatically.
+  let privacy = 'SELF_ONLY';
+  try {
+    const ci = await fetch('https://open.tiktokapis.com/v2/post/publish/creator_info/query/', { method: 'POST', headers: H, body: '{}' }).then(r => r.json());
+    const opts = (ci && ci.data && ci.data.privacy_level_options) || [];
+    if (opts.includes('PUBLIC_TO_EVERYONE')) privacy = 'PUBLIC_TO_EVERYONE';
+    else if (opts.length) privacy = opts[0];
+  } catch (_) {}
+  const firstLine = String(caption || '').split('\n')[0].trim();
+  const init = await fetch('https://open.tiktokapis.com/v2/post/publish/content/init/', {
+    method: 'POST', headers: H,
+    body: JSON.stringify({
+      post_info: {
+        title: firstLine.slice(0, 90),
+        description: String(caption || '').slice(0, 4000),
+        privacy_level: privacy,
+        disable_comment: false,
+        auto_add_music: true,
+      },
+      source_info: { source: 'PULL_FROM_URL', photo_cover_index: 0, photo_images: images },
+      post_mode: 'DIRECT_POST',
+      media_type: 'PHOTO',
+    }),
+  }).then(r => r.json());
+  const publishId = init && init.data && init.data.publish_id;
+  if (!publishId) throw new Error('TikTok rejected the post — ' + tiktokErr(init) + (privacy === 'SELF_ONLY' ? ' (note: app is pre-audit, posts go up private)' : ''));
+  // Poll ingest: TikTok downloads + processes the photos server-side.
+  let status = null;
+  for (let i = 0; i < 40; i++) {
+    const st = await fetch('https://open.tiktokapis.com/v2/post/publish/status/fetch/', { method: 'POST', headers: H, body: JSON.stringify({ publish_id: publishId }) }).then(r => r.json());
+    status = (st && st.data) || {};
+    if (status.status === 'PUBLISH_COMPLETE') break;
+    if (status.status === 'FAILED') throw new Error('TikTok failed to publish — ' + (status.fail_reason || tiktokErr(st)));
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  if (!status || status.status !== 'PUBLISH_COMPLETE') {
+    throw new Error('TikTok is still processing after 2 minutes — the post usually lands anyway; check the account before retrying.');
+  }
+  const postId = (Array.isArray(status.publicaly_available_post_id) && status.publicaly_available_post_id[0]) || '';
+  const url = postId ? ('https://www.tiktok.com/@' + handle + '/photo/' + postId) : ('https://www.tiktok.com/@' + handle);
+  return { id: String(postId || publishId), url, privacy, skipped_videos: skippedVideos || undefined };
+}
+
 // Required by Meta to save the Threads use case: deauthorize + data-deletion callbacks (public, Meta calls them).
 function handleThreadsDeauth() { return new Response('ok', { status: 200, headers: { 'content-type': 'text/plain' } }); }
 function handleThreadsDelete() {
@@ -10240,6 +10389,9 @@ async function handlePublish(req, env, origin) {
       const tok = await env.DB.prepare(`SELECT * FROM threads_tokens WHERE account_key = ?1`).bind(acct.key).first();
       if (!tok || !tok.access_token) return json({ error: `Threads isn't connected for @${handle}. Connect it on the Accounts page.` }, { status: 400 }, env, origin);
       result = await publishThreads(tok.threads_user_id, caption, tok.access_token);
+    } else if (platform === 'tiktok') {
+      if (!env.TIKTOK_CLIENT_KEY || !env.TIKTOK_CLIENT_SECRET) return json({ error: 'TikTok is not configured yet (TIKTOK_CLIENT_KEY/SECRET secrets missing on the worker).' }, { status: 400 }, env, origin);
+      result = await publishTikTok(env, acct.key, handle, slides, caption);
     } else {
       return json({ error: `Auto-publish isn't wired for ${platform} yet — it stays assisted.` }, { status: 400 }, env, origin);
     }
@@ -19578,6 +19730,10 @@ export default {
       if (request.method === 'POST' && url.pathname === '/social-handles') return await handleSocialHandlesSave(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/threads/connect-url') return await handleThreadsConnectUrl(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/threads/callback')    return await handleThreadsCallback(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/tiktok/connect-url')  return await handleTikTokConnectUrl(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/tiktok/callback')     return await handleTikTokCallback(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/tiktok/list')         return await handleTikTokStatus(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/tiktok/disconnect')   return await handleTikTokDisconnect(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/threads/status')       return await handleThreadsStatus(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/threads/disconnect')    return await handleThreadsDisconnect(request, env, origin);
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/deauth') return handleThreadsDeauth();
