@@ -3,7 +3,7 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 428
+      "count": 429
     },
     {
       "type": "Hotel",
@@ -11,7 +11,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 93
+      "count": 91
     },
     {
       "type": "Golf",
@@ -46,11 +46,11 @@
       "count": 8
     },
     {
-      "type": "Education",
-      "count": 7
+      "type": "Retail",
+      "count": 8
     },
     {
-      "type": "Retail",
+      "type": "Education",
       "count": 7
     },
     {
@@ -6482,7 +6482,7 @@
       "ci": "Miami Beach",
       "u": 0,
       "k": 0,
-      "fl": 0,
+      "fl": 6,
       "dv": [
         [
           "RIVANI",
@@ -7962,7 +7962,7 @@
       "st": "SA",
       "ty": "Hotel",
       "sl": "Opening Soon",
-      "yr": 2026,
+      "yr": 2027,
       "sm": "2022-12",
       "ci": "Riyadh",
       "u": 0,
@@ -8290,7 +8290,7 @@
       "ci": "Chicago",
       "u": 3300,
       "k": 0,
-      "fl": 0,
+      "fl": 38,
       "dv": [
         [
           "Sterling Bay",
@@ -8333,7 +8333,7 @@
     },
     {
       "st": "JP",
-      "ty": "Mixed-Use",
+      "ty": "Retail",
       "sl": "Construction",
       "yr": 2029,
       "sm": "2025-03",
@@ -8585,7 +8585,7 @@
     {
       "st": "MX",
       "ty": "Residences",
-      "sl": "Construction",
+      "sl": "Opening Soon",
       "yr": 2026,
       "sm": "2025-03",
       "ci": "Punta de Mita",
@@ -8953,7 +8953,7 @@
       "ci": "New York City",
       "u": 0,
       "k": 0,
-      "fl": 0,
+      "fl": 90,
       "dv": [
         [
           "The Peebles Corporation",
@@ -9115,7 +9115,7 @@
       "ty": "Hotel",
       "sl": "Construction",
       "yr": 2030,
-      "sm": "2024-03",
+      "sm": "2023-06",
       "ci": "AlUla",
       "u": 0,
       "k": 38,
@@ -14774,9 +14774,9 @@
     },
     {
       "st": "FL",
-      "ty": "Mixed-Use",
+      "ty": "Residences",
       "sl": "Construction",
-      "yr": null,
+      "yr": 2027,
       "sm": "2024-01",
       "ci": "Apopka",
       "u": 4000,
@@ -17627,7 +17627,7 @@
       "ci": "New York",
       "u": 0,
       "k": 0,
-      "fl": 52,
+      "fl": 34,
       "dv": [
         [
           "Related Companies",
@@ -17716,8 +17716,8 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Construction",
-      "yr": 2027,
+      "sl": "Opening Soon",
+      "yr": 2026,
       "sm": "2025-07",
       "ci": "Naples",
       "u": 15,
@@ -24199,13 +24199,13 @@
     "total_projects": 974,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 378,
+    "under_construction": 376,
     "opening_this_year": 124
   },
   "scale": {
     "units": 348413,
     "keys": 63938,
-    "floors": 17521
+    "floors": 17637
   },
   "leaderboards": {
     "developers": [
@@ -25135,7 +25135,7 @@
       {
         "name": "Residences",
         "sub": "44% of pipeline",
-        "count": 428,
+        "count": 429,
         "states": [
           "FL",
           "AE",
@@ -25238,8 +25238,8 @@
       },
       {
         "name": "Mixed-Use",
-        "sub": "10% of pipeline",
-        "count": 93,
+        "sub": "9% of pipeline",
+        "count": 91,
         "states": [
           "FL",
           "CN",
@@ -25402,21 +25402,22 @@
         ]
       },
       {
+        "name": "Retail",
+        "sub": "1% of pipeline",
+        "count": 8,
+        "states": [
+          "FL",
+          "JP",
+          "FR",
+          "HI"
+        ]
+      },
+      {
         "name": "Education",
         "sub": "1% of pipeline",
         "count": 7,
         "states": [
           "FL"
-        ]
-      },
-      {
-        "name": "Retail",
-        "sub": "1% of pipeline",
-        "count": 7,
-        "states": [
-          "FL",
-          "FR",
-          "HI"
         ]
       },
       {
@@ -26297,7 +26298,7 @@
         {
           "name": "Residences",
           "sub": "67% of pipeline",
-          "count": 241,
+          "count": 242,
           "states": [
             "FL",
             "AE",
@@ -26340,7 +26341,7 @@
         {
           "name": "Mixed-Use",
           "sub": "6% of pipeline",
-          "count": 23,
+          "count": 22,
           "states": [
             "FL",
             "CN",
@@ -26529,6 +26530,7 @@
           "count": 5,
           "states": [
             "FL",
+            "JP",
             "FR",
             "HI"
           ]
@@ -34090,8 +34092,8 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "22% of pipeline",
-          "count": 5,
+          "sub": "17% of pipeline",
+          "count": 4,
           "states": [
             "FL",
             "CN",
@@ -34182,6 +34184,17 @@
             "TX",
             "CA",
             "HK"
+          ]
+        },
+        {
+          "name": "Retail",
+          "sub": "4% of pipeline",
+          "count": 1,
+          "states": [
+            "FL",
+            "JP",
+            "FR",
+            "HI"
           ]
         }
       ]
@@ -39343,6 +39356,7 @@
           "count": 1,
           "states": [
             "FL",
+            "JP",
             "FR",
             "HI"
           ]
@@ -40589,6 +40603,7 @@
           "count": 1,
           "states": [
             "FL",
+            "JP",
             "FR",
             "HI"
           ]
@@ -47213,12 +47228,12 @@
     "FL": {
       "hero_stats": {
         "total_projects": 362,
-        "under_construction": 126
+        "under_construction": 125
       },
       "scale": {
         "units": 91117,
         "keys": 12904,
-        "floors": 6395
+        "floors": 6401
       },
       "status_distribution": [
         {
@@ -47231,11 +47246,11 @@
         },
         {
           "label": "Construction",
-          "count": 126
+          "count": 125
         },
         {
           "label": "Opening Soon",
-          "count": 40
+          "count": 41
         },
         {
           "label": "Now Open",
@@ -47503,7 +47518,7 @@
       "scale": {
         "units": 10104,
         "keys": 1104,
-        "floors": 1465
+        "floors": 1537
       },
       "status_distribution": [
         {
@@ -48155,7 +48170,7 @@
     "MX": {
       "hero_stats": {
         "total_projects": 22,
-        "under_construction": 5
+        "under_construction": 4
       },
       "scale": {
         "units": 1259,
@@ -48169,11 +48184,11 @@
         },
         {
           "label": "Construction",
-          "count": 5
+          "count": 4
         },
         {
           "label": "Opening Soon",
-          "count": 4
+          "count": 5
         },
         {
           "label": "Now Open",
@@ -49268,7 +49283,7 @@
       "scale": {
         "units": 15307,
         "keys": 250,
-        "floors": 310
+        "floors": 348
       },
       "status_distribution": [
         {
@@ -54075,11 +54090,11 @@
     },
     {
       "label": "Construction",
-      "count": 378
+      "count": 376
     },
     {
       "label": "Opening Soon",
-      "count": 121
+      "count": 123
     },
     {
       "label": "Now Open",
@@ -54155,7 +54170,7 @@
     },
     {
       "year": 2027,
-      "count": 187
+      "count": 188
     },
     {
       "year": 2028,
@@ -54538,6 +54553,34 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-wyld-oaks-construction-2026-08-15",
+      "type": "status_change",
+      "tag": "Under construction",
+      "title": "Wyld Oaks  Under construction",
+      "project_slug": "wyld-oaks",
+      "project_title": "Wyld Oaks",
+      "city": "Apopka",
+      "image": "https://media.oftmw.com/apopka/wyld-oaks.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://www.growthspotter.com/2026/06/08/hathaway-buys-13m-apopka-parcel-for-325-apartments/",
+      "link": "https://www.oftmw.com/map/?project=wyldoaks",
+      "timestamp": "2026-08-15T13:29:39.063Z"
+    },
+    {
+      "id": "ms-wyld-oaks-financing-2026-08-15",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Wyld Oaks  Financing secured",
+      "project_slug": "wyld-oaks",
+      "project_title": "Wyld Oaks",
+      "city": "Apopka",
+      "image": "https://media.oftmw.com/apopka/wyld-oaks.jpg",
+      "event_date": "2026-06-08",
+      "source_url": "https://www.growthspotter.com/2026/06/08/hathaway-buys-13m-apopka-parcel-for-325-apartments/",
+      "link": "https://www.oftmw.com/map/?project=wyldoaks",
+      "timestamp": "2026-08-15T13:29:23.497Z"
+    },
     {
       "id": "ms-the-78-financing-2026-08-14",
       "type": "status_change",
@@ -55179,32 +55222,6 @@
       "source_url": "https://commercialobserver.com/2026/06/constellation-boschetti-florida-cora-merrick-park/",
       "link": "https://www.oftmw.com/map/?project=coramerrickpark",
       "timestamp": "2026-08-06T16:39:05.172Z"
-    },
-    {
-      "id": "track-pearl-square",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking Pearl Square",
-      "project_slug": "pearl-square",
-      "project_title": "Pearl Square",
-      "city": "Jacksonville",
-      "image": "https://media.oftmw.com/jacksonville/pearl-square.jpg",
-      "link": "https://www.oftmw.com/map/?project=pearlsquare",
-      "timestamp": "2026-08-05T17:17:49.801265+00:00"
-    },
-    {
-      "id": "track-armani-hotel-residences-diriyah",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking Armani Hotel & Residences Diriyah",
-      "project_slug": "armani-hotel-residences-diriyah",
-      "project_title": "Armani Hotel & Residences Diriyah",
-      "city": "Riyadh",
-      "image": "https://media.oftmw.com/riyadh/armani-hotel-diriyah.jpg",
-      "link": "https://www.oftmw.com/map/?project=armanihotelresidencesdiriyah",
-      "timestamp": "2026-08-05T17:17:49.801250+00:00",
-      "parent_slug": "diriyah-gate",
-      "parent_title": "Diriyah Gate"
     }
   ],
   "most_covered": [
