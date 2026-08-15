@@ -8517,19 +8517,46 @@ async function graphGet(path, params) {
 }
 // Instagram: single image → simple container; multiple → carousel. Collaborators
 // (IG usernames) are invited via the `collaborators` param; they accept manually.
+// Poll a media container until Meta finishes ingesting it. Images finish in a
+// couple of seconds; VIDEO children transcode server-side and routinely take
+// 20-90s, which is exactly why they need their own poll — a CAROUSEL container
+// created while a video child is still IN_PROGRESS errors out.
+async function igAwaitContainer(id, token, { tries = 8, delayMs = 2000, what = 'media' } = {}) {
+  let last = null;
+  for (let i = 0; i < tries; i++) {
+    last = await graphGet(`${id}`, { fields: 'status_code', access_token: token });
+    if (last.status_code === 'FINISHED') return;
+    if (last.status_code === 'ERROR' || last.status_code === 'EXPIRED') {
+      throw new Error(`Instagram failed to process the ${what} — ` + metaErr(last));
+    }
+    await new Promise(r => setTimeout(r, delayMs));
+  }
+  throw new Error(`Instagram is still processing the ${what} after ${Math.round(tries * delayMs / 1000)}s — try Post now again in a minute (the upload usually completes server-side).`);
+}
 async function publishInstagram(igUserId, slides, caption, collaborators, token) {
+  const hasVideo = slides.some(s => s.type === 'video');
   let creationId;
   if (slides.length === 1) {
-    const p = { image_url: slides[0].url, caption, access_token: token };
+    const s = slides[0];
+    // A single video posts as a Reel — that's Instagram's only feed-video type
+    // now; share_to_feed keeps it on the grid like a normal post.
+    const p = s.type === 'video'
+      ? { media_type: 'REELS', video_url: s.url, share_to_feed: 'true', caption, access_token: token }
+      : { image_url: s.url, caption, access_token: token };
     if (collaborators.length) p.collaborators = JSON.stringify(collaborators);
     const j = await metaPost(`${igUserId}/media`, p);
-    if (!j.id) throw new Error('Instagram rejected the image — ' + metaErr(j) + '. (Images must be a public JPEG.)');
+    if (!j.id) throw new Error('Instagram rejected the ' + (s.type === 'video' ? 'video — ' + metaErr(j) + '. (Must be a public MP4/MOV.)' : 'image — ' + metaErr(j) + '. (Images must be a public JPEG.)'));
     creationId = j.id;
   } else {
     const children = [];
     for (const s of slides) {
-      const j = await metaPost(`${igUserId}/media`, { image_url: s.url, is_carousel_item: 'true', access_token: token });
-      if (!j.id) throw new Error('Instagram rejected a slide — ' + metaErr(j) + '. (Images must be a public JPEG.)');
+      const p = s.type === 'video'
+        ? { media_type: 'VIDEO', video_url: s.url, is_carousel_item: 'true', access_token: token }
+        : { image_url: s.url, is_carousel_item: 'true', access_token: token };
+      const j = await metaPost(`${igUserId}/media`, p);
+      if (!j.id) throw new Error('Instagram rejected a ' + (s.type === 'video' ? 'video slide — ' + metaErr(j) + '. (Must be a public MP4/MOV, 4GB max.)' : 'slide — ' + metaErr(j) + '. (Images must be a public JPEG.)'));
+      // Video children MUST be FINISHED before the carousel container is built.
+      if (s.type === 'video') await igAwaitContainer(j.id, token, { tries: 40, delayMs: 3000, what: 'video slide' });
       children.push(j.id);
     }
     const p = { media_type: 'CAROUSEL', children: children.join(','), caption, access_token: token };
@@ -8538,13 +8565,8 @@ async function publishInstagram(igUserId, slides, caption, collaborators, token)
     if (!j.id) throw new Error('Instagram carousel container failed — ' + metaErr(j));
     creationId = j.id;
   }
-  // containers process async; poll status briefly before publishing
-  for (let i = 0; i < 8; i++) {
-    const st = await graphGet(`${creationId}`, { fields: 'status_code', access_token: token });
-    if (st.status_code === 'FINISHED') break;
-    if (st.status_code === 'ERROR') throw new Error('Instagram failed to process the media — ' + metaErr(st));
-    await new Promise(r => setTimeout(r, 2000));
-  }
+  // The final container: images settle fast, anything with video gets a longer leash.
+  await igAwaitContainer(creationId, token, hasVideo ? { tries: 40, delayMs: 3000, what: 'post' } : { tries: 8, delayMs: 2000, what: 'post' });
   const pub = await metaPost(`${igUserId}/media_publish`, { creation_id: creationId, access_token: token });
   if (!pub.id) throw new Error('Instagram publish failed — ' + metaErr(pub));
   const perm = await graphGet(`${pub.id}`, { fields: 'permalink', access_token: token });
@@ -10188,8 +10210,14 @@ async function handlePublish(req, env, origin) {
   const caption = String(body.caption || '');
   const collaborators = Array.isArray(body.collaborators)
     ? body.collaborators.map(s => String(s).replace(/^@/, '').trim()).filter(Boolean).slice(0, 3) : [];   // IG caps at 3
+  // Videos ride along now (they used to be silently stripped here, so a deck
+  // with a video slide auto-posted WITHOUT it and nobody was told). Instagram
+  // accepts video carousel children; Facebook's single-photo post still wants
+  // an image, so it picks the first image below.
   const slides = (Array.isArray(body.slides) ? body.slides : [])
-    .filter(s => s && s.url && s.type !== 'video').map(s => ({ url: String(s.url) }));
+    .filter(s => s && s.url).map(s => ({ url: String(s.url), type: s.type === 'video' ? 'video' : 'image' }));
+  const vidBad = slides.find(s => s.type === 'video' && /\.webm(\?|#|$)/i.test(s.url));
+  if (vidBad) return json({ error: 'Instagram cannot ingest .webm video — re-export that slide as MP4 first.' }, { status: 400 }, env, origin);
   const token = env.META_SYSTEM_TOKEN;
 
   await ensureSocialAccountsTable(env);
@@ -10200,12 +10228,13 @@ async function handlePublish(req, env, origin) {
     let result;
     if (platform === 'instagram') {
       if (!acct.ig_user_id) return json({ error: `@${handle} has no IG user ID set (Accounts page).` }, { status: 400 }, env, origin);
-      if (!slides.length) return json({ error: 'No image slides to publish (video auto-publish is not wired yet).' }, { status: 400 }, env, origin);
+      if (!slides.length) return json({ error: 'No slides to publish.' }, { status: 400 }, env, origin);
       result = await publishInstagram(acct.ig_user_id, slides.slice(0, 10), caption, collaborators, token);
     } else if (platform === 'facebook') {
       if (!acct.page_id) return json({ error: `@${handle} has no Facebook Page ID set (Accounts page).` }, { status: 400 }, env, origin);
-      if (!slides.length) return json({ error: 'No image slide to publish.' }, { status: 400 }, env, origin);
-      result = await publishFacebook(acct.page_id, slides[0].url, caption, token);
+      const fbImg = slides.find(s => s.type !== 'video');
+      if (!fbImg) return json({ error: 'Facebook auto-post needs at least one image slide (video-only decks are not wired for FB).' }, { status: 400 }, env, origin);
+      result = await publishFacebook(acct.page_id, fbImg.url, caption, token);
     } else if (platform === 'threads') {
       await ensureThreadsTokensTable(env);
       const tok = await env.DB.prepare(`SELECT * FROM threads_tokens WHERE account_key = ?1`).bind(acct.key).first();
