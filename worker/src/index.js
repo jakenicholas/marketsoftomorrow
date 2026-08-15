@@ -3221,7 +3221,7 @@ async function handleReviseDraft(req, env, origin) {
   if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
   if (!instruction && !target) return json({ error: 'instruction required' }, { status: 400 }, env, origin);
   if (!instruction && target) instruction = 'Rewrite the selected passage in TMW voice — tighter and more on-brand, same facts.';
-  const row = await env.DB.prepare('SELECT id, title, status, body_html FROM posts WHERE slug=?1').bind(slug).first();
+  const row = await env.DB.prepare('SELECT id, title, status, body_html, excerpt, seo_description FROM posts WHERE slug=?1').bind(slug).first();
   if (!row) return json({ error: 'no draft with that slug' }, { status: 404 }, env, origin);
   if (row.status !== 'draft') return json({ error: 'only drafts can be revised here' }, { status: 400 }, env, origin);
 
@@ -3245,6 +3245,12 @@ async function handleReviseDraft(req, env, origin) {
   }
   const body = String(row.body_html || '');
   const title = String(row.title || '');
+  // The two SEO surfaces. `excerpt` is the card/search dek AND the default meta
+  // description; `seo_description` overrides it in Google when set. These are the
+  // gateway from search to the site, and Onyx could previously neither see nor
+  // edit them, so a truncated excerpt just sat there.
+  const excerpt = String(row.excerpt || '');
+  const seoDesc = String(row.seo_description || '');
   const stripTags = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
   // URLs pasted straight into the chat message are references: fetch each one
@@ -3288,8 +3294,11 @@ async function handleReviseDraft(req, env, origin) {
     '- A SMALL change to the BODY (a line, a passage, a couple of grafs): return surgical find/replace `edits` on the prose PLUS a short `reply` telling them what you did.',
     '- A BIG change (rewrite it all, restructure, change the whole angle/tone, "make it more hype"): return `body` — the COMPLETE new body HTML, top to bottom — plus a short `reply`. Do NOT attempt a full rewrite through find/replace edits.',
     '- A change to the TITLE / headline: return a new `title` PLUS a `reply`. Only when they want it changed, not while brainstorming.',
+    '- A change to the EXCERPT / dek / summary, or the SEO / meta / Google description: return `excerpt` and/or `seo_description` PLUS a `reply`.',
+    'SEO IS LOAD-BEARING. The excerpt is the card + search dek and doubles as the meta description; seo_description overrides it in Google when set. They are how a stranger decides to click through from search, so they must ALWAYS be publishable: a COMPLETE sentence (or two) that ends in a period, never a cut-off fragment, never trailing mid-word. Aim 150-160 characters for seo_description (Google truncates past that) and 1-2 tight sentences for the excerpt. Front-load the words someone would actually search: the project or brand name, the city or neighborhood, and what it IS (condominium, hotel, golf club), then the single most compelling specific (unit count, architect, opening year). Active voice, no clickbait, no "click here", never repeat the headline verbatim. If you are asked to improve one and the other is empty or weaker, offer the fix for both.',
+    'PROACTIVE SEO CHECK: whenever you are asked to work on this draft at all, glance at the excerpt below. If it is truncated, a fragment, or plainly unfinished, SAY SO in your reply and include a corrected `excerpt` even if they did not ask, because a broken dek is what Google shows.',
     (target ? 'THE COLLEAGUE SELECTED THIS EXACT PASSAGE to work on — focus on it, and any `find` MUST come from within it:\n"""\n' + target + '\n"""' : ''),
-    'OUTPUT: return ONLY JSON, no fences, no commentary: {"reply":"<your chat message>","title":"<new title, ONLY if changing it>","edits":[{"find":"<EXACT verbatim substring of the CURRENT BODY HTML, character-for-character incl tags/whitespace, matching exactly ONE place>","replace":"<edited HTML>"}],"body":"<COMPLETE new body HTML, ONLY for a big rewrite — never alongside edits>"}. `title`, `edits`, `body` are OPTIONAL; `reply` is ALWAYS present.',
+    'OUTPUT: return ONLY JSON, no fences, no commentary: {"reply":"<your chat message>","title":"<new title, ONLY if changing it>","excerpt":"<new excerpt, ONLY if changing it>","seo_description":"<new meta description, ONLY if changing it>","edits":[{"find":"<EXACT verbatim substring of the CURRENT BODY HTML, character-for-character incl tags/whitespace, matching exactly ONE place>","replace":"<edited HTML>"}],"body":"<COMPLETE new body HTML, ONLY for a big rewrite — never alongside edits>"}. `title`, `excerpt`, `seo_description`, `edits`, `body` are OPTIONAL; `reply` is ALWAYS present.',
     'EDIT RULES (both modes): NEVER touch image / <figure> / <img> / gallery / slideshow / project-card (data-project) / <iframe> markup — prose text only. In a full `body` you MUST carry over every one of those media elements from the current body VERBATIM (byte-identical markup), each placed sensibly between paragraphs; a rewrite that drops or alters an image is invalid. Every `find` copied verbatim and matching exactly one place, or omit it. Preserve every verified fact, number, date, price, and firm name unless the message or REFERENCE MATERIAL corrects it; never invent facts or fabricate a quotation. Avoid em dashes.',
   ].filter(Boolean).join('\n\n');
   const usr = (history.length ? 'RECENT CHAT (continuity — what you told them earlier really happened only if the draft below reflects it):\n' + history.map((h) => h.role + ': ' + h.text).join('\n') + '\n\n' : '')
@@ -3301,6 +3310,8 @@ async function handleReviseDraft(req, env, origin) {
     + (refFails.length ? '\n\nLINK(S) YOU COULD NOT READ: ' + refFails.map((f) => f.url + ' (' + f.error + ')').join('; ')
         + '\nYou did NOT see the contents of that link. Do NOT claim you checked, verified, or read it, and do NOT add any fact sourced to it. Say plainly in your reply that the page did not load for you and ask them to paste the relevant details.' : '')
     + '\n\nCURRENT TITLE: ' + title
+    + '\n\nCURRENT EXCERPT (card + search dek, and the default meta description): ' + (excerpt || '(empty)')
+    + '\n\nCURRENT SEO DESCRIPTION (overrides the excerpt in Google when set): ' + (seoDesc || '(empty — Google will use the excerpt above)')
     + '\n\nCURRENT BODY HTML:\n' + body;
   let raw = '';
   try { raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 16000 }); }
@@ -3317,6 +3328,22 @@ async function handleReviseDraft(req, env, origin) {
   const edits = Array.isArray(parsed.edits) ? parsed.edits : [];
   const newTitle = (parsed.title != null && stripTags(String(parsed.title)) && stripTags(String(parsed.title)) !== title)
     ? stripTags(String(parsed.title)).slice(0, 200) : '';
+  // Plain text only, and never store a fragment: if the model hands back
+  // something that would render cut off, keep the last complete sentence.
+  const seoClean = (v, cap) => {
+    let s = stripTags(String(v == null ? '' : v)).replace(/\s+/g, ' ').trim();
+    if (!s) return '';
+    if (s.length > cap) {
+      const cut = s.slice(0, cap);
+      const stop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+      s = stop > cap * 0.5 ? cut.slice(0, stop + 1) : cut.slice(0, cut.lastIndexOf(' ') > 0 ? cut.lastIndexOf(' ') : cap).replace(/[,;:\-—\s]+$/, '') + '.';
+    }
+    return s;
+  };
+  const newExcerpt = (parsed.excerpt != null && seoClean(parsed.excerpt, 320) && seoClean(parsed.excerpt, 320) !== excerpt)
+    ? seoClean(parsed.excerpt, 320) : '';
+  const newSeoDesc = (parsed.seo_description != null && seoClean(parsed.seo_description, 200) && seoClean(parsed.seo_description, 200) !== seoDesc)
+    ? seoClean(parsed.seo_description, 200) : '';
 
   // Apply only unambiguous body edits (find matches exactly once). Literal splice,
   // never String.replace (article HTML/prices contain $ and other specials).
@@ -3365,11 +3392,13 @@ async function handleReviseDraft(req, env, origin) {
     reply = 'I tried to make that change but my edits did not land on the current text' + (repaired ? ' (my response came back cut off)' : '') + ', so NOTHING has changed in the draft. Ask me again — for a big rewrite just say "rewrite the whole thing" and I will replace the body in one piece.';
   }
   if (bodyChanged) out = out.replace(/\s*—\s*/g, ', ');
-  if (bodyChanged || newTitle) {
+  if (bodyChanged || newTitle || newExcerpt || newSeoDesc) {
     const sets = [], binds = [];
     if (bodyChanged) { sets.push('body_html=?' + (binds.length + 1)); binds.push(out);
       sets.push('reading_time_min=?' + (binds.length + 1)); binds.push(Math.max(1, Math.round(stripTags(out).split(/\s+/).filter(Boolean).length / 200))); }
     if (newTitle) { sets.push('title=?' + (binds.length + 1)); binds.push(newTitle); }
+    if (newExcerpt) { sets.push('excerpt=?' + (binds.length + 1)); binds.push(newExcerpt); }
+    if (newSeoDesc) { sets.push('seo_description=?' + (binds.length + 1)); binds.push(newSeoDesc); }
     sets.push('updated_at=?' + (binds.length + 1)); binds.push(Math.floor(Date.now() / 1000));
     binds.push(slug);
     try { await env.DB.prepare('UPDATE posts SET ' + sets.join(', ') + ' WHERE slug=?' + binds.length).bind(...binds).run(); } catch (_) {}
@@ -3384,6 +3413,8 @@ async function handleReviseDraft(req, env, origin) {
   } catch (_) {}
   return json({ ok: true, reply, applied, skipped, changes,
     title: newTitle || undefined,
+    excerpt: newExcerpt || undefined,
+    seo_description: newSeoDesc || undefined,
     body_html: bodyChanged ? out : undefined,
     refs_read: refBlocks.length || undefined,
     ref_errors: refFails.length ? refFails.map((f) => f.url + ' (' + f.error + ')') : undefined,
@@ -15361,7 +15392,23 @@ export async function handlePlacementStats(req, env, origin) {
     });
     // Live first; within each group by our clicks, then the Linkly baseline.
     advertisers.sort((x, y) => (y.active - x.active) || (y.clicks - x.clicks) || (y.linkly_all - x.linkly_all));
-    return json({ days, since: sinceDay, advertisers, links, series },
+    // Backend rollup by SURFACE — the Analytics tiles. One row per product
+    // surface (map / atlas / intel / journal banners / newsletter / links) so
+    // Jake can see the whole operation's reach at a glance, independent of any
+    // one client. Same window as the tables above.
+    let surfaces = [];
+    try {
+      const SURF_LABEL = { journal: 'Web Banners', newsletter: 'Newsletter Banners', map: 'Map of Tomorrow', atlas: 'Atlas', intel: 'TMW Intelligence', article: 'Articles', link: 'Tracked Links' };
+      const sRows = (await env.DB.prepare(
+        'SELECT surface, SUM(views) AS views, SUM(acts) AS acts, SUM(clicks) AS clicks, COUNT(DISTINCT id) AS ids ' +
+        'FROM placement_stats WHERE day >= ?1 GROUP BY surface').bind(sinceDay).all()).results || [];
+      surfaces = sRows.map((r) => ({
+        surface: r.surface, label: SURF_LABEL[r.surface] || r.surface,
+        views: +r.views || 0, acts: +r.acts || 0, clicks: +r.clicks || 0, ids: +r.ids || 0,
+        ctr: (+r.views || 0) ? +(((+r.clicks || 0) / (+r.views || 0)) * 100).toFixed(2) : 0,
+      })).sort((a, b) => b.views - a.views);
+    } catch (_) {}
+    return json({ days, since: sinceDay, advertisers, links, surfaces, series },
       { headers: { 'Cache-Control': 'private, max-age=20' } }, env, origin);
   } catch (e) {
     return json({ totals: [], series: {}, error: String(e && e.message || e) }, {}, env, origin);

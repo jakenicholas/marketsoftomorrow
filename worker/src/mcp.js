@@ -2785,7 +2785,8 @@ const IMPL = {
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
       brain.text || '',
       dbDossier ? 'TMW DATABASE DOSSIER (proprietary, authoritative for every project listed):\n' + dbDossier : '',
-      'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
+      'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<SEO dek, see below>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
+      'THE EXCERPT IS THE SEO META DESCRIPTION — it is what Google shows under the headline and the single thing that decides whether a stranger clicks through, so it is never an afterthought and never optional. Write 1 to 2 COMPLETE sentences, 150 to 200 characters, ending in a period; never a fragment, never cut off mid-thought. Front-load what people actually search: the project or brand name, the city or neighborhood, and what it IS (condominium, hotel, golf club), then the strongest specific (unit count, architect, opening year). Active voice, no clickbait, and do not restate the headline word for word.',
       'CLAIMS LEDGER (required): list EVERY factual assertion the article makes — statuses, dates, numbers, prices, names, attributions — as {"claim":"<the assertion, one line>","type":"status"|"date"|"number"|"name"|"other","source":"facts"|"database"|"model"}. "facts" = stated in the provided facts; "database" = from the related-projects context above; "model" = from your own knowledge. BE HONEST about "model" — those get fact-checked against the live web, and a false "facts" tag is worse than an honest "model" tag.',
       'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation. HOW IT ENDS: land on a real closing PARAGRAPH, forward-looking, in your own prose. NEVER end with a call to action, a newsletter or subscribe pitch, a follow-us line, or any sign-off boilerplate (our older archive is full of "Sign up for ... free newsletter below" endings; that branding is retired and they must never be reproduced). NEVER end on an image either: photos belong between paragraphs, and the last thing a reader sees is your conclusion.',
       // BINDING + LAST. The learned house rules used to sit mid-prompt, where the
@@ -3326,7 +3327,20 @@ const IMPL = {
       bodyHtml += `\n<div class="tmw-project-card" data-project="${linkedSlug}"></div>`;
     }
     const text = stripHtml(bodyHtml);
-    const excerpt = deDash((args.excerpt && String(args.excerpt).trim()) || text.slice(0, 180));
+    // The fallback used to be a hard text.slice(0,180), which is exactly how a
+    // dek like "…private gardens Just 25 residences make up the e" reached the
+    // live meta description: cut mid-word, no terminal period. Fall back to whole
+    // sentences instead, and never end on a fragment.
+    const excerptFallback = (t) => {
+      const s = String(t || '').replace(/\s+/g, ' ').trim();
+      if (s.length <= 200) return s;
+      const window = s.slice(0, 200);
+      const stop = Math.max(window.lastIndexOf('. '), window.lastIndexOf('! '), window.lastIndexOf('? '));
+      if (stop > 80) return window.slice(0, stop + 1).trim();
+      const sp = window.lastIndexOf(' ');
+      return window.slice(0, sp > 80 ? sp : 200).replace(/[,;:\-\s]+$/, '') + '.';
+    };
+    const excerpt = deDash((args.excerpt && String(args.excerpt).trim()) || excerptFallback(text));
     // No connector path (routine OR interactive Studio connector session) may mint
     // a NEW category — regardless of source. If the passed category isn't already
     // on an existing post, drop it and save uncategorized. New categories are
