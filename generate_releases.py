@@ -64,12 +64,31 @@ def _broadcast_titles():
     if not RESEND_API_KEY:
         return {}
     try:
-        import json as _json, urllib.request
+        import json as _json, urllib.request, urllib.error
         req = urllib.request.Request(
             'https://api.resend.com/broadcasts',
             headers={'Authorization': 'Bearer ' + RESEND_API_KEY})
-        with urllib.request.urlopen(req, timeout=20) as r:
-            payload = _json.loads(r.read().decode('utf-8'))
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                payload = _json.loads(r.read().decode('utf-8'))
+        except urllib.error.HTTPError as http_exc:
+            # Resend puts the REASON in the body. Without it a 403 is
+            # indistinguishable between a send-only key, a domain-restricted
+            # key, and a revoked one, which is a long guessing game.
+            body = ''
+            try:
+                body = http_exc.read().decode('utf-8', 'replace')[:300]
+            except Exception:                      # noqa: BLE001
+                pass
+            hint = ''
+            if http_exc.code in (401, 403):
+                hint = ('  -> listing broadcasts needs a FULL ACCESS Resend key; '
+                        'a sending-only or domain-restricted key returns this.')
+            print(f"  releases: Resend broadcasts HTTP {http_exc.code}: {body or http_exc.reason}")
+            if hint:
+                print(hint)
+            print("  releases: using the override map only")
+            return {}
     except Exception as exc:                       # noqa: BLE001 - never fail the build
         print(f"  releases: could not read Resend broadcasts ({exc}); using overrides only")
         return {}
