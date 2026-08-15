@@ -1130,7 +1130,7 @@
   // journal-search-overlay.js or journal-search-core.js changes. (This file is
   // itself must-revalidate, so a compliant browser picks up the new token; once
   // it does, the versioned URL guarantees the new search code loads.)
-  var SEARCH_V = '20260814-intel-tracking';
+  var SEARCH_V = '20260815-hero-city-token';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');

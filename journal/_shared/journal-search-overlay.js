@@ -2625,7 +2625,22 @@
       : toks.filter(function(t){ return t.length >= 3; });
     if (!meaningful.length) return false;
     var inTitle = meaningful.filter(function(t){ return title.indexOf(t) >= 0; }).length;
-    return inTitle >= Math.ceil(meaningful.length * 0.6);
+    if (inTitle >= Math.ceil(meaningful.length * 0.6)) return true;
+    // "<project> <city>" — how people actually name a project they know the
+    // city of. Counting EVERY token against the title alone meant adding the
+    // city DISQUALIFIED the hero: "mira nashville" needs 2 title hits and can
+    // only ever score 1, because a city is never in a project's title. The
+    // named-project override upstream had already identified the project with
+    // certainty, and this gate threw it away (its intent check sits INSIDE
+    // this branch, so failing here loses the hero regardless of intent).
+    // Location tokens now count, but at least one TITLE hit is still required,
+    // so a pure city or area browse ("nashville", "hotels in miami") gets no
+    // hero and the stated hero policy holds.
+    if (!inTitle) return false;
+    var loc = norm([p.City, p.Neighborhood, p.CountyState, p.Country].filter(Boolean).join(' '));
+    if (!loc) return false;
+    var inLoc = meaningful.filter(function(t){ return title.indexOf(t) < 0 && loc.indexOf(t) >= 0; }).length;
+    return (inTitle + inLoc) >= Math.ceil(meaningful.length * 0.6);
   }
   function heroArticleEligible(a, full, toks){
     var title = norm(a.title || '');
