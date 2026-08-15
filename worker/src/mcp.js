@@ -1628,6 +1628,27 @@ function findLiveDuplicate(cand, candSlug, projects) {
   return best;
 }
 
+// Drafts that are staged but not yet promoted are INVISIBLE to findLiveDuplicate,
+// which only ever saw the live map. That is why the discovery routine re-drafted
+// the same project on every run (three identical "Jumeirah Residences Emirates
+// Towers" drafts inside four days): a staged draft is not live, so the gate kept
+// passing. Shape a drafts.json entry like a live project so the SAME matcher can
+// gate draft-vs-draft with identical rules.
+function draftsAsProjects(drafts) {
+  return (Array.isArray(drafts) ? drafts : []).map((d) => {
+    const x = (d && d.data) || {};
+    return {
+      Title: x.name || '',
+      Slug: x.slug || '',
+      City: x.city || '',
+      Latitude: x.lat,
+      Longitude: x.lng,
+      OfficialWebsite: x.official_website || '',
+      __draft_id: (d && d.draft_id) || '',
+    };
+  }).filter((p) => p.Title || p.Slug);
+}
+
 // Must match index.js's list-slug guard so MCP writes hit the same rows the
 // page editors do (clients, hotels, restaurants, golf, …).
 const LIST_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
@@ -3791,6 +3812,27 @@ const IMPL = {
         + `Not creating a duplicate draft. If a source corrects a field on the existing project, use propose_project_edit against that slug; otherwise skip it.`,
       );
     }
+    // SECOND HALF OF THE GATE — the same test against drafts already STAGED.
+    // The live check above can only ever pass for an un-promoted project, so
+    // without this the routine re-drafts the same discovery every single run.
+    const candForDup = { name: title, website: data.official_website, city: data.city, developer: dupDeveloper, lat: data.lat, lng: data.lng };
+    const stagedDuplicate = (list) => findLiveDuplicate(candForDup, data.slug, draftsAsProjects(list));
+    const stagedDupError = (sd) => {
+      const ex = sd.project;
+      return new Error(
+        `Already staged as a draft: "${ex.Title}"${ex.City ? ' (' + ex.City + ')' : ''}${ex.__draft_id ? ' — draft ' + ex.__draft_id : ''} — ${sd.reason}. `
+        + `Not creating a second draft of the same project. Review, edit or promote the existing draft in the Studio (admin.oftmw.com/map/?drafts) instead.`,
+      );
+    };
+    {
+      // Checked here, BEFORE the image ingestion below, so a duplicate costs no
+      // scraping and the routine gets a clean, actionable error.
+      const { text: stagedText } = await ghGetFile(env, GH_DRAFTS_PATH);
+      let staged = [];
+      if (stagedText) { try { staged = JSON.parse(stagedText); } catch (_) { staged = []; } }
+      const sdup = stagedDuplicate(staged);
+      if (sdup) throw stagedDupError(sdup);
+    }
 
     // Images — file them in the project's media folder AND attach to the draft in
     // one step: passed external URLs are fetched into R2 under "Projects / <name>";
@@ -3822,6 +3864,11 @@ const IMPL = {
       let drafts = [];
       if (text) { try { drafts = JSON.parse(text); } catch (_) { throw new Error('drafts.json is not valid JSON — refusing to overwrite'); } }
       if (!Array.isArray(drafts)) drafts = [];
+      // Authoritative duplicate check against the file we are about to write:
+      // a parallel run (the routine fans out) can stage the same project between
+      // the early gate above and this write, which the early check cannot see.
+      const raceDup = stagedDuplicate(drafts);
+      if (raceDup) throw stagedDupError(raceDup);
 
       // Sequence from the MAX existing number for today, not the COUNT. Counting is
       // fragile: if any earlier draft was deleted, count+1 can land on an id that
