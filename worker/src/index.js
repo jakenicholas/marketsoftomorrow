@@ -10359,6 +10359,137 @@ async function handleJarvisChat(req, env, origin) {
   return json({ answer: answer || 'The model did not return an answer. Try again.' }, {}, env, origin);
 }
 
+
+// ── THE ANALYST — the Analytics page's Ask bar ──────────────────────────────
+// POST /admin/analyst { q, history[], tz_offset_min } → { answer, tool_calls }
+// A tool loop over the SAME admin read handlers the dashboard renders from
+// (never re-implemented queries — the studio-connector rule). Claude picks
+// tools; we dispatch in-process through the real ADMIN_TOKEN auth path, feed
+// results back, and return prose plus an optional TABLE_JSON line the client
+// renders as a table. Admin-only volume, so it runs on the write model.
+const ANALYST_MODEL = WRITE_MODEL;
+const ANALYST_FALLBACK_MODEL = WRITE_FALLBACK_MODEL;
+
+const ANALYST_TOOLS = [
+  { name: 'get_stats', description: 'Site-wide D1 stats the dashboard hero reads: totals for events, identified members, watchlists, activity over recent windows.', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_subscriptions', description: 'Membership truth: Memberstack accounts + Stripe subscriptions. Totals (members_total, paying_subscribers, mrr), plan mix, and the member roster. Big payload; prefer asking for totals.', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_flows', description: 'The Flows ledger: income/expense entries for a year (kind, amount, status paid/unpaid, date, who). Source of collected-income and run-rate math.', input_schema: { type: 'object', properties: { year: { type: 'number', description: 'Calendar year, e.g. 2026. Defaults to the current year.' } } } },
+  { name: 'get_pro_income', description: 'Monthly TMW Pro gross from Stripe, most-recent months, each { month, gross, mtd }.', input_schema: { type: 'object', properties: { months: { type: 'number', description: 'How many months back (default 13).' } } } },
+  { name: 'get_signups', description: 'Daily sign-up series: free / trialing / pro counts per day (pro counts on the day they became PAYING), plus the labeled desk events Jake pinned to dates (site changes worth correlating with spikes).', input_schema: { type: 'object', properties: { days: { type: 'number', description: 'Days of history (default 90, max 365).' } } } },
+  { name: 'get_daily_pulse', description: "Today so far: visitors (signed-in member list + anon count), free accounts created, pro trials started, pro payments (with amounts), automation emails sent.", input_schema: { type: 'object', properties: { tz_offset_min: { type: 'number', description: 'Local timezone offset in minutes (pass the value the client sent).' } } } },
+  { name: 'get_email_weeks', description: 'Week-by-week newsletter performance per Resend broadcast: sent/delivered/opened/clicked (webhook era only) and first-party to-site clicks (full history).', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_email_stats', description: 'Aggregate email stats from the Resend events table.', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_morning', description: 'The Morning-desk bundle: member_counts (anon/free/trial/pro), latest weekly_email with open breakdown, subscribe_emails (wall-hit upgrade mailer, 7d), last_posts per social account.', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_client_report', description: 'Campaign/client report: monthly impressions, interactions and URL clicks for given placement client ids in a date range.', input_schema: { type: 'object', properties: { ids: { type: 'string', description: 'Comma-separated client/placement ids.' }, from: { type: 'string', description: 'YYYY-MM-DD start.' }, to: { type: 'string', description: 'YYYY-MM-DD end.' } } } },
+  { name: 'get_placements', description: 'First-party placement/ad tracking: impressions and interactions by surface and placement (site, newsletter, media kit).', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_funnel_stats', description: 'Conversion funnel counts (gate hits, signups, upgrades) from first-party events.', input_schema: { type: 'object', properties: {} } },
+  { name: 'get_journal_active', description: 'People on the site right now (5-minute heartbeat sessions).', input_schema: { type: 'object', properties: {} } },
+  { name: 'ga4_run_report', description: "Run a GA4 Data API runReport for traffic questions (pageviews, sources, referrers, geography, per-page traffic). Pass a standard GA4 report body: dateRanges, dimensions, metrics, dimensionFilter, orderBys, limit. Property covers www.oftmw.com (site), map.oftmw.com (legacy map). Common dims: pagePath, sessionSource, country, date. Common metrics: screenPageViews, activeUsers, sessions.", input_schema: { type: 'object', properties: { report: { type: 'object', description: 'The GA4 runReport request body.' } }, required: ['report'] } },
+];
+
+// Dispatch one tool call through the same handlers the dashboard hits. Internal
+// requests carry the real ADMIN_TOKEN so gated handlers pass their own auth.
+async function analystTool(env, origin, name, args) {
+  const a = args || {};
+  const iURL = (path) => new URL('https://internal' + path);
+  const iReq = (path, bodyObj) => new Request('https://internal' + path, bodyObj
+    ? { method: 'POST', headers: { 'Authorization': 'Bearer ' + (env.ADMIN_TOKEN || ''), 'Content-Type': 'application/json' }, body: JSON.stringify(bodyObj) }
+    : { headers: { 'Authorization': 'Bearer ' + (env.ADMIN_TOKEN || '') } });
+  const grab = async (resp) => { try { return await resp.json(); } catch { return { error: 'non-JSON handler response' }; } };
+  switch (name) {
+    case 'get_stats':         return grab(await handleStats(env, origin));
+    case 'get_subscriptions': return grab(await handleSubscriptions(env, origin, iURL('/subscriptions')));
+    case 'get_flows':         return grab(await handleAdminFlowsList(env, origin, iURL('/admin/flows?year=' + (parseInt(a.year, 10) || new Date().getFullYear()))));
+    case 'get_pro_income':    return grab(await handleAdminProIncome(env, origin, iURL('/admin/pro-income?months=' + (parseInt(a.months, 10) || 13))));
+    case 'get_signups': {
+      const p = '/admin/signups?days=' + Math.min(365, parseInt(a.days, 10) || 90);
+      return grab(await handleSignups(iReq(p), env, origin, iURL(p)));
+    }
+    case 'get_daily_pulse': {
+      const p = '/admin/daily-pulse?off=' + (parseInt(a.tz_offset_min, 10) || 0);
+      return grab(await handleDailyPulse(iReq(p), env, origin, iURL(p)));
+    }
+    case 'get_email_weeks':   return grab(await handleEmailWeeks(iReq('/admin/email-weeks'), env, origin));
+    case 'get_email_stats':   return grab(await handleEmailStats(iReq('/admin/email-stats'), env, origin));
+    case 'get_morning':       return grab(await handleMorningData(iReq('/admin/morning'), env, origin));
+    case 'get_client_report': {
+      const qs = '?ids=' + encodeURIComponent(String(a.ids || '')) + '&from=' + encodeURIComponent(String(a.from || '')) + '&to=' + encodeURIComponent(String(a.to || ''));
+      const p = '/client-report' + qs;
+      return grab(await handleClientReport(iReq(p), env, origin, iURL(p)));
+    }
+    case 'get_placements':    return grab(await handlePlacementStats(iReq('/placements'), env, origin));
+    case 'get_funnel_stats':  return grab(await handleFunnelStats(env, origin, iURL('/funnel-stats')));
+    case 'get_journal_active': return grab(await handleJournalActive(env, origin));
+    case 'ga4_run_report':    return grab(await handleGAProxy(iReq('/', { endpoint: ':runReport', body: a.report || {} }), env, origin));
+    default: return { error: 'unknown tool: ' + name };
+  }
+}
+
+async function handleAnalystChat(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'AI not configured' }, { status: 503 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const q = String(body.q || '').slice(0, 2000);
+  if (!q) return json({ error: 'q required' }, { status: 400 }, env, origin);
+  const tzOff = parseInt(body.tz_offset_min, 10) || 0;
+
+  const sys = 'You are The Analyst, the private analytics copilot for Jake Nicholas, founder of Markets of Tomorrow (TMW), embedded in his admin Analytics page. '
+    + 'Today is ' + new Date().toISOString().slice(0, 10) + " (UTC; Jake's timezone offset is " + tzOff + ' minutes). '
+    + 'Answer questions about the business by CALLING TOOLS for real numbers — never invent or estimate a number a tool can give you, and say plainly when the data cannot answer the question. '
+    + 'Join across sources when the question needs it (e.g. GA4 traffic + first-party signups + Stripe). When comparing periods, fetch both periods. '
+    + 'Write plain, direct prose, 2-6 sentences unless the question genuinely needs more. NEVER use em dashes. Round money to whole dollars. '
+    + 'When a breakdown, ranking, or time series would help, append ONE final line exactly of the form TABLE_JSON: {"title":"...","columns":["..."],"rows":[["..."]]} (valid single-line JSON, max 12 rows). No other markup. '
+    + 'Be a copilot: if the numbers suggest an action or an anomaly worth investigating, say so in one closing sentence.';
+
+  const messages = [];
+  (Array.isArray(body.history) ? body.history : []).slice(-8).forEach((m) => {
+    if (m && m.content && (m.role === 'user' || m.role === 'assistant')) messages.push({ role: m.role, content: String(m.content).slice(0, 4000) });
+  });
+  messages.push({ role: 'user', content: q });
+
+  let calls = 0, model = ANALYST_MODEL;
+  for (let turn = 0; turn < 8; turn++) {
+    let d = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        // 1h cache on the system block: tools + system are identical across every
+        // question in a session, so follow-ups replay the prefix from cache.
+        body: JSON.stringify({ model, max_tokens: 1600, tools: ANALYST_TOOLS,
+          system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral', ttl: '1h' } }], messages }),
+      });
+      if (r.status === 429 || r.status === 529 || r.status >= 500) { await _napMs(1000 * (attempt + 1)); continue; }
+      if (!r.ok) {
+        if (model !== ANALYST_FALLBACK_MODEL) { model = ANALYST_FALLBACK_MODEL; continue; }
+        const b = await r.text().catch(() => '');
+        return json({ error: 'Analyst model error: HTTP ' + r.status + ' ' + b.slice(0, 200) }, { status: 502 }, env, origin);
+      }
+      d = await r.json(); break;
+    }
+    if (!d) return json({ error: 'The model is overloaded right now. Try again in a minute.' }, { status: 503 }, env, origin);
+
+    if (d.stop_reason === 'tool_use') {
+      messages.push({ role: 'assistant', content: d.content });
+      const results = [];
+      for (const b of (d.content || []).filter((c) => c && c.type === 'tool_use')) {
+        calls++;
+        let out;
+        try { out = await analystTool(env, origin, b.name, b.input); }
+        catch (e) { out = { error: String((e && e.message) || e) }; }
+        let s = ''; try { s = JSON.stringify(out); } catch { s = '{"error":"unserializable result"}'; }
+        if (s.length > 30000) s = s.slice(0, 30000) + '…(truncated — ask a narrower question for the rest)';
+        results.push({ type: 'tool_result', tool_use_id: b.id, content: s });
+      }
+      messages.push({ role: 'user', content: results });
+      continue;
+    }
+    const text = (d.content || []).filter((c) => c && c.type === 'text').map((c) => c.text).join('\n').trim();
+    return json({ answer: text || 'The model returned no answer. Try rephrasing.', tool_calls: calls }, {}, env, origin);
+  }
+  return json({ answer: 'I hit the tool budget before finishing that one. Ask it as a narrower question.', tool_calls: calls }, {}, env, origin);
+}
+
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
@@ -19583,6 +19714,9 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/admin/jarvis') {
         return await handleJarvisChat(request, env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/admin/analyst') {
+        return await handleAnalystChat(request, env, origin);
       }
       if (url.pathname === '/admin/pro-income') {
         const denied = await requireAdminToken(request, env, origin);
