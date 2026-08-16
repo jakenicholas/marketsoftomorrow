@@ -10367,8 +10367,10 @@ async function handleJarvisChat(req, env, origin) {
 // tools; we dispatch in-process through the real ADMIN_TOKEN auth path, feed
 // results back, and return prose plus an optional TABLE_JSON line the client
 // renders as a table. Admin-only volume, so it runs on the write model.
-const ANALYST_MODEL = WRITE_MODEL;
-const ANALYST_FALLBACK_MODEL = WRITE_FALLBACK_MODEL;
+// NOTE: no module-level alias of WRITE_MODEL here — it is declared ~5k lines
+// below, and the bundler's const→var downgrade turns that forward reference
+// into a silent `undefined` (the API then 400s with "model: Field required").
+// The handler reads WRITE_MODEL at request time instead.
 
 const ANALYST_TOOLS = [
   { name: 'get_stats', description: 'Site-wide D1 stats the dashboard hero reads: totals for events, identified members, watchlists, activity over recent windows.', input_schema: { type: 'object', properties: {} } },
@@ -10447,7 +10449,7 @@ async function handleAnalystChat(req, env, origin) {
   });
   messages.push({ role: 'user', content: q });
 
-  let calls = 0, model = ANALYST_MODEL;
+  let calls = 0, model = WRITE_MODEL;
   for (let turn = 0; turn < 8; turn++) {
     let d = null;
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -10463,7 +10465,7 @@ async function handleAnalystChat(req, env, origin) {
       if (!r.ok) {
         const b = await r.text().catch(() => '');
         console.log('[analyst] model ' + model + ' HTTP ' + r.status + ' ' + b.slice(0, 400));
-        if (model !== ANALYST_FALLBACK_MODEL) { model = ANALYST_FALLBACK_MODEL; continue; }
+        if (model !== WRITE_FALLBACK_MODEL) { model = WRITE_FALLBACK_MODEL; continue; }
         // Status 200 on purpose: Cloudflare replaces origin 502s with its own
         // HTML error page, which eats the detail before the Ask bar can show it.
         return json({ error: 'Analyst model error: HTTP ' + r.status + ' ' + b.slice(0, 300) }, {}, env, origin);
