@@ -10461,13 +10461,16 @@ async function handleAnalystChat(req, env, origin) {
       });
       if (r.status === 429 || r.status === 529 || r.status >= 500) { await _napMs(1000 * (attempt + 1)); continue; }
       if (!r.ok) {
-        if (model !== ANALYST_FALLBACK_MODEL) { model = ANALYST_FALLBACK_MODEL; continue; }
         const b = await r.text().catch(() => '');
-        return json({ error: 'Analyst model error: HTTP ' + r.status + ' ' + b.slice(0, 200) }, { status: 502 }, env, origin);
+        console.log('[analyst] model ' + model + ' HTTP ' + r.status + ' ' + b.slice(0, 400));
+        if (model !== ANALYST_FALLBACK_MODEL) { model = ANALYST_FALLBACK_MODEL; continue; }
+        // Status 200 on purpose: Cloudflare replaces origin 502s with its own
+        // HTML error page, which eats the detail before the Ask bar can show it.
+        return json({ error: 'Analyst model error: HTTP ' + r.status + ' ' + b.slice(0, 300) }, {}, env, origin);
       }
       d = await r.json(); break;
     }
-    if (!d) return json({ error: 'The model is overloaded right now. Try again in a minute.' }, { status: 503 }, env, origin);
+    if (!d) return json({ error: 'The model is overloaded right now. Try again in a minute.' }, {}, env, origin);
 
     if (d.stop_reason === 'tool_use') {
       messages.push({ role: 'assistant', content: d.content });
@@ -10476,7 +10479,7 @@ async function handleAnalystChat(req, env, origin) {
         calls++;
         let out;
         try { out = await analystTool(env, origin, b.name, b.input); }
-        catch (e) { out = { error: String((e && e.message) || e) }; }
+        catch (e) { out = { error: String((e && e.message) || e) }; console.log('[analyst] tool ' + b.name + ' threw: ' + out.error); }
         let s = ''; try { s = JSON.stringify(out); } catch { s = '{"error":"unserializable result"}'; }
         if (s.length > 30000) s = s.slice(0, 30000) + '…(truncated — ask a narrower question for the rest)';
         results.push({ type: 'tool_result', tool_use_id: b.id, content: s });
