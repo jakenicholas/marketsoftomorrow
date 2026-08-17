@@ -785,7 +785,11 @@ async function handleTopazUpscale(request, env, origin, url) {
   if (denied) return denied;
   if (!env.TOPAZ_API_KEY) return json({ error: 'TOPAZ_API_KEY not set — add it as a worker secret (wrangler secret put TOPAZ_API_KEY).' }, { status: 503 }, env, origin);
   const TOPAZ = 'https://api.topazlabs.com/image/v1';
-  const KEY = { 'X-API-Key': env.TOPAZ_API_KEY };
+  // User-Agent is load-bearing, not decoration: api.topazlabs.com sits behind
+  // Cloudflare, and a fetch with no UA can be WAF-blocked with an HTML error
+  // page instead of reaching the API at all — the same failure mode that broke
+  // the Resend broadcast reads ("error code: 1010").
+  const KEY = { 'X-API-Key': env.TOPAZ_API_KEY, 'User-Agent': 'TMW-Studio/1.0 (+https://www.oftmw.com)', 'Accept': 'application/json' };
   const sub = url.pathname.replace(/^\/topaz\/?/, '');
 
   if (sub === 'enhance' && request.method === 'POST') {
@@ -816,7 +820,13 @@ async function handleTopazUpscale(request, env, origin, url) {
     try { r = await fetch(TOPAZ + '/enhance/async', { method: 'POST', headers: KEY, body: out }); }
     catch (e) { return json({ error: 'topaz unreachable: ' + e.message }, { status: 502 }, env, origin); }
     const txt = await r.text(); let j = {}; try { j = JSON.parse(txt); } catch {}
-    if (!r.ok) return json({ error: 'topaz enhance failed', http: r.status, detail: (j && (j.detail || j.error)) || txt.slice(0, 300) }, { status: 502 }, env, origin);
+    if (!r.ok) {
+      const detail = (j && (j.detail || j.error)) || txt.slice(0, 300);
+      // Tail-visible: `wrangler tail tmw` shows the REAL Topaz refusal (expired
+      // key, exhausted credits, WAF block...) even if the client drops it.
+      try { console.error('[topaz] enhance HTTP ' + r.status + ': ' + String(detail).slice(0, 300)); } catch (_) {}
+      return json({ error: 'topaz enhance failed', http: r.status, detail }, { status: 502 }, env, origin);
+    }
     return json({ ok: true, process_id: j.process_id, eta: j.eta }, {}, env, origin);
   }
 
