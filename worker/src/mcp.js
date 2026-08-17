@@ -1628,6 +1628,48 @@ function findLiveDuplicate(cand, candSlug, projects) {
   return best;
 }
 
+// ARTICLE-draft dedup — the story-level companion to findLiveDuplicate (which
+// guards map projects). Two AI drafts of the same story landed 29 seconds
+// apart because ~6 routine agents run in parallel: both entry checks passed
+// before either row existed, one agent linked the project and one didn't, so
+// the project_slug guard had nothing to match. This matcher needs NO project
+// linkage: it compares titles on DISTINCTIVE tokens, where distinctive is
+// derived from the draft corpus itself (a token in ≤3 of the existing draft
+// titles), not from a hand-kept stopword list — generic words (construction,
+// supertall, hotel...) price themselves out by appearing everywhere. Three
+// shared distinctive tokens name the same story ("520 fifth avenue bryant"),
+// while two same-city drafts about different projects share at most two.
+async function findDraftStoryDup(env, { title, topic, projectSlug, excludeSlug }) {
+  const tok = (s) => String(s || '').toLowerCase().replace(/[’']/g, '').replace(/,(?=\d)/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter((t) => t.length >= 3);
+  let rows = [];
+  try {
+    rows = (await env.DB.prepare(
+      "SELECT slug, title, project_slug, source FROM posts WHERE status='draft' ORDER BY updated_at DESC LIMIT 200"
+    ).all()).results || [];
+  } catch (_) { return null; }   // a DB hiccup must never block a legitimate draft
+  rows = rows.filter((r) => r.slug !== excludeSlug);
+  if (projectSlug) {
+    const hit = rows.find((r) => String(r.project_slug || '').toLowerCase() === projectSlug);
+    if (hit) return { row: hit, why: 'same linked project (' + projectSlug + ')' };
+  }
+  const sets = rows.map((r) => new Set(tok(r.title)));
+  const df = Object.create(null);
+  for (const s of sets) for (const t of s) df[t] = (df[t] || 0) + 1;
+  for (const q of [title, topic]) {
+    const qs = [...new Set(tok(q))];
+    if (qs.length < 3) continue;
+    const rare = qs.filter((t) => df[t] && df[t] <= 3);
+    let best = null;
+    rows.forEach((r, i) => {
+      const hits = rare.filter((t) => sets[i].has(t)).length;
+      if (hits >= 3 && (!best || hits > best.hits)) best = { row: r, hits };
+    });
+    if (best) return { row: best.row, why: best.hits + ' distinctive title tokens shared with "' + best.row.title + '"' };
+  }
+  return null;
+}
+
 // Drafts that are staged but not yet promoted are INVISIBLE to findLiveDuplicate,
 // which only ever saw the live map. That is why the discovery routine re-drafted
 // the same project on every run (three identical "Jumeirah Residences Emirates
@@ -2741,6 +2783,13 @@ const IMPL = {
         // A DB read hiccup must never block a legitimate first draft.
       }
     }
+    // Story-level dedup, no project linkage required — the project guard above
+    // is skippable by simply not passing a slug, which is exactly how one of
+    // the two 520 Fifth Avenue drafts got through.
+    {
+      const sd = await findDraftStoryDup(env, { title: '', topic, projectSlug: '' });
+      if (sd) throw new Error('DUPLICATE DRAFT EXISTS: ' + sd.why + ' (' + (sd.row.source === 'ai' ? 'AI' : 'Drafts') + ' tab). Do NOT write a second draft on this story — refine that one with revise_article_draft, or choose a different story.');
+    }
     // ── GENRE ROUTING: decide WHAT KIND of story this is before anything else.
     // The fingerprint carries a skeleton per genre; knowing the genre lets us
     // inject that ONE skeleton, pull same-genre exemplars, and judge candidates
@@ -3371,6 +3420,16 @@ const IMPL = {
       const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(campaignId).first();
       const per = mcpCampaignIncomePerPost(c);
       if (per != null) income = per;
+    }
+    // RACE-PROOF DEDUP, at the last possible moment. The entry checks in
+    // generate_article_draft run before a minutes-long generation, so two
+    // parallel routine agents on the same story both pass them (the 520 Fifth
+    // Avenue pair landed 29 seconds apart). This re-check happens right before
+    // the row is written, when the earlier agent's draft IS visible. Machine
+    // drafts only: a human-tagged draft is a deliberate act.
+    if (sourceMcp === 'ai') {
+      const lateDup = await findDraftStoryDup(env, { title, topic: '', projectSlug: projSlugMcp || '', excludeSlug: slug });
+      if (lateDup) throw new Error('DUPLICATE DRAFT: while this article was being written, another draft of the same story landed — ' + lateDup.why + '. This draft was NOT saved; refine the existing one with revise_article_draft instead.');
     }
     await env.DB.prepare(
       `INSERT INTO posts (id, slug, title, excerpt, seo_description, body_html, cover_image, categories, tags,
