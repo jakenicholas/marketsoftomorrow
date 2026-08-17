@@ -3231,6 +3231,7 @@ async function handleReviseDraft(req, env, origin) {
   if (!target) {
     const act = await onyxStudioAct(env, {
       message: instruction, context, surface: 'article editor', subject: row.title || slug,
+      history,   // so "try again" / "make it better" still have a referent
     });
     if (act) {
       try {
@@ -9916,7 +9917,7 @@ export class OnyxRun {
 // caller falls through to the untouched voice path (which is Fable, and stays
 // Fable — routing prose through the orchestrator would cost voice quality).
 const ONYX_ACT_ROUNDS = 8;
-async function onyxStudioAct(env, { message, context, surface, subject }) {
+async function onyxStudioAct(env, { message, context, surface, subject, history }) {
   if (!env || !env.ANTHROPIC_API_KEY || !message) return null;
   resetStudioCaches();
   setStudioActor('onyx-' + (surface || 'studio'));
@@ -9937,7 +9938,22 @@ async function onyxStudioAct(env, { message, context, surface, subject }) {
     'Never invent an outcome you did not get from a tool.',
   ].filter(Boolean).join('\n\n');
 
-  const convo = [{ role: 'user', content: String(message) + (context ? ('\n\nREFERENCE MATERIAL the colleague pasted:\n' + String(context).slice(0, 4000)) : '') }];
+  // The CONVERSATION, not just the latest line. Without it a follow-up like
+  // "okay now try again" or "make it better" arrives with no referent, and the
+  // model answers "I don't have any prior request or context" — which then
+  // replaced the editor's own reply and lost the thread.
+  const convo = [];
+  for (const h of (Array.isArray(history) ? history.slice(-8) : [])) {
+    const txt = String((h && h.text) || '').trim();
+    if (!txt) continue;
+    const role = (h && (h.role === 'assistant' || h.role === 'You')) ? 'assistant' : 'user';
+    if (convo.length && convo[convo.length - 1].role === role) convo[convo.length - 1].content += '\n' + txt;
+    else convo.push({ role, content: txt });
+  }
+  if (convo.length && convo[0].role !== 'user') convo.shift();   // must open on a user turn
+  const latest = String(message) + (context ? ('\n\nREFERENCE MATERIAL the colleague pasted:\n' + String(context).slice(0, 4000)) : '');
+  if (convo.length && convo[convo.length - 1].role === 'user') convo[convo.length - 1].content += '\n' + latest;
+  else convo.push({ role: 'user', content: latest });
   const did = [];
   let lastText = '';
   for (let round = 0; round < ONYX_ACT_ROUNDS; round++) {
@@ -9976,8 +9992,13 @@ async function onyxStudioAct(env, { message, context, surface, subject }) {
     }
     convo.push({ role: 'user', content: results });
   }
-  // DEFER means "this is a copy edit" — hand it back to the surface untouched.
-  if (!did.length && /^\s*DEFER\b/i.test(lastText.trim())) return null;
+  // IT ONLY OWNS THE TURN IF IT ACTUALLY DID SOMETHING. Relying on the model to
+  // say DEFER was too fragile: anything it couldn't classify — a bare follow-up
+  // like "okay now try again" — came back as a clarifying question instead, and
+  // that answer replaced the editor's, which is how the chat lost its place
+  // mid-conversation. No tool call means it changed nothing the surface can't
+  // handle itself, so hand the turn back rather than speak over it.
+  if (!did.length) return null;
   if (!lastText.trim()) return null;
   return { reply: lastText.trim().slice(0, 1500), did };
 }
