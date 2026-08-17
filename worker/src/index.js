@@ -797,11 +797,32 @@ async function handleTopazUpscale(request, env, origin, url) {
     const out = new FormData();
     let model = 'Standard V2', outFmt = 'png', ow, oh;
     if (ct.indexOf('application/json') >= 0) {
-      // Photo-only flow: the editor passes the photo's public URL — Topaz fetches
-      // it directly (no byte upload, no browser CORS).
+      // Photo-only flow: the editor passes the photo's public URL. We fetch the
+      // BYTES ourselves and hand Topaz a real file — NOT the URL — because
+      // Topaz validates the URL's file extension before fetching, and our R2
+      // keys are often extensionless (SEO keyword keys, carousel exports), so
+      // source_url was refused with "URL does not point to a supported image
+      // format" even though the bytes behind it are a perfectly good JPEG.
       let b = {}; try { b = await request.json(); } catch {}
       if (!b.source_url) return json({ error: 'source_url or an image file is required' }, { status: 400 }, env, origin);
-      out.append('source_url', String(b.source_url));
+      let img;
+      try { img = await fetch(String(b.source_url), { headers: { 'User-Agent': 'TMW-Studio/1.0 (+https://www.oftmw.com)' } }); }
+      catch (e) { return json({ error: 'source image unreachable: ' + (e.message || e) }, { status: 502 }, env, origin); }
+      if (!img.ok) return json({ error: 'source image fetch failed', http: img.status, detail: String(b.source_url).slice(0, 200) }, { status: 502 }, env, origin);
+      const buf = await img.arrayBuffer();
+      // Type from the response header, else sniffed from magic bytes — the
+      // header can be octet-stream on extensionless keys, which is the same
+      // trap in a different coat.
+      let mime = String(img.headers.get('content-type') || '').split(';')[0].trim();
+      if (!/^image\//.test(mime)) {
+        const h = new Uint8Array(buf.slice(0, 12));
+        if (h[0] === 0xFF && h[1] === 0xD8) mime = 'image/jpeg';
+        else if (h[0] === 0x89 && h[1] === 0x50) mime = 'image/png';
+        else if (h[0] === 0x52 && h[1] === 0x49 && h[8] === 0x57 && h[9] === 0x45) mime = 'image/webp';
+        else return json({ error: 'source is not a recognizable image (jpeg/png/webp)', detail: 'content-type: ' + (mime || 'none') }, { status: 400 }, env, origin);
+      }
+      const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+      out.append('image', new Blob([buf], { type: mime }), 'source.' + ext);
       model = b.model || model; outFmt = b.output_format || outFmt; ow = b.output_width; oh = b.output_height;
     } else {
       let form;
