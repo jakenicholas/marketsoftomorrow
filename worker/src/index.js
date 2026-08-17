@@ -8605,8 +8605,20 @@ async function publishThreads(threadsUserId, text, token) {
   const base = 'https://graph.threads.net/v1.0/' + uid;
   const create = await fetch(base + '/threads', { method: 'POST', body: new URLSearchParams({ media_type: 'TEXT', text: String(text || '').slice(0, 500), access_token: token }) }).then(r => r.json());
   if (!create.id) throw new Error('Threads container failed — ' + metaErr(create));
-  const pub = await fetch(base + '/threads_publish', { method: 'POST', body: new URLSearchParams({ creation_id: create.id, access_token: token }) }).then(r => r.json());
-  if (!pub.id) throw new Error('Threads publish failed — ' + metaErr(pub));
+  // Publishing IMMEDIATELY races Meta's backend: under load the container isn't
+  // queryable yet and threads_publish returns "The media with ID … cannot be
+  // found. (code 24)" — which is how several accounts 502'd on a Post-on-all
+  // during the 2026-08-17 Meta/GitHub infra wobble. Retry the publish briefly;
+  // the container itself was created fine.
+  let pub = null;
+  for (let i = 0; i < 7; i++) {
+    pub = await fetch(base + '/threads_publish', { method: 'POST', body: new URLSearchParams({ creation_id: create.id, access_token: token }) }).then(r => r.json());
+    if (pub.id) break;
+    const msg = metaErr(pub);
+    if (!/cannot be found|#24\b|code 24|try again|transient/i.test(msg)) break;   // real error — don't hammer
+    await new Promise(r => setTimeout(r, 2500));
+  }
+  if (!pub || !pub.id) throw new Error('Threads publish failed — ' + metaErr(pub));
   const perm = await fetch('https://graph.threads.net/v1.0/' + pub.id + '?' + new URLSearchParams({ fields: 'permalink', access_token: token })).then(r => r.json());
   return { id: pub.id, url: perm.permalink || '' };
 }
