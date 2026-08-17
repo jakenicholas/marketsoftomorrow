@@ -809,20 +809,38 @@ async function handleTopazUpscale(request, env, origin, url) {
       try { img = await fetch(String(b.source_url), { headers: { 'User-Agent': 'TMW-Studio/1.0 (+https://www.oftmw.com)' } }); }
       catch (e) { return json({ error: 'source image unreachable: ' + (e.message || e) }, { status: 502 }, env, origin); }
       if (!img.ok) return json({ error: 'source image fetch failed', http: img.status, detail: String(b.source_url).slice(0, 200) }, { status: 502 }, env, origin);
-      const buf = await img.arrayBuffer();
-      // Type from the response header, else sniffed from magic bytes — the
-      // header can be octet-stream on extensionless keys, which is the same
-      // trap in a different coat.
-      let mime = String(img.headers.get('content-type') || '').split(';')[0].trim();
-      if (!/^image\//.test(mime)) {
-        const h = new Uint8Array(buf.slice(0, 12));
-        if (h[0] === 0xFF && h[1] === 0xD8) mime = 'image/jpeg';
-        else if (h[0] === 0x89 && h[1] === 0x50) mime = 'image/png';
-        else if (h[0] === 0x52 && h[1] === 0x49 && h[8] === 0x57 && h[9] === 0x45) mime = 'image/webp';
-        else return json({ error: 'source is not a recognizable image (jpeg/png/webp)', detail: 'content-type: ' + (mime || 'none') }, { status: 400 }, env, origin);
+      let bytes = await img.arrayBuffer();
+      // Type from the magic bytes FIRST, header as fallback — the header can be
+      // octet-stream (or lie) on extensionless keys.
+      const sniff = (ab) => {
+        const h = new Uint8Array(ab.slice(0, 12));
+        if (h[0] === 0xFF && h[1] === 0xD8) return 'image/jpeg';
+        if (h[0] === 0x89 && h[1] === 0x50) return 'image/png';
+        if (h[0] === 0x52 && h[1] === 0x49 && h[8] === 0x57 && h[9] === 0x45) return 'image/webp';
+        if ((h[0] === 0x49 && h[1] === 0x49) || (h[0] === 0x4D && h[1] === 0x4D)) return 'image/tiff';
+        return '';
+      };
+      let mime = sniff(bytes) || String(img.headers.get('content-type') || '').split(';')[0].trim();
+      if (!/^image\//.test(mime)) return json({ error: 'source is not a recognizable image (jpeg/png/webp/tiff)', detail: 'content-type: ' + (mime || 'none') }, { status: 400 }, env, origin);
+      // Topaz only accepts JPEG/PNG/TIFF — a WebP source 415s ("We can only
+      // process JPEG, PNG, or TIFF images"), and much of our R2 media IS WebP
+      // (compressed exports). Re-pull through Cloudflare image transformations
+      // as JPEG; if the zone doesn't transform, bytes come back unchanged and
+      // we return a NAMED error the editor uses to transcode client-side.
+      if (mime === 'image/webp') {
+        try {
+          const tr = await fetch(String(b.source_url), {
+            headers: { 'User-Agent': 'TMW-Studio/1.0 (+https://www.oftmw.com)' },
+            cf: { image: { format: 'jpeg', quality: 92 } },
+          });
+          if (tr.ok) { const tb = await tr.arrayBuffer(); if (sniff(tb) === 'image/jpeg') { bytes = tb; mime = 'image/jpeg'; } }
+        } catch (_) {}
+        if (mime === 'image/webp') {
+          return json({ error: 'source photo is WebP — Topaz only accepts JPEG/PNG/TIFF', detail: 'webp_needs_transcode', http: 415 }, { status: 415 }, env, origin);
+        }
       }
-      const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
-      out.append('image', new Blob([buf], { type: mime }), 'source.' + ext);
+      const ext = mime === 'image/png' ? 'png' : mime === 'image/tiff' ? 'tiff' : 'jpg';
+      out.append('image', new Blob([bytes], { type: mime }), 'source.' + ext);
       model = b.model || model; outFmt = b.output_format || outFmt; ow = b.output_width; oh = b.output_height;
     } else {
       let form;
