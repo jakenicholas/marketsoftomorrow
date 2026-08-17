@@ -612,6 +612,7 @@ const TOOLS = [
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'], description: 'Project status (default "announced")' },
         city: { type: 'string' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell", "Wynwood"). Powers neighborhood-level search & filtering — set it whenever the source names one.' },
+        parent_slug: { type: 'string', description: 'PART OF — the slug (or exact name) of the district / resort / master development this project lives INSIDE (e.g. a tower inside "Belle Meade Village", a hotel inside a resort master plan). Set it whenever a source says the project is part of / within / phase N of a larger tracked development. Resolves against the live map AND the current drafts queue, so you can draft a district first and link its towers in the same run. An unknown or ambiguous parent is rejected with candidates — never guess.' },
         address: { type: 'string', description: 'STREET address line — street number + street name only (e.g. "1428 Brickell Avenue"), NOT the city/zip/country. Stored as the project\'s structured street field AND used to help geocoding. Put the town/city in `city`, the zip in `postal_code`, the nation in `country`.' },
         postal_code: { type: 'string', description: 'ZIP / postal code (e.g. "33131", "518000", "SW1A 1AA"). Structured address field.' },
         country: { type: 'string', description: 'Country name, spelled out (e.g. "United States", "China", "Italy"). Structured address field — set it on EVERY project, US and international, so country-level search & full addresses work.' },
@@ -654,6 +655,7 @@ const TOOLS = [
         slug: { type: 'string', description: 'Project slug (alternative to draft_id)' },
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'] },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell"). Powers neighborhood search & filtering.' },
+        parent_slug: { type: 'string', description: 'PART OF — slug (or exact name) of the district / resort / master development this draft lives INSIDE. Resolves against the live map and the drafts queue; unknown or ambiguous parents are rejected with candidates. Pass "" (empty string) to UNLINK.' },
         borough: { type: 'string', description: 'Borough / sub-locality shown as the displayed location instead of the city (e.g. "Brooklyn", "Manhattan", "Queens"). NYC boroughs auto-derive from coordinates; set this only to override or for a non-NYC sub-locality. The City field is unchanged.' },
         street: { type: 'string', description: 'STREET address line only — street number + name (e.g. "1428 Brickell Avenue"). Structured address field.' },
         postal_code: { type: 'string', description: 'ZIP / postal code. Structured address field.' },
@@ -686,7 +688,7 @@ const TOOLS = [
         target_name: { type: 'string', description: 'The current name of that project, for display' },
         changes: {
           type: 'object',
-          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, street (street address line), postal_code (zip), country (spelled-out nation), latitude, longitude, website, units, floors, keys, gfa_sqft (GROSS FLOOR AREA — total BUILT square feet; the "how big is this development" number that powers "biggest projects" ranking — capture a STATED figure when a source gives one, else ESTIMATE max(units×1265, floors×20000, acres×43560×0.1)), gfa_source ("stated" or "estimated"), start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects).',
+          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, street (street address line), postal_code (zip), country (spelled-out nation), latitude, longitude, website, units, floors, keys, gfa_sqft (GROSS FLOOR AREA — total BUILT square feet; the "how big is this development" number that powers "biggest projects" ranking — capture a STATED figure when a source gives one, else ESTIMATE max(units×1265, floors×20000, acres×43560×0.1)), gfa_source ("stated" or "estimated"), start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects), parent_slug (PART OF — slug or exact name of the district / resort / master development the project lives inside; use when a source reveals the project is part of / a phase of a larger tracked development; empty string unlinks; unknown parents are rejected with candidates).',
         },
         proposal_note: { type: 'string', description: 'Human-readable rationale, e.g. \'"name" needs to be changed per this article I found\'' },
         source_note: { type: 'string', description: 'Source URL / where this came from' },
@@ -1575,6 +1577,46 @@ function scoreMatch(cand, p) {
   else if (score >= 4) verdict = 'possible';
   else verdict = 'none';
   return { score, verdict, reasons };
+}
+
+// Resolve a "part of" parent reference — the district / resort / master
+// development a project lives INSIDE (slug or exact name) — against the live
+// map AND the staged drafts queue, so a discovery run that lands a district and
+// its towers in the same batch can link them before anything publishes.
+// STRICT on purpose: an unresolvable or ambiguous parent throws with the
+// closest candidates instead of guessing, because a dangling parent_slug
+// silently orphans the child in every hierarchy rollup.
+async function resolveParentRef(env, ref) {
+  const want = String(ref || '').trim();
+  if (!want) return null;
+  const wantSlug = slugify(want);
+  const rows = [];
+  try {
+    for (const p of await loadProjects()) {
+      const slug = String(p.Slug || '').trim() || slugify(String(p.Title || ''));
+      if (slug) rows.push({ slug, title: String(p.Title || ''), city: String(p.City || ''), where: 'live' });
+    }
+  } catch (_) {}
+  try {
+    const { text } = await ghGetFile(env, GH_DRAFTS_PATH);
+    if (text) {
+      for (const d of (JSON.parse(text) || [])) {
+        const data = (d && d.data) || {};
+        if (data.slug) rows.push({ slug: String(data.slug), title: String(data.name || ''), city: String(data.city || ''), where: 'draft' });
+      }
+    }
+  } catch (_) {}
+  if (!rows.length) throw new Error('could not load projects to resolve parent_slug "' + want + '" — try again');
+  const exact = rows.find((x) => x.slug === want) || rows.find((x) => x.slug === wantSlug);
+  if (exact) return exact;
+  const nl = want.toLowerCase();
+  let named = rows.filter((x) => x.title.toLowerCase() === nl);
+  if (!named.length) named = rows.filter((x) => x.title.toLowerCase().includes(nl));
+  if (named.length === 1) return named[0];
+  const hint = named.slice(0, 5).map((x) => `"${x.title}" (${x.slug}, ${x.where})`).join('; ');
+  throw new Error('parent_slug "' + want + '" ' + (named.length
+    ? 'is AMBIGUOUS — candidates: ' + hint + '. Pass the exact slug.'
+    : 'matches nothing on the live map or in the drafts queue. Use match_project / search_projects to find the parent\'s slug, create the parent draft FIRST, or omit parent_slug.'));
 }
 
 // Deterministic DUPLICATE gate for create_map_draft. Returns the live project a
@@ -3834,6 +3876,9 @@ const IMPL = {
       status: String(args.status || 'announced'),
       city: String(args.city || ''),
       neighborhood: String(args.neighborhood || ''),
+      // "Part of" linkage — resolved + validated below, after `data` exists
+      // (the self-collision check needs the derived slug).
+      parent_slug: null,
       borough: String(args.borough || ''),
       // Structured street address — street line + zip + country (city lives above,
       // US state auto-derives from lat/lng). Powers full-address answers + country search.
@@ -3905,6 +3950,15 @@ const IMPL = {
       if (stagedText) { try { staged = JSON.parse(stagedText); } catch (_) { staged = []; } }
       const sdup = stagedDuplicate(staged);
       if (sdup) throw stagedDupError(sdup);
+    }
+
+    // "Part of" — resolve the parent (slug or name) against live + drafts.
+    // Before image ingestion so a bad parent costs no scraping, and strict:
+    // resolveParentRef throws with candidates rather than guessing.
+    if (args.parent_slug != null && String(args.parent_slug).trim() !== '') {
+      const parent = await resolveParentRef(env, args.parent_slug);
+      if (parent.slug === data.slug) throw new Error('parent_slug cannot be the project itself ("' + data.slug + '")');
+      data.parent_slug = parent.slug;
     }
 
     // Images — file them in the project's media folder AND attach to the draft in
@@ -4026,6 +4080,15 @@ const IMPL = {
     const slug = String(args.slug || '').trim();
     if (!draftId && !slug) throw new Error('pass draft_id or slug to identify the draft');
     const num = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n; };
+    // Resolve the "part of" parent ONCE, outside the optimistic-lock retry loop
+    // (it reads the live map + drafts queue; a 409 retry shouldn't re-fetch).
+    // '' = explicit unlink; the self-collision check runs inside the loop where
+    // the draft's own slug is known.
+    let parentRef;
+    if (args.parent_slug != null) {
+      const pv = String(args.parent_slug).trim();
+      parentRef = pv === '' ? { unlink: true } : await resolveParentRef(env, pv);
+    }
     for (let attempt = 0; ; attempt++) {
       const { sha, text } = await ghGetFile(env, GH_DRAFTS_PATH);
       let drafts = [];
@@ -4038,6 +4101,11 @@ const IMPL = {
       const changed = [];
       if (args.status) { data.status = String(args.status); changed.push('status'); }
       if (args.neighborhood != null && String(args.neighborhood).trim() !== '') { data.neighborhood = String(args.neighborhood).trim(); changed.push('neighborhood'); }
+      if (parentRef) {
+        if (parentRef.unlink) { data.parent_slug = null; changed.push('parent_slug (unlinked)'); }
+        else if (parentRef.slug === data.slug) { throw new Error('parent_slug cannot be the draft itself ("' + data.slug + '")'); }
+        else { data.parent_slug = parentRef.slug; changed.push('parent_slug'); }
+      }
       if (args.borough != null) { data.borough = String(args.borough).trim(); changed.push('borough'); }
       if (args.street != null && String(args.street).trim() !== '') { data.street = String(args.street).trim(); changed.push('street'); }
       if (args.postal_code != null && String(args.postal_code).trim() !== '') { data.postal_code = String(args.postal_code).trim(); changed.push('postal_code'); }
@@ -4076,7 +4144,7 @@ const IMPL = {
     const KEYMAP = { latitude: 'lat', longitude: 'lng', website: 'official_website' };
     const ALLOWED = new Set(['name', 'status', 'city', 'neighborhood', 'street', 'postal_code', 'country', 'lat', 'lng', 'official_website',
       'units', 'floors', 'keys', 'gfa_sqft', 'gfa_source', 'start_date', 'delivery_date', 'description', 'description_long',
-      'types', 'preferred_type']);
+      'types', 'preferred_type', 'parent_slug']);
     // Types / preferred_type need vocabulary normalization (drop unrecognized
     // tags) before they land in the proposal — same canon as create_map_draft +
     // update_project_status — so a reviewer doesn't see an out-of-vocab tag.
@@ -4097,6 +4165,7 @@ const IMPL = {
         units: live.Units, floors: live.Floors, keys: live.Keys, gfa_sqft: live.GfaSqFt, start_date: live.StartDate,
         delivery_date: live.DeliveryDate, description: live.Description, description_long: live.DescriptionLong,
         types: splitList(live.ProjectType), preferred_type: live.PreferredType,
+        parent_slug: live.ParentSlug,
       };
       const v = m[k];
       return (v === undefined || v === '') ? null : v;
@@ -4111,6 +4180,17 @@ const IMPL = {
       else if (k === 'units' || k === 'floors' || k === 'keys' || k === 'gfa_sqft') to = (v == null || v === '' || isNaN(parseInt(v, 10))) ? null : parseInt(v, 10);
       else if (k === 'types') to = (Array.isArray(v) ? resolveTypes(v, canonTypes).types : []);
       else if (k === 'preferred_type') to = (v == null ? null : (normType(v, canonTypes) || null));
+      else if (k === 'parent_slug') {
+        // "Part of" — validated, never guessed. '' or null proposes an UNLINK;
+        // anything else must resolve to a live project or a staged draft, and
+        // a project cannot be inside itself.
+        if (v == null || String(v).trim() === '') to = null;
+        else {
+          const pr = await resolveParentRef(env, v);
+          if (pr.slug === slug) throw new Error('parent_slug cannot be the project itself ("' + slug + '")');
+          to = pr.slug;
+        }
+      }
       else to = (v == null) ? null : String(v);
       changes[k] = { from: fromVal(k), to };
     }
