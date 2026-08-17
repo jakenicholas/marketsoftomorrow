@@ -1246,14 +1246,25 @@ async function stripePost(env, path, params) {
 // Find a member's current subscription (trialing/active preferred) by email.
 async function findSubByEmail(env, email) {
   if (!env.STRIPE_SECRET_KEY || !email) return null;
+  // Rank across ALL the email's customers before answering. The old version
+  // preferred a live sub within one customer but fell back to that customer's
+  // list[0] without ever looking at the next customer — and Stripe returns
+  // customers newest-first, so an abandoned checkout (which mints a NEW
+  // customer holding only an `incomplete` husk) shadowed the real trial on the
+  // older customer. The dashboard then read the member as not-Pro moments after
+  // they signed up, which is exactly the "my trial was immediately canceled"
+  // support email.
+  const RANK = { trialing: 6, active: 6, past_due: 5, paused: 4, unpaid: 3, canceled: 2, incomplete: 1, incomplete_expired: 0 };
+  let best = null;
   const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
   for (const c of (custs.data || [])) {
     const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=20');
-    const list = subs.data || [];
-    const best = list.find(s => s.status === 'trialing' || s.status === 'active') || list[0];
-    if (best) return best;
+    for (const s of (subs.data || [])) {
+      if (!best || (RANK[s.status] || 0) > (RANK[best.status] || 0)) best = s;
+      if (s.status === 'trialing' || s.status === 'active') return s;   // can't rank higher
+    }
   }
-  return null;
+  return best;
 }
 // GET /sub-status?email= — read-only subscription state, used by the account
 // page to show the "trial cancelled" banner. Returns a member's OWN status.
@@ -1285,8 +1296,29 @@ async function handleTrialEligible(req, env, origin, url) {
   const CUTOVER_TS = 1783036800;
   try {
     let hadTrial = false, earliest = Infinity;
-    const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
-    for (const c of (custs.data || [])) {
+    // PLUS-ALIAS NORMALIZATION. dorian@ and dorian+tmrw@ are the same inbox,
+    // and an exact-email check let the alias mint a second 14-day trial (it
+    // happened; both trials ran concurrently). Check the exact address, its
+    // base form, and — via Stripe's search API — any other +alias of the base,
+    // so the gate holds whichever form signed up first. Search is substring
+    // (not anchored), which can only over-match toward DENYING a duplicate
+    // trial, never toward granting one; and the whole handler still fails open.
+    const am = email.match(/^([^+@]+)(\+[^@]*)?@(.+)$/);
+    const base = am ? (am[1] + '@' + am[3]) : email;
+    const seenCust = new Set();
+    const custRows = [];
+    for (const q of new Set([email, base])) {
+      const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(q) + '&limit=10');
+      for (const c of (custs.data || [])) if (!seenCust.has(c.id)) { seenCust.add(c.id); custRows.push(c); }
+    }
+    if (am) {
+      try {
+        const srch = await stripeGet(env, '/customers/search?limit=20&query=' +
+          encodeURIComponent('email~"' + am[1] + '+" AND email~"@' + am[3] + '"'));
+        for (const c of (srch.data || [])) if (!seenCust.has(c.id)) { seenCust.add(c.id); custRows.push(c); }
+      } catch (_) { /* search API unavailable on some keys — exact checks still ran */ }
+    }
+    for (const c of custRows) {
       const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=10');
       for (const s of (subs.data || [])) {
         // Ignore checkouts that never actually started a subscription — an
