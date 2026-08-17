@@ -8443,8 +8443,12 @@ async function publishTikTok(env, key, handle, slides, caption) {
   try {
     const ci = await fetch('https://open.tiktokapis.com/v2/post/publish/creator_info/query/', { method: 'POST', headers: H, body: '{}' }).then(r => r.json());
     const opts = (ci && ci.data && ci.data.privacy_level_options) || [];
+    // PUBLIC when the account offers it, otherwise SELF_ONLY — never a middle
+    // option like FOLLOWER_OF_CREATOR. NOTE (verified live): creator_info shows
+    // the ACCOUNT's options and says nothing about audit state; pre-audit, init
+    // fails with unaudited_client_can_only_post_to_private_accounts unless the
+    // TikTok ACCOUNT itself is set to Private — post-level privacy can't fix it.
     if (opts.includes('PUBLIC_TO_EVERYONE')) privacy = 'PUBLIC_TO_EVERYONE';
-    else if (opts.length) privacy = opts[0];
   } catch (_) {}
   const firstLine = String(caption || '').split('\n')[0].trim();
   const init = await fetch('https://open.tiktokapis.com/v2/post/publish/content/init/', {
