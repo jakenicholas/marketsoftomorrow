@@ -15759,6 +15759,33 @@ async function handleAdvertiserToggle(req, env, origin) {
   }
 }
 
+// GET /admin/project-reach?slug=<project-slug>&days=<n> — one project's
+// first-party reach split by surface (map / atlas / intel / article /
+// newsletter / journal), for the Database edit pane. Same placement_stats
+// rows the Campaigns tab reads; this is just the single-slug cut.
+export async function handleProjectReach(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ slug: '', surfaces: [] }, {}, env, origin);
+  const url = new URL(req.url);
+  const slug = String(url.searchParams.get('slug') || '').trim().toLowerCase();
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  let days = parseInt(url.searchParams.get('days') || '90', 10);
+  if (!Number.isFinite(days) || days < 1) days = 90;
+  if (days > 365) days = 365;
+  const sinceDay = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10);
+  try {
+    await ensurePlacementStatsTable(env);
+    const rows = (await env.DB.prepare(
+      'SELECT surface, SUM(views) AS views, SUM(acts) AS acts, SUM(clicks) AS clicks ' +
+      'FROM placement_stats WHERE id = ?1 AND day >= ?2 GROUP BY surface'
+    ).bind(slug, sinceDay).all()).results || [];
+    return json({
+      slug, days, since: sinceDay,
+      surfaces: rows.map((r) => ({ surface: r.surface, views: r.views || 0, acts: r.acts || 0, clicks: r.clicks || 0 })),
+    }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 500 }, env, origin); }
+}
+
 export async function handlePlacementStats(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ totals: [], series: {} }, {}, env, origin);
@@ -15772,7 +15799,7 @@ export async function handlePlacementStats(req, env, origin) {
     // Group by (id, surface) so each placement carries a per-surface split
     // (journal vs newsletter) alongside its combined total.
     const totRows = await env.DB.prepare(
-      'SELECT id, surface, type, label, SUM(views) AS views, SUM(clicks) AS clicks, SUM(clicks_bot) AS clicks_bot ' +
+      'SELECT id, surface, type, label, SUM(views) AS views, SUM(acts) AS acts, SUM(clicks) AS clicks, SUM(clicks_bot) AS clicks_bot ' +
       'FROM placement_stats WHERE day >= ?1 GROUP BY id, surface'
     ).bind(sinceDay).all();
     const serRows = await env.DB.prepare(
@@ -15781,12 +15808,12 @@ export async function handlePlacementStats(req, env, origin) {
     ).bind(sinceDay).all();
     const byId = {};
     for (const r of (totRows.results || [])) {
-      const e = byId[r.id] || (byId[r.id] = { id: r.id, type: r.type, label: r.label, views: 0, clicks: 0, clicks_bot: 0, surfaces: {} });
-      const v = r.views || 0, c = r.clicks || 0, cb = r.clicks_bot || 0;
-      e.views += v; e.clicks += c; e.clicks_bot += cb;
+      const e = byId[r.id] || (byId[r.id] = { id: r.id, type: r.type, label: r.label, views: 0, acts: 0, clicks: 0, clicks_bot: 0, surfaces: {} });
+      const v = r.views || 0, ac = r.acts || 0, c = r.clicks || 0, cb = r.clicks_bot || 0;
+      e.views += v; e.acts += ac; e.clicks += c; e.clicks_bot += cb;
       if (r.label) e.label = r.label;
       if (r.type) e.type = r.type;
-      e.surfaces[r.surface || 'journal'] = { views: v, clicks: c, clicks_bot: cb, ctr: v > 0 ? c / v : 0 };
+      e.surfaces[r.surface || 'journal'] = { views: v, acts: ac, clicks: c, clicks_bot: cb, ctr: v > 0 ? c / v : 0 };
     }
     const series = {};
     for (const r of (serRows.results || [])) {
@@ -15818,8 +15845,23 @@ export async function handlePlacementStats(req, env, origin) {
     for (const a of (advRows.results || [])) roster[a.id] = a;
     const ids = new Set([...Object.keys(roster), ...Object.keys(byId)]);
     const advertisers = [];
+    // PROJECT rows are NOT advertisers. Passive per-project tracking (map /
+    // atlas / intel / article beacons, keyed by project slug with
+    // type='project') was flooding the campaign roster with hundreds of
+    // database projects, burying the handful of paying placements. They get
+    // their own group, with the per-surface split as first-class data.
+    const projects = [];
     ids.forEach(id => {
       if (linkIds.has(id)) return;   // tracked links live in their own group
+      const tp = byId[id];
+      if (tp && tp.type === 'project' && !roster[id]) {
+        projects.push({
+          id, name: tp.label || id,
+          views: tp.views || 0, acts: tp.acts || 0, clicks: tp.clicks || 0,
+          surfaces: tp.surfaces || {},
+        });
+        return;
+      }
       const a = roster[id] || null;
       const t = byId[id] || { views: 0, clicks: 0, clicks_bot: 0, surfaces: {}, label: null, type: null };
       advertisers.push({
@@ -15838,6 +15880,10 @@ export async function handlePlacementStats(req, env, origin) {
     });
     // Live first; within each group by our clicks, then the Linkly baseline.
     advertisers.sort((x, y) => (y.active - x.active) || (y.clicks - x.clicks) || (y.linkly_all - x.linkly_all));
+    // Most-reached first; capped so the payload stays sane (465+ tracked slugs).
+    projects.sort((x, y) => ((y.views + y.acts + y.clicks) - (x.views + x.acts + x.clicks)));
+    const projects_total = projects.length;
+    if (projects.length > 120) projects.length = 120;
     // Backend rollup by SURFACE — the Analytics tiles. One row per product
     // surface (map / atlas / intel / journal banners / newsletter / links) so
     // Jake can see the whole operation's reach at a glance, independent of any
@@ -15854,7 +15900,7 @@ export async function handlePlacementStats(req, env, origin) {
         ctr: (+r.views || 0) ? +(((+r.clicks || 0) / (+r.views || 0)) * 100).toFixed(2) : 0,
       })).sort((a, b) => b.views - a.views);
     } catch (_) {}
-    return json({ days, since: sinceDay, advertisers, links, surfaces, series },
+    return json({ days, since: sinceDay, advertisers, projects, projects_total, links, surfaces, series },
       { headers: { 'Cache-Control': 'private, max-age=20' } }, env, origin);
   } catch (e) {
     return json({ totals: [], series: {}, error: String(e && e.message || e) }, {}, env, origin);
@@ -19558,6 +19604,9 @@ export default {
         return await handlePlacementPixel(request, env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/client-report') return await handleClientReport(request, env, origin, url);
+      if (request.method === 'GET' && url.pathname === '/admin/project-reach') {
+        return await handleProjectReach(request, env, origin);
+      }
       if (request.method === 'GET' && url.pathname === '/placements') {
         return await handlePlacementStats(request, env, origin);
       }
