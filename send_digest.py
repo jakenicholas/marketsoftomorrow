@@ -91,7 +91,7 @@ def main():
         "audience_id": AUDIENCE_ID_CLEAN,
         "from":        FROM_ADDR,
         "subject":     final_subject,
-        "name":        final_subject,
+        "name":        final_subject[:70],   # Resend caps the internal label at 70 chars (422 otherwise); the reader-facing subject is untouched
         "html":        html,
     }
 
