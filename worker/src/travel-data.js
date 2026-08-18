@@ -80,13 +80,29 @@ export const TRAVEL_STOPS = {
     vibe:'A day among the canals: the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
-  { loc:'Lake Como & Milan, Italy', nights:'3 Nights · Sept 11 → 14', stay:'Private Stay', confirmed:true, noClient:true,
-    in:{ date:'Sept 11', mode:'train', note:'Verona → Milan' },
-    vibe:'Three nights between the lake and the city: Como’s villa-lined shoreline, with Italy’s design capital an hour south.',
-    logi:[['Transit','Train from Verona to Milan.']],
-    imgs:['https://imageio.forbes.com/specials-images/imageserve/646b6b45d9b20ac15900fd8a/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds'] },
+  { loc:'The Dolomites, Italy', nights:'2 Nights · Sept 11 → 13', stay:'Private Stay', noClient:true, confirmed:true,
+    in:{ date:'Sept 11', mode:'car', note:'Verona → the Dolomites' },
+    vibe:'Two nights up in the pale peaks: jagged limestone towers, alpine lakes, and ridgeline trails out of Cortina, with the stillness only the mountains carry.',
+    logi:[['The Drive','<b>~3-hour drive</b> north from Verona into the heart of the Dolomites.']],
+    todo:[
+      { a:'Stay', t:'Faloria Mountain Spa Resort', img:'https://faloriasparesort.com/wp-content/uploads/sites/18/2019/02/faloria_2146-2F-LOW.jpg' },
+      { a:'Hike', t:'Tre Cime di Lavaredo', img:'https://huttohuthikingeurope.com/_next/image?url=https%3A%2F%2Fcdn.world-discovery.com%2F64672%2Ftre-cime-di-lavaredo-with-reflection-in-lake-at-sundown-dolomit.webp&w=1920&q=75' },
+      { a:'Hike', t:'Seceda Ridgeline', img:'https://images.squarespace-cdn.com/content/v1/5bad2c26d74562245b63d094/cce0c7db-e5d6-4a04-ad56-1603b0662749/viewpoint+of+Seceda+along+the+ridgeline+trail' },
+      { a:'Explore', t:'Cortina d\u2019Ampezzo', img:'https://ik.imgkit.net/3vlqs5axxjf/TAW/ik-seo/uploadedImages/All_Gateways/Europe/Features/CortinaItaly_Hero/An-Adventurer%E2%80%99s-Guide-to-What-to-Do-and-Where-to-S.jpg?tr=w-1008%2Ch-567%2Cfo-auto' },
+      { a:'Hike', t:'Lago di Sorapis', img:'https://thephotohikes.com/wp-content/uploads/2024/01/Lago-di-Sorapis-11.jpg' },
+      { a:'Explore', t:'Plose', img:'https://www.plose.org/bilder/Natur-pur_%C2%A9Horeca.jpg' }
+    ],
+    imgs:[
+      'https://cdn1.modernadventure.com/app/uploads/2021/10/moad-dolomites-4-edited-e1634571651246-1.jpeg',
+      'https://www.livelikeitstheweekend.com/wp-content/uploads/2026/01/Dolomites-where-to-visit-.jpg'] },
 
-  // ── Part 1: The Greek Isles & Mainland ──
+  { loc:'Milan, Italy', nights:'1 Night · Sept 13 → 14', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 13', mode:'car', note:'The Dolomites → Milan' },
+    vibe:'A night in Italy\u2019s design capital: the Duomo at dusk, the Galleria, and an early start for the flight south to the islands.',
+    logi:[['The Drive','<b>~4-hour drive</b> down from the mountains to Milan.']],
+    imgs:['https://assets.purewow.com/wp-content/uploads/2024/03/things-to-do-in-milan_uni.jpg'] },
+
+  // ── Part 1: The Greek Isles ──
   { loc:'Mykonos', nights:'2 Nights · Sept 14 → 16', stay:'Cali Mykonos', confirmed:true,
     in:{ date:'Sept 14', mode:'flight', note:'Milan → Mykonos' },
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock, an ultra-exclusive escape away from the intense Mykonos crowds.',
@@ -107,39 +123,32 @@ export const TRAVEL_STOPS = {
       'https://cdn.sanity.io/images/nxpteyfv/goguides/9ca4581e7f31535984243dfa9c08c12c8a30ffeb-1600x1066.jpg',
       'https://media.cntraveler.com/photos/6638fe274f34977b03728a03/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Main%2520Pool%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg'] },
 
-  { loc:'Athens, Greece', nights:'5 Nights · Sept 18 → 23', stayPending:'In the works', pending:true, inworks:true,
-    in:{ date:'Sept 18', mode:'ferry', note:'Santorini → Port of Piraeus' },
-    vibe:'Five nights across the city and the coast: the Acropolis and the Plaka on foot, and the pine-clad Riviera at Vouliagmeni half an hour south. The hotel partnership is still being set.',
-    logi:[['Transit','Ferry from Santorini to the <b>Port of Piraeus</b>.']],
-    imgs:[
-      'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg',
-      'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
-      'https://www.thedolli.com/wp-content/uploads/2026/01/01-grecotel-hotels-resorts-the-dolli-athens-city-center-1536x1046.jpg'] },
+  // ── Part 2: Switzerland, the Lakes & Slovenia ──
+  { loc:'Zürich, Switzerland', nights:'5 Nights · Sept 18 → 23', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 18', mode:'flight', note:'Santorini → Zürich' },
+    vibe:'Five nights on the Limmat: the old town\u2019s guild houses, the lakefront promenade, and day trips into the Alps from Europe\u2019s tidiest hub.',
+    logi:[['Transit','Fly from Santorini to <b>Zürich</b> on Sept 18.']],
+    imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 
-  { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 23 → 27', stay:'Private Stay', confirmed:true, noClient:true,
-    in:{ date:'Sept 23', mode:'flight', note:'Athens → Ljubljana, then a 45-minute drive' },
-    vibe:'A private lakeside retreat on Slovenia’s storied glacial lake, with its island church and clifftop castle above the emerald water.',
-    logi:[['Transit','Taxi to ATH, then the non-stop Aegean flight to Ljubljana (LJU), about <b>2 hours</b>. Pick up the rental at the airport.'],['The Drive','<b>~45-minute drive</b> northwest to Lake Bled.']],
+  { loc:'Lake Como, Italy', nights:'2 Nights · Sept 23 → 25', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 23', mode:'car', note:'Zürich → Lake Como' },
+    vibe:'Two nights on the villa-lined shoreline: boats across the lake, Bellagio and Varenna, and aperitivo above the water.',
+    logi:[['The Drive','<b>~3-hour drive</b> south from Zürich, over the Alps and down to the lake.']],
+    imgs:['https://imageio.forbes.com/specials-images/imageserve/646b6b45d9b20ac15900fd8a/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds'] },
+
+  { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 25 → 29', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 25', mode:'car', note:'Lake Como → Lake Bled' },
+    vibe:'Closing the trip on Slovenia\u2019s storied glacial lake, with its island church and clifftop castle above the emerald water, then home.',
+    logi:[['The Drive','<b>~5-hour drive</b> east from Lake Como through the Alps to Lake Bled. Fly home from Ljubljana on the 29th.']],
     imgs:[
       'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg',
       'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg'] },
 
-  { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 27 → 30', stayPending:'Looking for a hotel partner', pending:true,
-    in:{ date:'Sept 27', mode:'car', note:'Lake Bled → South Tyrol' },
-    vibe:'An ultra-minimalist mountain-wellness setting hidden ~1,800 meters above sea level in South Tyrol, with raw views of the Geisler peaks, clean alpine air, and a stillness the rest of the trip does not touch. The right hotel partnership sets the base.',
-    logi:[['The Drive','<b>~3.5-hour drive</b> west from Lake Bled into South Tyrol, up above Bressanone.']],
-    imgs:[
-      'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto'] },
-
-  { loc:'Zurich or Geneva, Switzerland', nights:'5 Nights · Sept 30 → Oct 5', stayPending:'Looking for a hotel partner', pending:true,
-    in:{ date:'Sept 30', mode:'car', note:'The Dolomites → Zurich / Geneva' },
-    vibe:'Five nights to close the trip in Switzerland. The right hotel partnership decides the city.',
-    logi:[], imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 ],
 };
 
 // Public-safe summary per trip (what an ungated visitor may see).
 export const TRAVEL_PUBLIC = {
   california: { label: 'Pacific Coast Highway & Napa Valley', window: 'August 2026', region: 'California' },
-  europe:     { label: 'Italy, the Adriatic & the Greek Isles', window: 'September – October 2026', region: 'Europe' },
+  europe:     { label: 'Italy, the Alps & the Greek Isles', window: 'September 2026', region: 'Europe' },
 };
