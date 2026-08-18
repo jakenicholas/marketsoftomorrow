@@ -257,6 +257,7 @@ def group_events(events):
         else:
             mslug = map_slug(title)
             url = f"{SITE_URL}/?fullscreen=true&project={mslug}"
+        url = utm(url)   # attribute map-event clicks to the newsletter too
 
         # City: top-level field first, then project sub-object
         proj = e.get("project") or {}
@@ -390,6 +391,19 @@ def group_events(events):
         deduped.append(it)
     return deduped
 
+def utm(url):
+    """Tag an oftmw.com link so newsletter clicks attribute in GA4 / the journal
+    analytics (utm_source=newsletter). Article + map links carried NO attribution
+    before this, so "which stories did readers click" was unanswerable — clicks
+    bucketed as direct/referral. utm_campaign carries the send date so each
+    issue can be compared. Sponsor/house CTAs stay on the first-party /r
+    redirect and are NOT double-tagged here."""
+    if not url or "utm_source=" in url or "/r?" in url:
+        return url
+    sep = "&" if "?" in url else "?"
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return f"{url}{sep}utm_source=newsletter&utm_medium=email&utm_campaign=digest-{stamp}"
+
 def parse_articles_from_api():
     """Fetch the latest published journal posts from the Worker API.
     The API returns items newest-first with categories and full-quality cover
@@ -409,7 +423,7 @@ def parse_articles_from_api():
             continue
 
         # Canonical journal URL (mirrors the old Wix /post/<slug>/ paths).
-        link = f"{TMW_URL}/post/{slug}/"
+        link = utm(f"{TMW_URL}/post/{slug}/")
 
         image = it.get("cover_image") or ""
 
