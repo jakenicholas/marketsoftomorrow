@@ -1221,18 +1221,18 @@
       "delivery_speculative": false
     },
     "the-residences-at-mandarin-oriental-miami": {
-      "estimate_years": 3.8,
-      "estimate_label": "~3.8 years",
-      "range_low": 1.7,
-      "range_high": 4.6,
-      "confidence": "medium",
-      "comparable_count": 13,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.51,
-      "avg_distance_km": 211.2,
-      "avg_distance_mi": 131.2,
+      "estimate_years": 5.0,
+      "estimate_label": "~5 years",
+      "range_low": 4.3,
+      "range_high": 5.4,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 1762.5,
+      "avg_distance_mi": 1095.2,
       "scale_used": true,
       "firm_signal": {
         "firm": "Kohn Pedersen Fox",
@@ -1244,42 +1244,24 @@
         "blend_weight": 0.65
       },
       "source": "comparables",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "South Florida",
       "comparables": [
         {
-          "name": "Casa Bella Residences Miami",
-          "slug": "casa-bella-residences-miami",
-          "location": "Miami",
-          "years": 2.5,
-          "score": 1.0,
-          "distance_km": 2.6,
-          "distance_mi": 1.6
-        },
-        {
-          "name": "E11EVEN® Club Hotel & Residences",
-          "slug": "e11even-club-hotel-residences",
-          "location": "Miami",
-          "years": 4.6,
-          "score": 1.0,
-          "distance_km": 2.2,
-          "distance_mi": 1.4
-        },
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.64,
-          "distance_km": 330.2,
-          "distance_mi": 205.2
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 1762.5,
+          "distance_mi": 1095.2
         }
       ],
-      "pattern_summary": "Among 13 comparable residences projects in TMW's data, the median build time is 2.8 years (range 1.7–4.6). Adjusted to ~3.8 years for Kohn Pedersen Fox's own track record (~4.3-year typical pace across 5 prior projects).",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–5.4 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
-      "is_mixed_use": false
+      "is_mixed_use": true
     },
     "the-well-coconut-grove": {
       "estimate_years": 2.5,
@@ -1508,18 +1490,18 @@
       "delivery_speculative": false
     },
     "the-pendry-tampa-and-residences": {
-      "estimate_years": 0.4,
-      "estimate_label": "~4 months",
-      "days_out": 135,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 500,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~4 months based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -1542,21 +1524,21 @@
       "delivery_speculative": false
     },
     "water-street-phase-two": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 500,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1231,
+      "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Mixed-Use",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "gasworx": {
       "estimate_years": 1.5,
@@ -4332,23 +4314,6 @@
       "comparables": [],
       "comparable_count": 0,
       "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true
-    },
-    "the-modern": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 500,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "medium",
-      "project_type": "Office",
-      "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -8476,59 +8441,6 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
-    },
-    "faraway-jackson-hole": {
-      "estimate_years": 2.3,
-      "estimate_label": "~2.3 years",
-      "range_low": 1.6,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 4,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.41,
-      "avg_distance_km": 2839.9,
-      "avg_distance_mi": 1764.6,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
-      "project_type": "Hotel",
-      "metro": "Other",
-      "comparables": [
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.64,
-          "distance_km": 3334.2,
-          "distance_mi": 2071.8
-        },
-        {
-          "name": "Siari, a Ritz-Carlton Reserve",
-          "slug": "siari-a-ritz-carlton-reserve",
-          "location": "Riviera Nayarit",
-          "years": 1.7,
-          "score": 0.34,
-          "distance_km": 2568.5,
-          "distance_mi": 1596.0
-        },
-        {
-          "name": "Dolly Parton's SongTeller Hotel",
-          "slug": "dolly-partons-songteller-hotel",
-          "location": "Nashville",
-          "years": 1.6,
-          "score": 0.34,
-          "distance_km": 2202.4,
-          "distance_mi": 1368.5
-        }
-      ],
-      "pattern_summary": "Among 4 comparable hotel projects in TMW's data, the median build time is 2.3 years (range 1.6–8.1).",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": false
     },
     "equinox-resort-anguilla-port-nimara": {
       "estimate_years": 3.5,
@@ -12927,7 +12839,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
-      "project_type": "Museum",
+      "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
@@ -17154,7 +17066,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
@@ -17893,11 +17805,28 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
+    },
+    "sunset-place": {
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1231,
+      "delivery_date": "2029-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~3.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
     }
   },
   "stats": {
     "high": 9,
-    "medium": 25,
+    "medium": 24,
     "low": 99,
     "known_date": 573,
     "completed": 71,
@@ -17906,6 +17835,6 @@
     "firm_boosted": 55,
     "speculative_softened": 230,
     "district": 14,
-    "mixed_use_adjusted": 35
+    "mixed_use_adjusted": 36
   }
 }
