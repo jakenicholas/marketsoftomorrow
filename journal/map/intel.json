@@ -1153,21 +1153,65 @@
       "is_mixed_use": false
     },
     "apogee-residences": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 499,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
+      "range_low": 1.9,
+      "range_high": 4.8,
       "confidence": "high",
+      "comparable_count": 19,
+      "good_count": 4,
+      "exact_count": 4,
+      "used_relaxed": false,
+      "avg_match_score": 0.53,
+      "avg_distance_km": 1038.6,
+      "avg_distance_mi": 645.4,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Related Group",
+        "count": 3,
+        "median_years": 3.0,
+        "stddev_years": 0.27,
+        "role": "developer",
+        "consistent": true,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "comparables": [
+        {
+          "name": "Alba",
+          "slug": "alba",
+          "location": "West Palm Beach",
+          "years": 2.8,
+          "score": 1.0,
+          "distance_km": 0.2,
+          "distance_mi": 0.1
+        },
+        {
+          "name": "Forté on Flagler",
+          "slug": "fort-on-flagler",
+          "location": "West Palm Beach",
+          "years": 3.8,
+          "score": 1.0,
+          "distance_km": 5.9,
+          "distance_mi": 3.7
+        },
+        {
+          "name": "Eturna Beachside Residences",
+          "slug": "eturna-beachside-residences",
+          "location": "Hollywood",
+          "years": 2.2,
+          "score": 0.73,
+          "distance_km": 80.0,
+          "distance_mi": 49.7
+        }
+      ],
+      "pattern_summary": "Among 19 comparable residences projects in TMW's data, the median build time is 2.8 years (range 1.9–4.8). Related Group delivers a consistent ~3-year pace across 3 projects, adjusting this estimate to ~2.9 years.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "aventura-city-center": {
       "estimate_years": 2.5,
@@ -17835,14 +17879,14 @@
     }
   },
   "stats": {
-    "high": 9,
+    "high": 10,
     "medium": 24,
     "low": 99,
-    "known_date": 573,
+    "known_date": 572,
     "completed": 71,
     "skipped": 125,
     "no_type": 0,
-    "firm_boosted": 54,
+    "firm_boosted": 55,
     "speculative_softened": 230,
     "district": 14,
     "mixed_use_adjusted": 35
