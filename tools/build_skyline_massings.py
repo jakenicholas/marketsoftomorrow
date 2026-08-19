@@ -84,6 +84,14 @@ def area_m2(ring):
     pts = [((x - ring[0][0]) * mlng, (y - ring[0][1]) * mlat) for x, y in ring]
     return abs(sum(pts[i][0]*pts[i+1][1] - pts[i+1][0]*pts[i][1] for i in range(len(pts)-1))) / 2
 
+def contains(ring, lng, lat):
+    inside = False
+    for i in range(len(ring) - 1):
+        x1, y1 = ring[i]; x2, y2 = ring[i+1]
+        if (y1 > lat) != (y2 > lat) and lng < (x2 - x1) * (lat - y1) / (y2 - y1) + x1:
+            inside = not inside
+    return inside
+
 def rect_ring(center, w, l, bearing):
     """w across, l along bearing (deg cw from N), centred on (lng,lat)."""
     mlat, mlng = metres(center[1])
@@ -137,7 +145,12 @@ def main():
             parcel = ring
             parcel_area = area_m2(ring)
         else:
-            brg = fp if isinstance(fp, (int, float)) else 0
+            brg = 0
+            if isinstance(fp, (int, float)):
+                brg = fp
+            elif isinstance(fp, list) and len(fp) == 3 and not isinstance(fp[0], list):
+                brg = fp[0]
+                center = (fp[1], fp[2])          # land anchor: nearest building's centroid
             parcel_area = max(2.2 * plate * k, 1600)
             W = math.sqrt(parcel_area / 1.6); L = W * 1.6
             cx, cy = center
@@ -163,7 +176,12 @@ def main():
             top = round(fl * FLOOR_M)
             if top <= base:
                 continue
-            c = (cx + off * L * ux / mlng, cy + off * L * uy / mlat)
+            c = (cx, cy)
+            for frac in (1.0, 0.5, 0.0):
+                cand = (cx + off * frac * L * ux / mlng, cy + off * frac * L * uy / mlat)
+                if contains(parcel, cand[0], cand[1]):
+                    c = cand
+                    break
             pieces.append({"ring": rect_ring(c, w, l, brg), "base": base, "top": top})
         if len(pieces) >= 2:
             out[slug] = pieces

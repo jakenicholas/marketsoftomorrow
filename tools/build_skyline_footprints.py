@@ -7,9 +7,13 @@ polygon on the site (OSM is the source of Mapbox's building layer, so these
 footprints align with the rendered streets and gray 3D city by construction).
 
 Output journal/map/skyline-footprints.json, keyed by project Slug:
-  slug -> [[lng,lat], ...]   real footprint ring (closed), OR
-  slug -> <int degrees>      no building on site; street-grid bearing of the
-                             nearest building, for aligning the fallback rect.
+  slug -> [[lng,lat], ...]      real footprint ring (closed), OR
+  slug -> [deg, lng, lat]       no usable polygon; street-grid bearing of the
+                                nearest building + its centroid as a LAND
+                                ANCHOR for the fallback rect (a building
+                                centroid can't be in the water; for
+                                redevelopment sites the rejected old building
+                                IS the site, so its centroid is the position).
 Projects absent from the file get an axis-aligned fallback in the map.
 
 Re-run whenever a batch of new towers lands: python3 tools/build_skyline_footprints.py
@@ -115,6 +119,14 @@ def longest_edge_bearing(ring):
             best, bearing = d, math.degrees(math.atan2(dx, dy))
     return int(round(bearing)) % 90   # grid-symmetric
 
+def is_ring(v):
+    return isinstance(v, list) and v and isinstance(v[0], (list, tuple))
+
+def centroid(ring):
+    n = len(ring) - 1
+    return (round(sum(p[0] for p in ring[:-1]) / n, 6),
+            round(sum(p[1] for p in ring[:-1]) / n, 6))
+
 def plausible(area, gfa, fl):
     """Reject footprints wildly larger than the plate the project's own
     GFA/floors imply — those are the OLD building on a redevelopment site
@@ -143,12 +155,13 @@ def main():
         dropped = 0
         for slug, v in list(result.items()):
             pr = byslug.get(slug)
-            if isinstance(v, list) and pr and not plausible(area_m2([tuple(x) for x in v]), pr["gfa"], pr["fl"]):
-                result[slug] = longest_edge_bearing([tuple(x) for x in v])
+            if is_ring(v) and pr and not plausible(area_m2([tuple(x) for x in v]), pr["gfa"], pr["fl"]):
+                r0 = [tuple(x) for x in v]
+                result[slug] = [longest_edge_bearing(r0), *centroid(r0)]
                 dropped += 1
         if dropped:
             print(f"guard downgraded {dropped} implausible rings (old-building footprints) to bearings")
-        solved = {s for s, v in result.items() if isinstance(v, list)}
+        solved = {s for s, v in result.items() if is_ring(v)}
         projects = [p for p in projects if p["slug"] not in solved]
     print(f"{len(projects)} projects to query ({len(result)} entries carried over)")
     for ci in range(0, len(projects), CHUNK):
@@ -176,11 +189,11 @@ def main():
                 ring = cand[0][0] if cand and cand[0][2] <= MATCH_NEAR else None
                 if ring is None:
                     if cand:
-                        result[p["slug"]] = longest_edge_bearing(cand[0][0])
+                        result[p["slug"]] = [longest_edge_bearing(cand[0][0]), *centroid(cand[0][0])]
                     continue
             result[p["slug"]] = [[round(x, 6), round(y, 6)] for x, y in decimate(ring)]
         time.sleep(3)
-    footprints = sum(1 for v in result.values() if isinstance(v, list))
+    footprints = sum(1 for v in result.values() if is_ring(v))
     bearings = len(result) - footprints
     print(f"\n{footprints} real footprints, {bearings} bearing-only, "
           f"{len(projects) - len(result)} no data (axis-aligned fallback)")

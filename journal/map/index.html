@@ -14431,11 +14431,18 @@
                              : (/stadium|arena|ballpark/.test(ty) ? 9000 : /bridge/.test(ty) ? 900 : /park|trail|golf/.test(ty) ? 2600 : 1400));
                 const aspect = m2 > 2500 ? 1.15 : 1.45;
                 const w = Math.sqrt(m2 / aspect), l = w * aspect;
-                const rot = (typeof fp === 'number' ? (90 - fp) : 0) * Math.PI / 180;
-                const latM = 111320, lngM = 111320 * Math.cos(lat * Math.PI / 180);
+                // [deg, lng, lat] = street bearing + LAND ANCHOR (the nearest
+                // building's centroid — never in the water, and on redevelopment
+                // sites it's the old building, i.e. the site itself).
+                let rot = 0, ax = lng, ay = lat;
+                if (typeof fp === 'number') rot = (90 - fp) * Math.PI / 180;
+                else if (Array.isArray(fp) && fp.length === 3 && typeof fp[0] === 'number') {
+                  rot = (90 - fp[0]) * Math.PI / 180; ax = fp[1]; ay = fp[2];
+                }
+                const latM = 111320, lngM = 111320 * Math.cos(ay * Math.PI / 180);
                 ring = [[-l/2,-w/2],[l/2,-w/2],[l/2,w/2],[-l/2,w/2]].map(([x,y]) => {
                   const xr = x*Math.cos(rot)-y*Math.sin(rot), yr = x*Math.sin(rot)+y*Math.cos(rot);
-                  return [lng + xr/lngM, lat + yr/latM];
+                  return [ax + xr/lngM, ay + yr/latM];
                 });
                 ring.push(ring[0]);
               }
