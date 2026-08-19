@@ -122,11 +122,19 @@ export const TRAVEL_STOPS = {
       'https://media.cntraveler.com/photos/6638fe274f34977b03728a03/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Main%2520Pool%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg'] },
 
   // ── Part 2: Switzerland, the Lakes & Slovenia ──
-  { loc:'Zürich & Andermatt, Switzerland', nights:'4 Nights · Sept 18 → 22', stay:'Private Stay', confirmed:true, noClient:true,
+  { loc:'Zürich, Switzerland', nights:'1 Night · Sept 18 → 19', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 18', mode:'flight', note:'Santorini → Zürich' },
-    vibe:'Four nights split between the Limmat and the high Alps: the old town\u2019s guild houses and lakefront, then up the Reuss valley to Andermatt\u2019s granite village and mountain rail country.',
+    vibe:'A first night on the Limmat: the old town’s guild houses and the lakefront promenade before heading up into the Alps.',
     logi:[['Transit','Fly from Santorini to <b>Zürich</b> on Sept 18.']],
     imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
+
+  { loc:'Andermatt, Switzerland', nights:'3 Nights · Sept 19 → 22', stay:'The Chedi Andermatt', client:'Quinn', inworks:true,
+    in:{ date:'Sept 19', mode:'car', note:'Zürich → Andermatt' },
+    vibe:'Three nights at 1,400 meters in the Urseren valley: The Chedi’s alpine-Asian timber and stone, granite peaks out every window, and the Gemsstock and Oberalp passes on the doorstep.',
+    logi:[['The Drive','<b>~1.5-hour drive</b> south from Zürich up the Reuss valley to Andermatt.']],
+    imgs:[
+      'https://d1pe873sdaunfo.cloudfront.net/www.thechediandermatt.com-1283389050/cms/cache/v2/634012f2b4525.jpg/1920x1080/resize/80/c84e42eddb769d1f14348e6b935cd5a5.jpg',
+      'https://media.cntraveler.com/photos/6973c1dd1dfa66ef6df9ff7b/16:9/w_2560%2Cc_limit/The%2520Chedi%2520Andermatt-The_Chedi_Andermatt_Exterior_Winter_Impressions%2520(1)_1.jpg'] },
 
   { loc:'Lake Como, Italy', nights:'2 Nights · Sept 22 → 24', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 22', mode:'car', note:'Andermatt → Lake Como' },

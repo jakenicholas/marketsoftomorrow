@@ -423,6 +423,8 @@
     .split-pill svg{width:15px;height:15px;color:var(--terra)}
     body.spliton .split-pill{display:none}
 
+    .topwrap{min-height:72vh}   /* slightly taller hero on desktop */
+
     /* The opening travel scribble sits alone, centered across BOTH columns. */
     body.spliton .splitlead{grid-column:1 / -1;padding:6px clamp(26px,4vw,64px) 0}
     body.spliton .splitlead .leg{max-width:920px;margin:0 auto}
@@ -430,7 +432,8 @@
     /* Hero stays full width; only the timeline row splits into two columns.
        The map is an inset, rounded, sticky embed — not an edge-to-edge sheet. */
     body.spliton .splitgrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(430px,44vw,880px);
-                            gap:0 8px;padding-right:18px;align-items:start}
+                            gap:0 8px;padding-right:18px;align-items:start;
+                            position:relative;z-index:5;margin-top:-16vh}   /* the scribble overlaps the hero fade, like the single column does */
     body.spliton #tl{min-width:0;max-width:none;margin:0;padding:0 26px 0 clamp(26px,4vw,64px)}
     body.spliton .routemap{display:none}   /* the recap map is the panel now */
 
@@ -603,7 +606,7 @@ function stopHtml(s, marker){
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
   var pill = s.pending ? jprPill('Open to Partnerships', null, false, 'jpr-open')   // red filled, matches the homepage
            : s.noClient ? jprPill('Private')
-           : jprPill('J/PR','Client');
+           : jprPill(s.client || 'J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
   // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
   // Every location gets an "Request partnership" action; hotel-seeking stops get a
@@ -677,6 +680,7 @@ var COORDS = {
   'Lake Como & Milan, Italy':[45.83,9.26], 'Mykonos':[37.45,25.33], 'Santorini, Greece':[36.42,25.43],
   'Milan, Italy':[45.46,9.19], 'Lake Como, Italy':[45.99,9.26], 'Zürich, Switzerland':[47.37,8.54],
   'Zürich & Andermatt, Switzerland':[47.37,8.54], 'Ljubljana, Slovenia':[46.06,14.51],
+  'Andermatt, Switzerland':[46.63,8.59],
   'Athens, Greece':[37.98,23.73],
   'Southeast Slovenia':[45.84,15.04], 'Lake Bled, Slovenia':[46.36,14.10], 'The Dolomites, Italy':[46.54,12.14],
   'St. Moritz, Switzerland':[46.49,9.84], 'Gstaad, Switzerland':[46.48,7.29],
@@ -684,7 +688,13 @@ var COORDS = {
 };
 function routePoints(){
   var pts = [];
-  STOPS.forEach(function(s){ var c = COORDS[s.loc]; if(c) pts.push({ loc:s.loc, nights:s.nights, lat:c[0], lng:c[1] }); });
+  STOPS.forEach(function(s){
+    var c = COORDS[s.loc]; if(!c) return;
+    pts.push({ loc:s.loc, nights:s.nights, lat:c[0], lng:c[1] });
+    TV_EXTRA_PINS.forEach(function(x){
+      if(x.afterLoc === s.loc) pts.push({ loc:x.loc, nights:'Day Trip · '+x.dates, lat:x.lat, lng:x.lng });
+    });
+  });
   pts.forEach(function(p,i){ p.n = i+1; });
   return pts;
 }
@@ -698,6 +708,7 @@ function routeMapHtml(){
     'Lake Como & Milan, Italy':'Como & Milan',
     'Milan, Italy':'Milan', 'Lake Como, Italy':'Lake Como', 'Zürich, Switzerland':'Zürich',
     'Zürich & Andermatt, Switzerland':'Zürich & Andermatt', 'Ljubljana, Slovenia':'Ljubljana',
+    'Andermatt, Switzerland':'Andermatt',
     'Mykonos':'Mykonos', 'Santorini, Greece':'Santorini',
     'Athens, Greece':'Athens',
     'Lake Bled, Slovenia':'Lake Bled', 'Southeast Slovenia':'Southeast Slovenia',
@@ -782,15 +793,9 @@ function initMobileDock(tries){
   if(typeof mapboxgl === 'undefined'){ if((tries||0) < 40) setTimeout(function(){ initMobileDock((tries||0)+1); }, 250); return; }
   var pill = document.getElementById('mdPill');
   // Pins in stop order (n matches the bottom map: same COORDS filter).
-  var pins = [];
-  STOPS.forEach(function(s, si){
-    var c = COORDS[s.loc]; if(!c) return;
-    pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
-                mode:(s.in && s.in.mode) || 'car',
-                dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
-  });
+  var pins = tvBuildPins();
   if(pins.length < 2) return;
-  var legs = tvLegs(pins), veh = null;
+  var legs = tvLegs(pins), veh = null, predeparted = null;
   mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
   var map = new mapboxgl.Map({ container:'mdmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, dragRotate:false, pitchWithRotate:false,
@@ -831,18 +836,22 @@ function initMobileDock(tries){
       map.flyTo({ center:[p.lng, p.lat],
         zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
       if(veh){
-        if(prev === k-1 && legs[k]) veh.runSegs(legs[k].segs, false);
-        else if(prev === k+1 && legs[prev]) veh.runSegs(legs[prev].segs, true);
+        if(predeparted === k){ predeparted = null; }
+        else if(legs[k] && prev === legs[k].fromIdx) veh.runSegs(legs[k].segs, false);
+        else if(legs[prev] && legs[prev].fromIdx === k) veh.runSegs(legs[prev].segs, true);
         else veh.stop();
       }
     }
   }
-  // The stop card nearest beneath the dock wins; cards without a pin fall back
-  // to the last pin at or before them.
+  // The stop card nearest beneath the dock wins; spur pins never claim a card.
   function pinFor(cardIdx){
     var k = -1;
-    pins.forEach(function(p, i){ if(p.stopIdx <= cardIdx) k = i; });
+    pins.forEach(function(p, i){ if(!p.skip && p.stopIdx <= cardIdx) k = i; });
     return k < 0 ? 0 : k;
+  }
+  function nextLegFrom(bi){
+    for(var i = bi + 1; i < pins.length; i++){ if(legs[i] && legs[i].fromIdx === bi) return i; }
+    return null;
   }
   var ticking = false;
   function spy(){
@@ -851,7 +860,15 @@ function initMobileDock(tries){
     var line = dock.getBoundingClientRect().bottom + 130;
     var best = 0;
     cards.forEach(function(c, i){ if(c.getBoundingClientRect().top < line) best = i; });
-    setActive(pinFor(best));
+    var bi = pinFor(best);
+    setActive(bi);
+    var c = cards[best];
+    if(c && veh && active === bi){
+      var r = c.getBoundingClientRect();
+      var prog = (line - r.top) / Math.max(1, r.height);
+      var nk = nextLegFrom(bi);
+      if(prog >= 0.75 && nk != null && predeparted !== nk){ predeparted = nk; veh.runSegs(legs[nk].segs, false); }
+    }
   }
   window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
 
@@ -898,26 +915,54 @@ function tvArc(a,b,k){
     pts.push([u*u*a[0]+2*u*t*cx+t*t*b[0], u*u*a[1]+2*u*t*cy+t*t*b[1]]); }
   return pts;
 }
-// Waypoints force realistic detours (the Dolomites drive goes UP via Bolzano
-// to Cortina, then circles back down toward Milan on its own road).
-var TV_VIA = { 'The Dolomites, Italy': [[11.35,46.50]] };
-// Multi-segment legs: the closing leg drives BACK to Zürich, then flies to
-// Ljubljana — the line and the little traveler both retrace it that way.
-var TV_ZRH = [8.54,47.37];
+// Day-trip spurs get a numbered pin on the maps without owning a stop card —
+// the pin anchors to its home stop's card (Venice rides with Verona).
+var TV_EXTRA_PINS = [
+  { afterLoc:'Verona, Italy', loc:'Venice, Italy', dates:'Sept 8', lat:45.44, lng:12.32 }
+];
+function tvBuildPins(){
+  var pins=[];
+  STOPS.forEach(function(s, si){
+    var c = COORDS[s.loc]; if(!c) return;
+    pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
+                mode:(s.in && s.in.mode) || 'car',
+                dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
+    TV_EXTRA_PINS.forEach(function(x){
+      if(x.afterLoc === s.loc)
+        pins.push({ stopIdx:si, n:pins.length+1, loc:x.loc, lat:x.lat, lng:x.lng, dates:x.dates, skip:true });
+    });
+  });
+  return pins;
+}
+// Multi-segment legs. The Dolomites leg plays the Venice day trip first (train
+// out, train home), then drives up via Bolzano to Cortina; the closing leg
+// drives back to Zürich before the flight to Ljubljana.
+var TV_ZRH = [8.54,47.37], TV_BOLZANO = [11.35,46.50], TV_VENICE = [12.32,45.44];
 var TV_SEGS = {
+  'The Dolomites, Italy': function(a,b){
+    return [ { mode:'train', coords:[a, TV_VENICE] },
+             { mode:'train', coords:[TV_VENICE, a] },
+             { mode:'car', via:[TV_BOLZANO], coords:[a,b] } ];
+  },
   'Ljubljana, Slovenia': function(a,b){
     return [ { mode:'car', coords:[a, TV_ZRH] },
              { mode:'flight', coords: tvArc(TV_ZRH, b, 0.16) } ];
   }
 };
+// legs[i] belongs to real pin i and departs from the previous REAL pin
+// (legs[i].fromIdx) — spur pins carry no leg of their own.
 function tvLegs(pins){
-  var legs=[null];
-  for(var i=1;i<pins.length;i++){
-    var a=[pins[i-1].lng,pins[i-1].lat], b=[pins[i].lng,pins[i].lat], m=pins[i].mode||'car';
-    if(TV_SEGS[pins[i].loc]){ legs.push({ segs: TV_SEGS[pins[i].loc](a,b) }); continue; }
-    legs.push({ segs:[{ mode:m, via: TV_VIA[pins[i].loc] || null,
-      coords: m==='flight' ? tvArc(a,b,0.16) : m==='ferry' ? tvArc(a,b,0.06) : [a,b] }] });
-  }
+  var legs=[], lastReal=-1;
+  pins.forEach(function(pn, i){
+    legs[i]=null;
+    if(pn.skip) return;
+    if(lastReal >= 0){
+      var q=pins[lastReal], a=[q.lng,q.lat], b=[pn.lng,pn.lat], m=pn.mode||'car';
+      legs[i] = { fromIdx:lastReal, segs: TV_SEGS[pn.loc] ? TV_SEGS[pn.loc](a,b)
+        : [{ mode:m, coords: m==='flight' ? tvArc(a,b,0.16) : m==='ferry' ? tvArc(a,b,0.06) : [a,b] }] };
+    }
+    lastReal=i;
+  });
   return legs;
 }
 function tvFetchRoads(legs, onUpdate){
@@ -998,15 +1043,9 @@ function initSplitView(){
   if(document.getElementById('splitpanel')) return;
   if(typeof mapboxgl === 'undefined'){ setTimeout(initSplitView, 300); return; }
 
-  var pins = [];
-  STOPS.forEach(function(s, si){
-    var c = COORDS[s.loc]; if(!c) return;
-    pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
-                mode:(s.in && s.in.mode) || 'car',
-                dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
-  });
+  var pins = tvBuildPins();
   if(pins.length < 2) return;
-  var legs = tvLegs(pins), veh = null;
+  var legs = tvLegs(pins), veh = null, predeparted = null;
 
   var panel = document.createElement('div');
   panel.className = 'splitpanel'; panel.id = 'splitpanel';
@@ -1084,16 +1123,21 @@ function initSplitView(){
       try{ map.resize(); }catch(e){}
       map.flyTo({ center:[p.lng, p.lat], zoom:6.9, speed:0.9, curve:1.4, essential:true });
       if(veh){
-        if(prev === k-1 && legs[k]) veh.runSegs(legs[k].segs, false);
-        else if(prev === k+1 && legs[prev]) veh.runSegs(legs[prev].segs, true);
+        if(predeparted === k){ predeparted = null; }   // the leg already played on the way out
+        else if(legs[k] && prev === legs[k].fromIdx) veh.runSegs(legs[k].segs, false);
+        else if(legs[prev] && legs[prev].fromIdx === k) veh.runSegs(legs[prev].segs, true);
         else veh.stop();
       }
     }
   }
   function pinFor(cardIdx){
     var k = -1;
-    pins.forEach(function(p, i){ if(p.stopIdx <= cardIdx) k = i; });
+    pins.forEach(function(p, i){ if(!p.skip && p.stopIdx <= cardIdx) k = i; });
     return k < 0 ? 0 : k;
+  }
+  function nextLegFrom(bi){
+    for(var i = bi + 1; i < pins.length; i++){ if(legs[i] && legs[i].fromIdx === bi) return i; }
+    return null;
   }
   var ticking = false;
   function spy(){
@@ -1102,7 +1146,18 @@ function initSplitView(){
     var line = window.innerHeight * 0.45;
     var best = 0;
     cards.forEach(function(c, i){ if(c.getBoundingClientRect().top < line) best = i; });
-    setActive(pinFor(best));
+    var bi = pinFor(best);
+    setActive(bi);
+    // Early departure: 3/4 of the way through a stop, the traveler sets off so
+    // long legs (the Venice round trip, the drive back to Zürich, Cortina down
+    // to Milan) play out before the next stop takes the camera.
+    var c = cards[best];
+    if(c && veh && active === bi){
+      var r = c.getBoundingClientRect();
+      var prog = (line - r.top) / Math.max(1, r.height);
+      var nk = nextLegFrom(bi);
+      if(prog >= 0.75 && nk != null && predeparted !== nk){ predeparted = nk; veh.runSegs(legs[nk].segs, false); }
+    }
   }
   window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
 
