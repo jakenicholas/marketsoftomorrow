@@ -1250,9 +1250,13 @@ function partnerBoxHtml(){
 }
 function render(){
   buildTopShow();
-  var html = '<div class="timeline">' + mobileDockHtml() + partnerBoxHtml(), num = 0;
+  var html = '<div class="timeline">' + partnerBoxHtml(), num = 0, dockDone = false;
   STOPS.forEach(function(s){
     if(s.in) html += legHtml(s.in);
+    // The mobile dock enters AFTER the opening travel line, so the Sept-3
+    // scribble keeps its place on the hero fade and the map only appears
+    // (then pins) once the reader scrolls past it.
+    if(!dockDone){ html += mobileDockHtml(); dockDone = true; }
     var marker = s.tentative ? '◇' : (++num);   // ◇ for tentative day trips
     html += stopHtml(s, marker);
   });
