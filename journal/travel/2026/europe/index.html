@@ -361,7 +361,9 @@
 
   /* ── Mobile map dock: a sticky mini-map that follows the scroll (≤760px).
         Desktop keeps the bottom route map; the dock never renders there. ── */
-  .rm-marker{position:relative}
+  /* NO position on .rm-marker: Mapbox absolutely-positions the wrapper itself,
+     and overriding it drops every pin into normal flow (they stack downward,
+     drifting further each stop). Its transform already anchors the ::after ring. */
   .rm-marker.on .rm-dot{transform:scale(1.35);background:var(--terra);color:#F5EEDF;position:relative;z-index:3}
   .rm-marker.on::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(176,96,58,.45);animation:mdring 1.6s ease-out infinite}
   @keyframes mdring{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.25);opacity:0}}
