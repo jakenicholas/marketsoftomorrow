@@ -470,7 +470,7 @@
       <div class="wrap">
         <div class="hero-eyebrow">September 3 – 29</div>
         <h1>Italy, The Isles<br><em>&amp;</em> The Alps</h1>
-        <div class="hero-dates">11 Stays · 4 Countries</div>
+        <div class="hero-dates">10 Stays · 4 Countries</div>
       </div>
     </header>
   </div>
@@ -676,9 +676,9 @@ var COORDS = {
   'Rome, Italy':[41.90,12.50], 'Verona, Italy':[45.44,10.99], 'Venice, Italy':[45.44,12.32],
   'Lake Como & Milan, Italy':[45.83,9.26], 'Mykonos':[37.45,25.33], 'Santorini, Greece':[36.42,25.43],
   'Milan, Italy':[45.46,9.19], 'Lake Como, Italy':[45.99,9.26], 'Zürich, Switzerland':[47.37,8.54],
-  'Zürich & Andermatt, Switzerland':[47.37,8.54],
+  'Zürich & Andermatt, Switzerland':[47.37,8.54], 'Ljubljana, Slovenia':[46.06,14.51],
   'Athens, Greece':[37.98,23.73],
-  'Southeast Slovenia':[45.84,15.04], 'Lake Bled, Slovenia':[46.36,14.10], 'The Dolomites, Italy':[46.72,11.66],
+  'Southeast Slovenia':[45.84,15.04], 'Lake Bled, Slovenia':[46.36,14.10], 'The Dolomites, Italy':[46.54,12.14],
   'St. Moritz, Switzerland':[46.49,9.84], 'Gstaad, Switzerland':[46.48,7.29],
   'Zurich or Geneva, Switzerland':[46.20,6.14]
 };
@@ -697,7 +697,7 @@ function routeMapHtml(){
     'Rome, Italy':'Rome', 'Verona, Italy':'Verona', 'Venice, Italy':'Venice',
     'Lake Como & Milan, Italy':'Como & Milan',
     'Milan, Italy':'Milan', 'Lake Como, Italy':'Lake Como', 'Zürich, Switzerland':'Zürich',
-    'Zürich & Andermatt, Switzerland':'Zürich & Andermatt',
+    'Zürich & Andermatt, Switzerland':'Zürich & Andermatt', 'Ljubljana, Slovenia':'Ljubljana',
     'Mykonos':'Mykonos', 'Santorini, Greece':'Santorini',
     'Athens, Greece':'Athens',
     'Lake Bled, Slovenia':'Lake Bled', 'Southeast Slovenia':'Southeast Slovenia',
@@ -813,7 +813,7 @@ function initMobileDock(tries){
       paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
   }
   if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
-  tvFetchRoads(legs, pins, function(){ var s=map.getSource('mdroute'); if(s) s.setData(tvFC(legs)); });
+  tvFetchRoads(legs, function(){ var s=map.getSource('mdroute'); if(s) s.setData(tvFC(legs)); });
   veh = tvVehicle(map);
 
   var active = -1;
@@ -831,8 +831,8 @@ function initMobileDock(tries){
       map.flyTo({ center:[p.lng, p.lat],
         zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
       if(veh){
-        if(prev === k-1 && legs[k]) veh.run(legs[k].coords, legs[k].mode);
-        else if(prev === k+1 && legs[prev]) veh.run(legs[prev].coords.slice().reverse(), legs[prev].mode);
+        if(prev === k-1 && legs[k]) veh.runSegs(legs[k].segs, false);
+        else if(prev === k+1 && legs[prev]) veh.runSegs(legs[prev].segs, true);
         else veh.stop();
       }
     }
@@ -898,30 +898,50 @@ function tvArc(a,b,k){
     pts.push([u*u*a[0]+2*u*t*cx+t*t*b[0], u*u*a[1]+2*u*t*cy+t*t*b[1]]); }
   return pts;
 }
+// Waypoints force realistic detours (the Dolomites drive goes UP via Bolzano
+// to Cortina, then circles back down toward Milan on its own road).
+var TV_VIA = { 'The Dolomites, Italy': [[11.35,46.50]] };
+// Multi-segment legs: the closing leg drives BACK to Zürich, then flies to
+// Ljubljana — the line and the little traveler both retrace it that way.
+var TV_ZRH = [8.54,47.37];
+var TV_SEGS = {
+  'Ljubljana, Slovenia': function(a,b){
+    return [ { mode:'car', coords:[a, TV_ZRH] },
+             { mode:'flight', coords: tvArc(TV_ZRH, b, 0.16) } ];
+  }
+};
 function tvLegs(pins){
   var legs=[null];
   for(var i=1;i<pins.length;i++){
     var a=[pins[i-1].lng,pins[i-1].lat], b=[pins[i].lng,pins[i].lat], m=pins[i].mode||'car';
-    legs.push({ mode:m, coords: m==='flight' ? tvArc(a,b,0.16) : m==='ferry' ? tvArc(a,b,0.06) : [a,b] });
+    if(TV_SEGS[pins[i].loc]){ legs.push({ segs: TV_SEGS[pins[i].loc](a,b) }); continue; }
+    legs.push({ segs:[{ mode:m, via: TV_VIA[pins[i].loc] || null,
+      coords: m==='flight' ? tvArc(a,b,0.16) : m==='ferry' ? tvArc(a,b,0.06) : [a,b] }] });
   }
   return legs;
 }
-function tvFetchRoads(legs, pins, onUpdate){
-  legs.forEach(function(l,i){
-    if(!l || l.mode==='flight' || l.mode==='ferry') return;
-    var a=[pins[i-1].lng,pins[i-1].lat], b=[pins[i].lng,pins[i].lat];
-    fetch('https://api.mapbox.com/directions/v5/mapbox/driving/'+a[0]+','+a[1]+';'+b[0]+','+b[1]
-        + '?geometries=geojson&overview=full&access_token='+mapboxgl.accessToken)
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        var g = d.routes && d.routes[0] && d.routes[0].geometry;
-        if(g && g.coordinates && g.coordinates.length > 1){ l.coords = g.coordinates; if(onUpdate) onUpdate(); }
-      }).catch(function(){});
+function tvFetchRoads(legs, onUpdate){
+  legs.forEach(function(l){
+    if(!l) return;
+    l.segs.forEach(function(s){
+      if(s.mode==='flight' || s.mode==='ferry') return;
+      var pts=[s.coords[0]].concat(s.via||[]).concat([s.coords[s.coords.length-1]]);
+      fetch('https://api.mapbox.com/directions/v5/mapbox/driving/'
+          + pts.map(function(c){ return c[0]+','+c[1]; }).join(';')
+          + '?geometries=geojson&overview=full&access_token='+mapboxgl.accessToken)
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var g = d.routes && d.routes[0] && d.routes[0].geometry;
+          if(g && g.coordinates && g.coordinates.length > 1){ s.coords = g.coordinates; if(onUpdate) onUpdate(); }
+        }).catch(function(){});
+    });
   });
 }
 function tvFC(legs){
-  return { type:'FeatureCollection', features: legs.filter(Boolean).map(function(l){
-    return { type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:l.coords } }; }) };
+  var feats=[];
+  legs.filter(Boolean).forEach(function(l){ l.segs.forEach(function(s){
+    feats.push({ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:s.coords } }); }); });
+  return { type:'FeatureCollection', features:feats };
 }
 function tvVehicle(map){
   var el=document.createElement('div'); el.className='tv-veh'; el.style.display='none';
@@ -929,13 +949,13 @@ function tvVehicle(map){
   var mk=new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat([0,0]).addTo(map);
   var raf=null;
   function stop(){ if(raf) cancelAnimationFrame(raf); raf=null; el.style.display='none'; }
-  function run(coords, mode){
-    stop(); if(!coords || coords.length < 2) return;
+  function run(coords, mode, dur, done){
+    if(!coords || coords.length < 2){ if(done) done(); return; }
     ic.innerHTML = ICONS[mode] || ICONS.car;
     var cum=[0], i;
     for(i=1;i<coords.length;i++) cum.push(cum[i-1] + tvDist(coords[i-1], coords[i]));
     var total = cum[cum.length-1] || 1e-9;
-    var t0 = performance.now(), DUR = 1900;
+    var t0 = performance.now(), DUR = dur || 1900;
     el.style.display='flex';
     function at(d){
       var j=1; while(j < cum.length-1 && cum[j] < d) j++;
@@ -950,11 +970,23 @@ function tvVehicle(map){
       var s=at(total*e);
       mk.setLngLat(s.p);
       ic.style.transform = mode==='flight' ? 'rotate('+s.brg.toFixed(1)+'deg)' : '';
-      if(t<1) raf=requestAnimationFrame(frame); else stop();
+      if(t<1) raf=requestAnimationFrame(frame);
+      else { raf=null; if(done) done(); else stop(); }
     }
     raf=requestAnimationFrame(frame);
   }
-  return { run:run, stop:stop };
+  function runSegs(segs, rev){
+    stop();
+    var list = rev
+      ? segs.slice().reverse().map(function(s){ return { mode:s.mode, coords:s.coords.slice().reverse() }; })
+      : segs;
+    var dur = list.length > 1 ? 1150 : 1900, i = 0;
+    (function next(){
+      if(i >= list.length){ stop(); return; }
+      var s = list[i++]; run(s.coords, s.mode, dur, next);
+    })();
+  }
+  return { runSegs:runSegs, stop:stop };
 }
 
 // ── Desktop split view: itinerary left, full-height following map right.
@@ -1034,7 +1066,7 @@ function initSplitView(){
         paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
     }
     if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
-    tvFetchRoads(legs, pins, function(){ var s=map.getSource('sproute'); if(s) s.setData(tvFC(legs)); });
+    tvFetchRoads(legs, function(){ var s=map.getSource('sproute'); if(s) s.setData(tvFC(legs)); });
     veh = tvVehicle(map);
     [200, 600, 1200].forEach(function(d){ setTimeout(function(){ try{ map.resize(); }catch(e){} }, d); });
   }
@@ -1052,8 +1084,8 @@ function initSplitView(){
       try{ map.resize(); }catch(e){}
       map.flyTo({ center:[p.lng, p.lat], zoom:6.9, speed:0.9, curve:1.4, essential:true });
       if(veh){
-        if(prev === k-1 && legs[k]) veh.run(legs[k].coords, legs[k].mode);
-        else if(prev === k+1 && legs[prev]) veh.run(legs[prev].coords.slice().reverse(), legs[prev].mode);
+        if(prev === k-1 && legs[k]) veh.runSegs(legs[k].segs, false);
+        else if(prev === k+1 && legs[prev]) veh.runSegs(legs[prev].segs, true);
         else veh.stop();
       }
     }

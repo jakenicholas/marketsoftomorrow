@@ -72,14 +72,12 @@ export const TRAVEL_STOPS = {
 
   { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true, confirmed:true,
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
-    vibe:'Fair Verona on the Adige: the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
-    logi:[], imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
-
-  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', noClient:true, confirmed:true,
-    in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
-    vibe:'A day among the canals: the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
-    logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
-
+    vibe:'Fair Verona on the Adige: the Roman arena, frescoed piazzas, and a relaxed Veneto base — with Venice a quick train away for a day on the water.',
+    logi:[],
+    todo:[
+      { a:'Day Trip', t:'Venice · A Day on the Water', img:'https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg' }
+    ],
+    imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
   { loc:'The Dolomites, Italy', nights:'2 Nights · Sept 11 → 13', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ date:'Sept 11', mode:'car', note:'Verona → the Dolomites' },
     vibe:'Two nights up in the pale peaks: jagged limestone towers, alpine lakes, and ridgeline trails out of Cortina, with the stillness only the mountains carry.',
@@ -142,13 +140,16 @@ export const TRAVEL_STOPS = {
     logi:[['The Drive','<b>~2.5-hour climb</b> from Lake Como up the Maloja Pass into the Engadin.']],
     imgs:['https://assets.vogue.com/photos/65ccb18a486b55e585379e53/master/w_2560%2Cc_limit/GettyImages-1353085015.jpg'] },
 
-  { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 25 → 29', stay:'Private Stay', confirmed:true, noClient:true,
+  { loc:'Ljubljana, Slovenia', nights:'4 Nights · Sept 25 → 29', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 25', mode:'flight', note:'St. Moritz → Zürich Airport → Ljubljana' },
-    vibe:'Closing the trip on Slovenia\u2019s storied glacial lake, with its island church and clifftop castle above the emerald water, then home.',
-    logi:[['The Drive','<b>~2.5-hour drive</b> from St. Moritz to Zürich Airport.'],['Transit','Fly Zürich → <b>Ljubljana</b>, then a 45-minute drive to Lake Bled. Fly home from Ljubljana on the 29th.']],
+    vibe:'Closing the trip in Slovenia’s capital: café terraces along the Ljubljanica under the castle hill, with Lake Bled’s island church an easy day trip. Then home.',
+    logi:[['The Drive','<b>~2.5-hour drive</b> from St. Moritz to Zürich Airport.'],['Transit','Fly Zürich → <b>Ljubljana</b>. Fly home from Ljubljana on the 29th.']],
+    todo:[
+      { a:'Day Trip', t:'Lake Bled', img:'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg' }
+    ],
     imgs:[
-      'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg',
-      'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg'] },
+      'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg',
+      'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg'] },
 
 ],
 };
