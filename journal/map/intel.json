@@ -3672,47 +3672,21 @@
       "delivery_speculative": true
     },
     "mr-c-residences-boca-raton": {
-      "estimate_years": 4.0,
-      "estimate_label": "~4 years",
-      "range_low": 3.8,
-      "range_high": 4.3,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.34,
-      "avg_distance_km": 1698.0,
-      "avg_distance_mi": 1055.1,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 13,
-        "median_years": 3.04,
-        "stddev_years": 1.68,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.65
-      },
-      "source": "comparables",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1230,
+      "delivery_date": "2029-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "medium",
       "project_type": "Mixed-Use",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "520 Fifth Avenue",
-          "slug": "520-fifth-avenue",
-          "location": "New York City",
-          "years": 3.5,
-          "score": 0.34,
-          "distance_km": 1698.0,
-          "distance_mi": 1055.1
-        }
-      ],
-      "pattern_summary": "Mixed-use developments of this scale routinely span 3.8–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": true
+      "delivery_speculative": true
     },
     "continuum-12000-sport-wellness-residences": {
       "estimate_years": 3.1,
@@ -6364,18 +6338,18 @@
       "is_mixed_use": false
     },
     "wynn-al-marjan-island": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 499,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 1.0,
+      "estimate_label": "~1 year",
+      "days_out": 392,
+      "delivery_date": "2027-09-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "pattern_summary": "Targeted for opening in ~1 year.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -17863,14 +17837,14 @@
   "stats": {
     "high": 9,
     "medium": 24,
-    "low": 100,
-    "known_date": 572,
+    "low": 99,
+    "known_date": 573,
     "completed": 71,
     "skipped": 125,
     "no_type": 0,
-    "firm_boosted": 55,
-    "speculative_softened": 229,
+    "firm_boosted": 54,
+    "speculative_softened": 230,
     "district": 14,
-    "mixed_use_adjusted": 36
+    "mixed_use_adjusted": 35
   }
 }
