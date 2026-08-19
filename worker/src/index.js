@@ -1303,14 +1303,23 @@ async function findSubByEmail(env, email) {
   // older customer. The dashboard then read the member as not-Pro moments after
   // they signed up, which is exactly the "my trial was immediately canceled"
   // support email.
-  const RANK = { trialing: 6, active: 6, past_due: 5, paused: 4, unpaid: 3, canceled: 2, incomplete: 1, incomplete_expired: 0 };
-  let best = null;
+  // ACTIVE outranks TRIALING, and a sub that is STAYING outranks one that is
+  // set to cancel. The first cut tied trialing with active and early-returned
+  // whichever appeared first (newest customer wins in Stripe's ordering) — so
+  // a paying member who also had a cancel-pending TRIAL sub (e.g. a refunded
+  // test transaction) could have that dying trial picked over their live paid
+  // plan, and the dashboard greeted a Pro member with "your trial has been
+  // cancelled and you will not be billed".
+  const RANK = { active: 7, trialing: 6, past_due: 5, paused: 4, unpaid: 3, canceled: 2, incomplete: 1, incomplete_expired: 0 };
+  const keyOf = (s) => (RANK[s.status] || 0) * 4 + (s.cancel_at_period_end ? 0 : 2);
+  let best = null, bestKey = -1;
   const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
   for (const c of (custs.data || [])) {
     const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=20');
     for (const s of (subs.data || [])) {
-      if (!best || (RANK[s.status] || 0) > (RANK[best.status] || 0)) best = s;
-      if (s.status === 'trialing' || s.status === 'active') return s;   // can't rank higher
+      const k = keyOf(s);
+      if (k > bestKey || (k === bestKey && best && (s.created || 0) > (best.created || 0))) { best = s; bestKey = k; }
+      if (s.status === 'active' && !s.cancel_at_period_end) return s;   // nothing can outrank this
     }
   }
   return best;
