@@ -428,6 +428,7 @@
     /* The opening travel scribble sits alone, centered across BOTH columns. */
     body.spliton .splitlead{grid-column:1 / -1;padding:6px clamp(26px,4vw,64px) 0}
     body.spliton .splitlead .leg{max-width:920px;margin:0 auto}
+    body.spliton .splitlead .partners{max-width:920px;margin:0 auto 30px}
 
     /* Hero stays full width; only the timeline row splits into two columns.
        The map is an inset, rounded, sticky embed — not an edge-to-edge sheet. */
@@ -1082,8 +1083,18 @@ function initSplitView(){
   grid.appendChild(panel);
   var firstLeg = document.querySelector('#tl .leg.start');
   var legHome = firstLeg ? { parent:firstLeg.parentNode, next:firstLeg.nextSibling } : null;
-  function leadIn(){ if(firstLeg && firstLeg.parentNode !== lead) lead.appendChild(firstLeg); }
-  function leadOut(){ if(firstLeg && legHome && firstLeg.parentNode === lead) legHome.parent.insertBefore(firstLeg, legHome.next); }
+  // The open-partnerships box rides in the lead row too, ABOVE the scribble,
+  // centered across the full width (it only renders when stops are pending).
+  var pBox = document.querySelector('#tl .partners');
+  var pBoxHome = pBox ? { parent:pBox.parentNode, next:pBox.nextSibling } : null;
+  function leadIn(){
+    if(pBox && pBox.parentNode !== lead) lead.appendChild(pBox);
+    if(firstLeg && firstLeg.parentNode !== lead) lead.appendChild(firstLeg);
+  }
+  function leadOut(){
+    if(firstLeg && legHome && firstLeg.parentNode === lead) legHome.parent.insertBefore(firstLeg, legHome.next);
+    if(pBox && pBoxHome && pBox.parentNode === lead) pBoxHome.parent.insertBefore(pBox, pBoxHome.next);
+  }
 
   var pill = document.createElement('button');
   pill.className = 'split-pill'; pill.type = 'button';
