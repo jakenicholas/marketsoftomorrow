@@ -14067,6 +14067,7 @@
           '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s Moving</b><i>Pulse Recent Milestones</i></span></div>' +
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
+          '<div class="tmw-il-toggle tmw-il-sky" style="margin-top:2px"><span class="tmw-il-sw"></span><span><b>Future Skyline</b><i>3D Pipeline Towers</i></span></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
             '<div><span class="d" style="background:#A78BFA"></span>Moved In The Last 90 Days</div>' +
@@ -14350,6 +14351,91 @@
             else setProjects(v);
           });
         });
+
+        // ---- Future Skyline (3D pipeline towers; off by default) ----
+        // Extrudes every pipeline project with floors data as a status-colored
+        // massing volume (height = floors × 3.35m, synthetic footprint sized
+        // from floors) among Mapbox's real gray building extrusions. Entirely
+        // generated from the data the map already loaded — no 3D models. The
+        // panel legend's status colors apply unchanged.
+        (function(){
+          const skyT = panel.querySelector('.tmw-il-sky');
+          if (!skyT) return;
+          let skyOn = false, skyPrev = null;
+          const SKY_SRC = 'tmw-sky';
+          const SKY_COLORS = { 'Announced':'#FFD300', 'Breaking Ground':'#3FA9F5', 'Under Construction':'#3FA9F5', 'Opening Soon':'#1FDF67', 'Now Open':'#1FDF67' };
+          function skyFC(){
+            const src = window.allProjectFeatures || [];
+            const feats = [];
+            src.forEach((f, i) => {
+              const p = (f && f.properties) || {};
+              if (p.completed) return;                       // the future, not the past
+              const fl = parseInt(p.floors, 10);
+              if (!fl || fl < 8) return;                     // low-rise adds noise, not skyline
+              const c = f.geometry && f.geometry.coordinates; if (!c) return;
+              const lng = +c[0], lat = +c[1];
+              if (!isFinite(lng) || !isFinite(lat)) return;
+              // Synthetic rotated-rectangle footprint; area scales gently with
+              // height and clamps so district-scale projects don't slab a block.
+              const m2 = Math.min(1150, 650 + fl * 7), aspect = 1.45;
+              const w = Math.sqrt(m2 / aspect), l = w * aspect;
+              const rot = ((i % 5) - 2) * 7 * Math.PI / 180;
+              const latM = 111320, lngM = 111320 * Math.cos(lat * Math.PI / 180);
+              const ring = [[-l/2,-w/2],[l/2,-w/2],[l/2,w/2],[-l/2,w/2]].map(([x,y]) => {
+                const xr = x*Math.cos(rot)-y*Math.sin(rot), yr = x*Math.sin(rot)+y*Math.cos(rot);
+                return [lng + xr/lngM, lat + yr/latM];
+              });
+              ring.push(ring[0]);
+              feats.push({ type:'Feature',
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:Math.round(fl*3.35), color:SKY_COLORS[p.delivery]||'#A78BFA' },
+                geometry:{ type:'Polygon', coordinates:[ring] } });
+            });
+            return { type:'FeatureCollection', features:feats };
+          }
+          function skyRemove(){
+            ['tmw-sky-future','tmw-sky-halo','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            try{ if(map.getSource(SKY_SRC)) map.removeSource(SKY_SRC); }catch(e){}
+          }
+          function skyAdd(){
+            skyRemove();
+            // Existing city in gray — only when the style carries building
+            // footprints (the satellite style is raster-only and would throw).
+            try {
+              if (map.getSource('composite')) {
+                map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
+                  minzoom:13, filter:['==',['get','extrude'],'true'],
+                  paint:{ 'fill-extrusion-color':'#30332f','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true } });
+              }
+            } catch(e){}
+            map.addSource(SKY_SRC, { type:'geojson', data:skyFC() });
+            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, paint:{ 'fill-color':['get','color'], 'fill-opacity':0.16 } });
+            map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC,
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.88,'fill-extrusion-vertical-gradient':true } });
+          }
+          skyT.addEventListener('click', ()=>{
+            skyOn = !skyOn; skyT.classList.toggle('on', skyOn);
+            if (skyOn) {
+              skyPrev = { pitch: map.getPitch() };
+              skyAdd();
+              map.easeTo({ pitch: 62, duration: 900 });
+            } else {
+              skyRemove();
+              map.easeTo({ pitch: (skyPrev && skyPrev.pitch) || 0, duration: 700 });
+            }
+          });
+          // A tower is a real pin: click-through to the same project modal.
+          map.on('click','tmw-sky-future', (e)=>{
+            const uid = e.features && e.features[0] && e.features[0].properties.uid;
+            if (!uid) return;
+            const f = (window.allProjectFeatures||[]).find(x => x.properties && x.properties.uid === uid);
+            if (f && window.openProjectModal) window.openProjectModal(f, 'skyline');
+          });
+          map.on('mouseenter','tmw-sky-future', ()=>{ map.getCanvas().style.cursor='pointer'; });
+          map.on('mouseleave','tmw-sky-future', ()=>{ map.getCanvas().style.cursor=''; });
+          // Default/Satellite switching rebuilds the style and drops our layers;
+          // re-add AFTER addAllMapLayers has run so we stack above the pins.
+          map.on('style.load', ()=>{ if (skyOn) setTimeout(skyAdd, 500); });
+        })();
 
         // ---- Time Scrubber ----
         const slider = scrub.querySelector('input'), yrEl = scrub.querySelector('.tmw-il-yr'), playBtn = scrub.querySelector('.tmw-il-play');
