@@ -5459,7 +5459,7 @@ async function handlePostsList(req, env, origin, url) {
   const rows  = await env.DB.prepare(`
     SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
            author_name, status, published_at, updated_at, created_at, reading_time_min, wix_url, featured, main_category,
-           post_type, income, contact_id, project_slug, source
+           post_type, income, contact_id, contact_ids, project_slug, source
     FROM posts WHERE ${whereSql}
     ORDER BY COALESCE(published_at, updated_at) DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -6138,6 +6138,7 @@ function rowToPostSummary(r) {
     income:       r.income == null ? null : Number(r.income),
     source:       r.source       || null,
     contact_id:   r.contact_id   || null,
+    contact_ids:  (() => { try { const a = JSON.parse(r.contact_ids || '[]'); if (Array.isArray(a) && a.length) return a; } catch (_) {} return r.contact_id ? [r.contact_id] : []; })(),
     project_slug: r.project_slug || null,
     campaign_id:  r.campaign_id  || null,
   };
@@ -7097,7 +7098,25 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('published_at'  in body) patch.published_at  = body.published_at ? Number(body.published_at) : null;
   if ('post_type'    in body) patch.post_type    = normalizePostType(body.post_type);
   if ('income'       in body) patch.income       = body.income === '' || body.income == null ? null : Number(body.income);
-  if ('contact_id'   in body) patch.contact_id   = body.contact_id || null;
+  // MULTIPLE contacts per article. contact_ids is the canonical list;
+  // contact_id mirrors its first entry so every existing consumer (revenue
+  // attribution, campaign links, the post editor's single picker, MCP) keeps
+  // working unchanged. A legacy single-contact PATCH stays supported: setting
+  // contact_id puts it at the head of the list, clearing it clears the list.
+  if ('contact_ids' in body) {
+    const ids = Array.isArray(body.contact_ids)
+      ? [...new Set(body.contact_ids.map((x) => String(x || '').trim()).filter(Boolean))].slice(0, 12) : [];
+    patch.contact_ids = ids.length ? JSON.stringify(ids) : null;
+    patch.contact_id = ids[0] || null;
+  } else if ('contact_id' in body) {
+    patch.contact_id = body.contact_id || null;
+    let prev = [];
+    try { prev = JSON.parse(existing.contact_ids || '[]') || []; } catch (_) { prev = []; }
+    if (!prev.length && existing.contact_id) prev = [existing.contact_id];
+    const ids = patch.contact_id
+      ? [patch.contact_id, ...prev.filter((x) => x !== patch.contact_id)].slice(0, 12) : [];
+    patch.contact_ids = ids.length ? JSON.stringify(ids) : null;
+  }
   if ('project_slug' in body) patch.project_slug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
   // A newly-set / changed project link flags the article as a POTENTIAL progress update.
   const _newProjectLink = ('project_slug' in body) && !!patch.project_slug && patch.project_slug !== (existing.project_slug || null);
@@ -7680,6 +7699,7 @@ export async function ensureContactsTable(env) {
     `ALTER TABLE posts ADD COLUMN post_type    TEXT DEFAULT 'Editorial'`,
     `ALTER TABLE posts ADD COLUMN income       REAL`,
     `ALTER TABLE posts ADD COLUMN contact_id   TEXT`,
+    `ALTER TABLE posts ADD COLUMN contact_ids  TEXT`,
     `ALTER TABLE posts ADD COLUMN project_slug TEXT`,
     `ALTER TABLE posts ADD COLUMN source       TEXT DEFAULT NULL`,
     `ALTER TABLE posts ADD COLUMN ai_original_html TEXT DEFAULT NULL`,
@@ -7750,6 +7770,7 @@ function rowToCampaign(r, postCount) {
     slug: r.slug || '',
     name: r.name || '',
     contact_id:   r.contact_id   || null,
+    contact_ids:  (() => { try { const a = JSON.parse(r.contact_ids || '[]'); if (Array.isArray(a) && a.length) return a; } catch (_) {} return r.contact_id ? [r.contact_id] : []; })(),
     project_slug: r.project_slug || null,
     tier:   r.tier   || null,
     status: r.status || 'live',
