@@ -423,6 +423,10 @@
     .split-pill svg{width:15px;height:15px;color:var(--terra)}
     body.spliton .split-pill{display:none}
 
+    /* The opening travel scribble sits alone, centered across BOTH columns. */
+    body.spliton .splitlead{grid-column:1 / -1;padding:6px clamp(26px,4vw,64px) 0}
+    body.spliton .splitlead .leg{max-width:920px;margin:0 auto}
+
     /* Hero stays full width; only the timeline row splits into two columns.
        The map is an inset, rounded, sticky embed — not an edge-to-edge sheet. */
     body.spliton .splitgrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(430px,44vw,880px);
@@ -466,7 +470,7 @@
       <div class="wrap">
         <div class="hero-eyebrow">September 3 – 29</div>
         <h1>Italy, The Isles<br><em>&amp;</em> The Alps</h1>
-        <div class="hero-dates">10 Stays · 4 Countries</div>
+        <div class="hero-dates">11 Stays · 4 Countries</div>
       </div>
     </header>
   </div>
@@ -672,6 +676,7 @@ var COORDS = {
   'Rome, Italy':[41.90,12.50], 'Verona, Italy':[45.44,10.99], 'Venice, Italy':[45.44,12.32],
   'Lake Como & Milan, Italy':[45.83,9.26], 'Mykonos':[37.45,25.33], 'Santorini, Greece':[36.42,25.43],
   'Milan, Italy':[45.46,9.19], 'Lake Como, Italy':[45.99,9.26], 'Zürich, Switzerland':[47.37,8.54],
+  'Zürich & Andermatt, Switzerland':[47.37,8.54],
   'Athens, Greece':[37.98,23.73],
   'Southeast Slovenia':[45.84,15.04], 'Lake Bled, Slovenia':[46.36,14.10], 'The Dolomites, Italy':[46.72,11.66],
   'St. Moritz, Switzerland':[46.49,9.84], 'Gstaad, Switzerland':[46.48,7.29],
@@ -692,6 +697,7 @@ function routeMapHtml(){
     'Rome, Italy':'Rome', 'Verona, Italy':'Verona', 'Venice, Italy':'Venice',
     'Lake Como & Milan, Italy':'Como & Milan',
     'Milan, Italy':'Milan', 'Lake Como, Italy':'Lake Como', 'Zürich, Switzerland':'Zürich',
+    'Zürich & Andermatt, Switzerland':'Zürich & Andermatt',
     'Mykonos':'Mykonos', 'Santorini, Greece':'Santorini',
     'Athens, Greece':'Athens',
     'Lake Bled, Slovenia':'Lake Bled', 'Southeast Slovenia':'Southeast Slovenia',
@@ -985,8 +991,16 @@ function initSplitView(){
   var tl = document.getElementById('tl');
   var grid = document.createElement('div'); grid.className = 'splitgrid';
   tl.parentNode.insertBefore(grid, tl);
+  // Row 1 spans both columns and carries the opening travel scribble (moved in
+  // while split is on, returned home when it's off); row 2 = itinerary + map.
+  var lead = document.createElement('div'); lead.className = 'splitlead';
+  grid.appendChild(lead);
   grid.appendChild(tl);
   grid.appendChild(panel);
+  var firstLeg = document.querySelector('#tl .leg.start');
+  var legHome = firstLeg ? { parent:firstLeg.parentNode, next:firstLeg.nextSibling } : null;
+  function leadIn(){ if(firstLeg && firstLeg.parentNode !== lead) lead.appendChild(firstLeg); }
+  function leadOut(){ if(firstLeg && legHome && firstLeg.parentNode === lead) legHome.parent.insertBefore(firstLeg, legHome.next); }
 
   var pill = document.createElement('button');
   pill.className = 'split-pill'; pill.type = 'button';
@@ -1064,6 +1078,7 @@ function initSplitView(){
     // Pre-display + forced reflow so the slide-in transition has a starting
     // frame (rAF freezes in hidden tabs, so it can't be trusted for this).
     panel.classList.add('prep');
+    leadIn();
     void panel.offsetWidth;
     document.body.classList.add('spliton');
     buildMap();
@@ -1074,6 +1089,7 @@ function initSplitView(){
   }
   function disable(){
     document.body.classList.remove('spliton');
+    leadOut();
     setTimeout(function(){ panel.classList.remove('prep'); }, 480);
     try{ localStorage.setItem(SPLIT_OFF_KEY, '1'); }catch(e){}
   }
@@ -1082,7 +1098,7 @@ function initSplitView(){
   function alignPanelTop(){
     if(!document.body.classList.contains('spliton')) return;
     var first = cards[0]; if(!first) return;
-    var off = first.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+    var off = first.getBoundingClientRect().top - tl.getBoundingClientRect().top;
     panel.style.marginTop = Math.max(0, Math.round(off)) + 'px';
   }
   window.addEventListener('resize', alignPanelTop);

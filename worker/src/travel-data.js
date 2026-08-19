@@ -124,22 +124,28 @@ export const TRAVEL_STOPS = {
       'https://media.cntraveler.com/photos/6638fe274f34977b03728a03/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Main%2520Pool%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg'] },
 
   // ── Part 2: Switzerland, the Lakes & Slovenia ──
-  { loc:'Zürich, Switzerland', nights:'5 Nights · Sept 18 → 23', stay:'Private Stay', confirmed:true, noClient:true,
+  { loc:'Zürich & Andermatt, Switzerland', nights:'4 Nights · Sept 18 → 22', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 18', mode:'flight', note:'Santorini → Zürich' },
-    vibe:'Five nights on the Limmat: the old town\u2019s guild houses, the lakefront promenade, and day trips into the Alps from Europe\u2019s tidiest hub.',
+    vibe:'Four nights split between the Limmat and the high Alps: the old town\u2019s guild houses and lakefront, then up the Reuss valley to Andermatt\u2019s granite village and mountain rail country.',
     logi:[['Transit','Fly from Santorini to <b>Zürich</b> on Sept 18.']],
     imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 
-  { loc:'Lake Como, Italy', nights:'2 Nights · Sept 23 → 25', stay:'Private Stay', confirmed:true, noClient:true,
-    in:{ date:'Sept 23', mode:'car', note:'Zürich → Lake Como' },
+  { loc:'Lake Como, Italy', nights:'2 Nights · Sept 22 → 24', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 22', mode:'car', note:'Andermatt → Lake Como' },
     vibe:'Two nights on the villa-lined shoreline: boats across the lake, Bellagio and Varenna, and aperitivo above the water.',
     logi:[['The Drive','<b>~3-hour drive</b> south from Zürich, over the Alps and down to the lake.']],
     imgs:['https://imageio.forbes.com/specials-images/imageserve/646b6b45d9b20ac15900fd8a/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds'] },
 
+  { loc:'St. Moritz, Switzerland', nights:'1 Night · Sept 24 → 25', stay:'Private Stay', confirmed:true, noClient:true,
+    in:{ date:'Sept 24', mode:'car', note:'Lake Como → St. Moritz' },
+    vibe:'One night in the Engadin: champagne air at 1,800 meters, the lake below the village, and alpine glamour at the end of the Maloja Pass road.',
+    logi:[['The Drive','<b>~2.5-hour climb</b> from Lake Como up the Maloja Pass into the Engadin.']],
+    imgs:['https://assets.vogue.com/photos/65ccb18a486b55e585379e53/master/w_2560%2Cc_limit/GettyImages-1353085015.jpg'] },
+
   { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 25 → 29', stay:'Private Stay', confirmed:true, noClient:true,
-    in:{ date:'Sept 25', mode:'car', note:'Lake Como → Lake Bled' },
+    in:{ date:'Sept 25', mode:'flight', note:'St. Moritz → Zürich Airport → Ljubljana' },
     vibe:'Closing the trip on Slovenia\u2019s storied glacial lake, with its island church and clifftop castle above the emerald water, then home.',
-    logi:[['The Drive','<b>~5-hour drive</b> east from Lake Como through the Alps to Lake Bled. Fly home from Ljubljana on the 29th.']],
+    logi:[['The Drive','<b>~2.5-hour drive</b> from St. Moritz to Zürich Airport.'],['Transit','Fly Zürich → <b>Ljubljana</b>, then a 45-minute drive to Lake Bled. Fly home from Ljubljana on the 29th.']],
     imgs:[
       'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg',
       'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg'] },
