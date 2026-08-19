@@ -14390,7 +14390,26 @@
               else if (/park|trail|rail|marina|beach|golf/.test(ty)) hM = 4;
               else if (fl > 0) hM = Math.round(fl * 3.35);
               else hM = 10;
-              // TRUE footprint first: skyline-footprints.json carries the real
+              // MASSING SPEC first: skyline-massings.json carries multi-piece
+              // extrusions (podium + towers with true bases and heights) parsed
+              // from our own project descriptions — a twin-tower project shows
+              // two towers at their real heights, not one averaged slab.
+              const ms = (window._skyMass || {})[p.slug];
+              if (Array.isArray(ms) && ms.length) {
+                const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
+                const col0 = (movingOn && isMover(f)) ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300');
+                ms.forEach(pc => {
+                  if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4) return;
+                  const r2 = pc.ring.slice();
+                  const a0 = r2[0], z0 = r2[r2.length-1];
+                  if (a0[0] !== z0[0] || a0[1] !== z0[1]) r2.push(a0);
+                  feats.push({ type:'Feature',
+                    properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:+pc.top||10, base:+pc.base||0, color:col0, yr: yM0 ? +yM0[0] : 0 },
+                    geometry:{ type:'Polygon', coordinates:[r2] } });
+                });
+                return;
+              }
+              // TRUE footprint next: skyline-footprints.json carries the real
               // OSM building polygon on the site (same data Mapbox's gray city
               // renders from, so blocks and street alignment match exactly).
               // A block-wide project shows its whole block. No polygon yet →
@@ -14427,7 +14446,7 @@
               // purple), everything else keeps its status color.
               const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, color: mover ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300'), yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300'), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             return { type:'FeatureCollection', features:feats };
@@ -14442,11 +14461,15 @@
             // moment they arrive (synthetic rects fill the first frames).
             if (!window._skyFoot && !window._skyFootReq) {
               window._skyFootReq = 1;
-              fetch('/map/skyline-footprints.json').then(r => r.ok ? r.json() : null).then(j => {
-                if (!j) return;
-                window._skyFoot = j;
+              Promise.all([
+                fetch('/map/skyline-footprints.json').then(r => r.ok ? r.json() : null).catch(()=>null),
+                fetch('/map/skyline-massings.json').then(r => r.ok ? r.json() : null).catch(()=>null)
+              ]).then(([fj, mj]) => {
+                if (fj) window._skyFoot = fj;
+                if (mj) window._skyMass = mj;
+                if (!fj && !mj) return;
                 try { const s = map.getSource(SKY_SRC); if (s && skyOn) s.setData(skyFC()); } catch(e){}
-              }).catch(()=>{});
+              });
             }
             // Existing city in gray — only when the style carries building
             // footprints (the satellite style is raster-only and would throw).
@@ -14462,7 +14485,7 @@
             map.addSource(SKY_SRC, { type:'geojson', data:skyFC() });
             map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13, paint:{ 'fill-color':['get','color'], 'fill-opacity':0.16 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.88,'fill-extrusion-vertical-gradient':true } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.88,'fill-extrusion-vertical-gradient':true } });
             skyScrub();
             // The towers ARE the pins now — hide the flat dots underneath them.
             // Clusters (far zoom) and completed pins are untouched; the pin set
