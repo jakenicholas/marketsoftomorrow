@@ -14394,7 +14394,7 @@
               // extrusions (podium + towers with true bases and heights) parsed
               // from our own project descriptions — a twin-tower project shows
               // two towers at their real heights, not one averaged slab.
-              const ms = (window._skyMass || {})[p.slug];
+              const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
                 const col0 = (movingOn && isMover(f)) ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300');
@@ -14470,11 +14470,13 @@
               window._skyFootReq = 1;
               Promise.all([
                 fetch('/map/skyline-footprints.json').then(r => r.ok ? r.json() : null).catch(()=>null),
-                fetch('/map/skyline-massings.json').then(r => r.ok ? r.json() : null).catch(()=>null)
-              ]).then(([fj, mj]) => {
+                fetch('/map/skyline-massings.json').then(r => r.ok ? r.json() : null).catch(()=>null),
+                fetch('https://tmw.jake-ab7.workers.dev/massings-overrides').then(r => r.ok ? r.json() : null).catch(()=>null)
+              ]).then(([fj, mj, oj]) => {
                 if (fj) window._skyFoot = fj;
                 if (mj) window._skyMass = mj;
-                if (!fj && !mj) return;
+                if (oj) window._skyOver = oj;   // Studio editor hand-fixes: top priority
+                if (!fj && !mj && !oj) return;
                 try { const s = map.getSource(SKY_SRC); if (s && skyOn) s.setData(skyFC()); } catch(e){}
               });
             }

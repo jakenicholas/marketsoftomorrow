@@ -14530,6 +14530,80 @@ Rules:
                 satellite: satOk, renderings: renders.length, model: WRITE_MODEL }, {}, env, origin);
 }
 
+// ---- Future Skyline: massing OVERRIDES (Studio editor) --------------------
+// Hand-authored massing lives in D1, not the committed file, so a save shows
+// on the live map on next load (the map merges: override > massings.json >
+// footprint). GET /massings-overrides is public (the map fetches it);
+// /admin/massing-save upserts (empty pieces = revert to automatic).
+async function ensureMassingTable(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS massing_overrides (slug TEXT PRIMARY KEY, pieces TEXT NOT NULL, updated_at TEXT)').run();
+}
+async function handleMassingOverrides(request, env, origin) {
+  await ensureMassingTable(env);
+  const rows = (await env.DB.prepare('SELECT slug, pieces FROM massing_overrides').all()).results || [];
+  const out = {};
+  for (const r of rows) { try { out[r.slug] = JSON.parse(r.pieces); } catch (_) {} }
+  const resp = json(out, {}, env, origin);
+  resp.headers.set('Cache-Control', 'public, max-age=60');
+  return resp;
+}
+function mvValidPieces(pieces) {
+  if (!Array.isArray(pieces) || !pieces.length || pieces.length > 8) return null;
+  const out = [];
+  for (const pc of pieces) {
+    if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4 || pc.ring.length > 40) return null;
+    const ring = pc.ring.map(pt => [ +pt[0], +pt[1] ]);
+    if (ring.some(pt => !isFinite(pt[0]) || !isFinite(pt[1]))) return null;
+    const base = Math.max(0, Math.round(+pc.base || 0)), top = Math.round(+pc.top || 0);
+    if (top <= base || top > 700) return null;
+    out.push({ ring, base, top });
+  }
+  return out;
+}
+async function handleMassingSave(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  let body = {}; try { body = await request.json(); } catch (_) {}
+  const slug = String(body.slug || '').trim();
+  if (!slug || slug.length > 200) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  await ensureMassingTable(env);
+  if (!body.pieces || (Array.isArray(body.pieces) && !body.pieces.length)) {
+    await env.DB.prepare('DELETE FROM massing_overrides WHERE slug = ?').bind(slug).run();
+    return json({ ok: true, slug, reverted: true }, {}, env, origin);
+  }
+  const pieces = mvValidPieces(body.pieces);
+  if (!pieces) return json({ error: 'invalid pieces' }, { status: 400 }, env, origin);
+  await env.DB.prepare('INSERT INTO massing_overrides (slug, pieces, updated_at) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET pieces = excluded.pieces, updated_at = excluded.updated_at')
+    .bind(slug, JSON.stringify(pieces), new Date().toISOString()).run();
+  return json({ ok: true, slug, pieces: pieces.length }, {}, env, origin);
+}
+async function handleMassingContext(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  const slug = new URL(request.url).searchParams.get('slug') || '';
+  const { flat, foot } = await mvData();
+  if (!_mvCache.mass) {
+    _mvCache.mass = await fetch('https://www.oftmw.com/map/skyline-massings.json').then(r => r.ok ? r.json() : ({})).catch(() => ({}));
+  }
+  if (!slug) {
+    // search list
+    return json({ projects: flat.filter(p => p.Slug && p.Latitude).map(p => ({ slug: p.Slug, title: p.Title, city: p.City || '' })) }, {}, env, origin);
+  }
+  const p = flat.find(x => x.Slug === slug);
+  if (!p) return json({ error: 'unknown slug' }, { status: 404 }, env, origin);
+  await ensureMassingTable(env);
+  const row = await env.DB.prepare('SELECT pieces FROM massing_overrides WHERE slug = ?').bind(slug).first();
+  let override = null; try { override = row ? JSON.parse(row.pieces) : null; } catch (_) {}
+  return json({
+    slug, title: p.Title, city: p.City || '', lat: +p.Latitude, lng: +p.Longitude,
+    floors: parseInt(String(p.Floors || '').replace(/\D/g, ''), 10) || 0,
+    gfa: parseFloat(p.GfaSqFt) || 0,
+    footprint: foot[slug] || null,
+    massing: (_mvCache.mass || {})[slug] || null,
+    override,
+  }, {}, env, origin);
+}
+
 async function requireAdminToken(req, env, origin) {
   const auth = req.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
@@ -19802,6 +19876,10 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/massing-vision') {
         return await handleMassingVision(request, env, origin);
       }
+      // Future Skyline: hand-authored massing overrides (Studio editor).
+      if (request.method === 'GET'  && url.pathname === '/massings-overrides')    return await handleMassingOverrides(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/massing-save')    return await handleMassingSave(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/massing-context') return await handleMassingContext(request, env, origin);
       // Enterprise orgs: admin provisioning + member-facing partner endpoints.
       if (request.method === 'GET'  && url.pathname === '/admin/orgs')        return await handleOrgsList(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/org-upsert')  return await handleOrgUpsert(request, env, origin);

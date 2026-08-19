@@ -32,6 +32,9 @@ MATCH_NEAR = 15     # metres: nearest-building match threshold when pin isn't in
 MIN_AREA = 250      # m²: ignore sheds/kiosks
 MAX_AREA = 25000    # m²: ignore district-scale polygons (multi-block construction landuse)
 MAX_RING_PTS = 32
+# Known-bad OSM matches (wrong building): never store a ring for these; the
+# Studio massing editor owns their geometry.
+BLOCKLIST = {'10-cityplace'}
 
 def load_projects():
     data = json.loads(FLAT.read_text())
@@ -56,7 +59,7 @@ def load_projects():
                         "gfa": gfa, "fl": fl})
         except (TypeError, ValueError):
             continue
-    return [p for p in out if p["slug"]]
+    return [p for p in out if p["slug"] and p["slug"] not in BLOCKLIST]
 
 def overpass(points):
     # buildings + the civic forms that aren't tagged building: stadium bowls,
