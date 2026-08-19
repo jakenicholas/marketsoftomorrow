@@ -14374,27 +14374,52 @@
               if (p.completed) return;                       // the future, not the past
               const flM = String(p.floors || '').match(/\d+/);
               const fl = flM ? parseInt(flM[0], 10) : 0;
-              if (!fl || fl < 3) return;                     // any real building rises; no floors data = no tower
               const c = f.geometry && f.geometry.coordinates; if (!c) return;
               const lng = +c[0], lat = +c[1];
               if (!isFinite(lng) || !isFinite(lat)) return;
-              // Footprint from GROUND-TRUTH scale when we have it: GFA ÷ floors
-              // ≈ the real plate, so a two-block project reads two blocks wide.
-              // Big plates square off (aspect 1.15); towers stay slender (1.45).
-              // No GFA → gentle floors-based estimate.
-              const gfa = parseFloat(p.gfa) || 0;
-              let m2 = gfa > 0
-                ? Math.min(9000, Math.max(450, (gfa * 0.0929) / fl))
-                : Math.min(1150, 650 + fl * 7);
-              const aspect = m2 > 2500 ? 1.15 : 1.45;
-              const w = Math.sqrt(m2 / aspect), l = w * aspect;
-              const rot = ((i % 5) - 2) * 7 * Math.PI / 180;
-              const latM = 111320, lngM = 111320 * Math.cos(lat * Math.PI / 180);
-              const ring = [[-l/2,-w/2],[l/2,-w/2],[l/2,w/2],[-l/2,w/2]].map(([x,y]) => {
-                const xr = x*Math.cos(rot)-y*Math.sin(rot), yr = x*Math.sin(rot)+y*Math.cos(rot);
-                return [lng + xr/lngM, lat + yr/latM];
-              });
-              ring.push(ring[0]);
+              // EVERY pipeline pin converts to a 3D form. Towers rise by their
+              // floors; civic projects without floors data get a massing height
+              // by what they are — a stadium bowl, a bridge deck, a museum hall,
+              // a park plate — so the skyline has no orphan flat pins.
+              const ty = String(p.projectTypesStr || '') + ',' + String(p.preferredType || '').toLowerCase();
+              let hM;
+              if (fl >= 3) hM = Math.round(fl * 3.35);
+              else if (/stadium|arena|ballpark/.test(ty)) hM = 45;
+              else if (/bridge/.test(ty)) hM = 12;
+              else if (/museum|arts|theat|performing|cultural|concert|convention/.test(ty)) hM = 22;
+              else if (/park|trail|rail|marina|beach|golf/.test(ty)) hM = 4;
+              else if (fl > 0) hM = Math.round(fl * 3.35);
+              else hM = 10;
+              // TRUE footprint first: skyline-footprints.json carries the real
+              // OSM building polygon on the site (same data Mapbox's gray city
+              // renders from, so blocks and street alignment match exactly).
+              // A block-wide project shows its whole block. No polygon yet →
+              // synthetic rect scaled by GFA ÷ floors (the real plate), rotated
+              // to the street-grid bearing of the nearest building (a number in
+              // the same file) so it sits parallel to the streets, not askew.
+              const fp = (window._skyFoot || {})[p.slug];
+              let ring;
+              if (Array.isArray(fp) && fp.length > 3) {
+                ring = fp.slice();
+                const a = ring[0], z = ring[ring.length-1];
+                if (a[0] !== z[0] || a[1] !== z[1]) ring.push(a);
+              } else {
+                const gfa = parseFloat(p.gfa) || 0;
+                const flEq = Math.max(1, fl || Math.round(hM / 3.35));   // civic: spread GFA over massing height
+                let m2 = gfa > 0
+                  ? Math.min(15000, Math.max(450, (gfa * 0.0929) / flEq))
+                  : (fl >= 3 ? Math.min(1150, 650 + fl * 7)
+                             : (/stadium|arena|ballpark/.test(ty) ? 9000 : /bridge/.test(ty) ? 900 : /park|trail|golf/.test(ty) ? 2600 : 1400));
+                const aspect = m2 > 2500 ? 1.15 : 1.45;
+                const w = Math.sqrt(m2 / aspect), l = w * aspect;
+                const rot = (typeof fp === 'number' ? (90 - fp) : 0) * Math.PI / 180;
+                const latM = 111320, lngM = 111320 * Math.cos(lat * Math.PI / 180);
+                ring = [[-l/2,-w/2],[l/2,-w/2],[l/2,w/2],[-l/2,w/2]].map(([x,y]) => {
+                  const xr = x*Math.cos(rot)-y*Math.sin(rot), yr = x*Math.sin(rot)+y*Math.cos(rot);
+                  return [lng + xr/lngM, lat + yr/latM];
+                });
+                ring.push(ring[0]);
+              }
               // Delivery year → the time scrubber filters towers like pins (yr 0 = unknown, always shown).
               const yM = String(p.deliveryDate || '').match(/20\d{2}/);
               // What's Moving acts as a FILTER on the skyline, not a separate
@@ -14402,7 +14427,7 @@
               // purple), everything else keeps its status color.
               const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:Math.round(fl*3.35), color: mover ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300'), yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, color: mover ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300'), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             return { type:'FeatureCollection', features:feats };
@@ -14413,6 +14438,16 @@
           }
           function skyAdd(){
             skyRemove();
+            // Real footprints load once, lazily; towers re-render in place the
+            // moment they arrive (synthetic rects fill the first frames).
+            if (!window._skyFoot && !window._skyFootReq) {
+              window._skyFootReq = 1;
+              fetch('/map/skyline-footprints.json').then(r => r.ok ? r.json() : null).then(j => {
+                if (!j) return;
+                window._skyFoot = j;
+                try { const s = map.getSource(SKY_SRC); if (s && skyOn) s.setData(skyFC()); } catch(e){}
+              }).catch(()=>{});
+            }
             // Existing city in gray — only when the style carries building
             // footprints (the satellite style is raster-only and would throw).
             try {
@@ -20241,6 +20276,7 @@
                 units: p.Units || '',
                 floors: p.Floors || '',
                 gfa: p.GfaSqFt || '',   // ground-truth scale for the Future Skyline footprints
+                slug: p.Slug || '',     // keys the real OSM footprint in skyline-footprints.json
                 // Optional prose context. configSummary describes the layout
                 // when "X floors" alone is misleading (multi-tower projects).
                 // deliveryPhases describes staggered openings when the single
