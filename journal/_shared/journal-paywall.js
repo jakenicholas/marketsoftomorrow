@@ -12,14 +12,17 @@
 (function () {
   if (window.tmwShowPaywall) return;                 // singleton
 
-  // Pro pricing (2026-08): $32/mo, $300/yr, 2-week free trial. Older price
+  // Pro pricing (2026-08-19): $90/mo, $900/yr, 2-week free trial. NOTE: the
+  // price IDs below are still the $32/$300 Memberstack objects — swap in the
+  // new $90/$900 objects (trial + no-trial pairs) as soon as they exist,
+  // or checkout will keep charging the old rate. Older price
   // objects stay live in Memberstack so existing subscribers keep billing
   // their old rate (grandfathered) — we just point NEW signups at the new prices.
   var PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-08--rewl0anz';
   var PRICE_ID_ANNUAL  = 'prc_pro-annual-trial-2026-08--rast0ag0';
   // No-trial equivalents for returning members who already used their free trial.
   // LEGACY = old $9/$90 (members grandfathered from before the 2026-07-02 price
-  // change); CURRENT = the $32/$300 no-trial objects. The worker's
+  // change); CURRENT = the standard-rate no-trial objects. The worker's
   // /trial-eligible returns `grandfathered`; startCheckout picks the map.
   var NOTRIAL_LEGACY = {
     'prc_pro-annual-trial-2026-08--rast0ag0': 'prc_annual-9i2e0eab',
@@ -81,7 +84,7 @@
     var sub = modal.querySelector('.paywall-subtitle');
     if (sub) sub.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:';
     var annual = modal.querySelector('.paywall-plan-annual .paywall-plan-note');
-    if (annual) annual.innerHTML = '$25/month &middot; save 22% &middot; 14 days free';
+    if (annual) annual.innerHTML = '$75/month &middot; save 17% &middot; 14 days free';
     var monthly = modal.querySelector('.paywall-plan-monthly .paywall-plan-note');
     if (monthly) monthly.textContent = '14 days free';
   }
@@ -189,12 +192,12 @@
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-name">Annual</div>' +
-            '<div class="paywall-plan-price">$300<span class="paywall-plan-per">/year</span></div>' +
-            '<div class="paywall-plan-note">$25/month &middot; save 22% &middot; 14 days free</div>' +
+            '<div class="paywall-plan-price">$900<span class="paywall-plan-per">/year</span></div>' +
+            '<div class="paywall-plan-note">$75/month &middot; save 17% &middot; 14 days free</div>' +
           '</button>' +
           '<button class="paywall-plan paywall-plan-monthly" data-price-id="' + PRICE_ID_MONTHLY + '" style="display:none">' +
             '<div class="paywall-plan-name">Monthly</div>' +
-            '<div class="paywall-plan-price">$32<span class="paywall-plan-per">/month</span></div>' +
+            '<div class="paywall-plan-price">$90<span class="paywall-plan-per">/month</span></div>' +
             '<div class="paywall-plan-note">14 days free</div>' +
           '</button>' +
         '</div>' +

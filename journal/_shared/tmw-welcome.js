@@ -5,7 +5,7 @@
      GATE      — create a free account to continue (email + password over a
                  rotating full-bleed project slideshow)
      MEMBER #  — the Blueprint member-number celebration, right after signup
-     GO PRO    — the trial pitch with the two plans ($32/mo, $300/yr)
+     GO PRO    — the trial pitch with the two plans ($90/mo, $900/yr)
 
    Mockup this shipped from: /mockups/welcome-v1/ (direction A).
 
@@ -460,8 +460,8 @@
         '<h2 class="g-h">' + copy[0] + '</h2>' +
         '<p class="g-sub">' + copy[1] + '</p>' +
         '<div class="plans">' +
-          '<button class="plan sel" data-price="' + PRICE_ANNUAL + '"><span class="tag">Save 22%</span><div class="nm">Annual</div><div class="pr">$300<small>/yr</small></div><div class="nt">$25/month &middot; 14 days free</div></button>' +
-          '<button class="plan" data-price="' + PRICE_MONTHLY + '"><div class="nm">Monthly</div><div class="pr">$32<small>/mo</small></div><div class="nt">14 days free</div></button>' +
+          '<button class="plan sel" data-price="' + PRICE_ANNUAL + '"><span class="tag">Save 17%</span><div class="nm">Annual</div><div class="pr">$900<small>/yr</small></div><div class="nt">$75/month &middot; 14 days free</div></button>' +
+          '<button class="plan" data-price="' + PRICE_MONTHLY + '"><div class="nm">Monthly</div><div class="pr">$90<small>/mo</small></div><div class="nt">14 days free</div></button>' +
         '</div>' +
         '<div class="p-feat">' +
           '<span class="p-ft">&#10003; Full Map &amp; Atlas</span><span class="p-ft">&#10003; Unlimited Onyx + Deep</span>' +

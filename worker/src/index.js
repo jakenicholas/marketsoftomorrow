@@ -2120,9 +2120,9 @@ async function fetchStripeIncome(env) {
       // revenue. Their committed value lives in trial_mrr as separate upside.
       if (isTrial) {
         trialMrr += subPerMonth; trialCount++;
-        // Current-lineup trials only ($32/mo or $300/yr) — older-lineup trials
-        // ($9/$90, $15/$150) must not drag the forward per-sub value down.
-        if ((subIv === 'month' && Math.round(subAmt) === 32) || (subIv === 'year' && Math.round(subAmt) === 300)) {
+        // Current-lineup trials only ($90/mo or $900/yr) — older-lineup trials
+        // ($9/$90, $15/$150, $32/$300) must not drag the forward per-sub value down.
+        if ((subIv === 'month' && Math.round(subAmt) === 90) || (subIv === 'year' && Math.round(subAmt) === 900)) {
           trialNewMrr += subPerMonth; trialNewCount++;
         }
       }
@@ -2215,9 +2215,9 @@ async function fetchStripeIncome(env) {
   let ncSubs = 0, ncMrr = 0;
   for (const s of subLedger) if (s.created && s.created >= PRICE_CUTOVER) { ncSubs++; ncMrr += s.perMonth; }
   // Forward per-sub value = the CURRENT price lineup only: average of trials
-  // on $32/mo or $300/yr (real plan choices at today's prices). With none in
-  // flight, assume list monthly ($32). Older-lineup trials never count.
-  const newSubMrr = trialNewCount >= 1 ? trialNewMrr / trialNewCount : 32;
+  // on $90/mo or $900/yr (real plan choices at today's prices). With none in
+  // flight, assume list monthly ($90). Older-lineup trials never count.
+  const newSubMrr = trialNewCount >= 1 ? trialNewMrr / trialNewCount : 90;
   const growth = {
     window_weeks: GROW_WEEKS,
     subs_per_week: Math.round(recentSubs / GROW_WEEKS * 100) / 100,
@@ -2353,12 +2353,12 @@ function wallhitEmail(kind) {
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout:fixed;margin:0 0 16px"><tr>' +
     '<td valign="top" width="50%" style="width:50%;padding:0 5px 0 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:rgba(167,139,250,0.1);border:1.5px solid #A78BFA;border-radius:12px"><tr><td style="padding:12px 14px">' +
     '<div style="font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#7C5CFC">Annual &middot; Save 22%</div>' +
-    '<div style="color:#1e0a3c;font-size:22px;font-weight:700;margin-top:5px">$300<span style="font-size:12px;font-weight:500;color:#6b5b8a">/yr</span></div>' +
-    '<div style="font-size:11px;color:#6b5b8a;margin-top:4px">$25/month &middot; 14 days free</div>' +
+    '<div style="color:#1e0a3c;font-size:22px;font-weight:700;margin-top:5px">$900<span style="font-size:12px;font-weight:500;color:#6b5b8a">/yr</span></div>' +
+    '<div style="font-size:11px;color:#6b5b8a;margin-top:4px">$75/month &middot; 14 days free</div>' +
     '</td></tr></table></td>' +
     '<td valign="top" width="50%" style="width:50%;padding:0 0 0 5px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#faf8ff;border:1px solid #e4ddf6;border-radius:12px"><tr><td style="padding:12px 14px">' +
     '<div style="font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#9a8fb8">Monthly</div>' +
-    '<div style="color:#1e0a3c;font-size:22px;font-weight:700;margin-top:5px">$32<span style="font-size:12px;font-weight:500;color:#6b5b8a">/mo</span></div>' +
+    '<div style="color:#1e0a3c;font-size:22px;font-weight:700;margin-top:5px">$90<span style="font-size:12px;font-weight:500;color:#6b5b8a">/mo</span></div>' +
     '<div style="font-size:11px;color:#6b5b8a;margin-top:4px">14 days free</div>' +
     '</td></tr></table></td>' +
     '</tr></table>' +
@@ -2372,7 +2372,7 @@ function wallhitEmail(kind) {
     '</tr></table>' +
     '<p style="font-size:11px;color:#9a8fb8;margin:24px 0 0;line-height:1.6">You are getting this one-time note because you are a TMW member and bumped into a Pro feature. We will not send another like it for at least two weeks. Reply to this email to opt out of these notes entirely.</p>' +
     '</div></div>';
-  const text = `${c.headline}\n\n${c.body}\n\nEverything TMW Pro opens:\n${WALLHIT_FEATURES.map((f) => '- ' + f.replace(/&amp;/g, '&')).join('\n')}\n\nAnnual $300/yr ($25/month, save 22%) or $32/mo. 14 days free either way.\nStart my 14-day free trial: ${WALLHIT_CTA}\n\nYou are getting this one-time note because you are a TMW member and bumped into a Pro feature. Reply to opt out.`;
+  const text = `${c.headline}\n\n${c.body}\n\nEverything TMW Pro opens:\n${WALLHIT_FEATURES.map((f) => '- ' + f.replace(/&amp;/g, '&')).join('\n')}\n\nAnnual $900/yr ($75/month, save 17%) or $90/mo. 14 days free either way.\nStart my 14-day free trial: ${WALLHIT_CTA}\n\nYou are getting this one-time note because you are a TMW member and bumped into a Pro feature. Reply to opt out.`;
   return { subject: c.subject, html, text };
 }
 // One-shot launch blast (Jake approved 2026-08-10): the generic-Pro variant
@@ -14373,6 +14373,142 @@ function ghAllowed(env, login) {
 
 // Reusable admin guard — accepts a valid GitHub session OR the ADMIN_TOKEN.
 // Returns null if authorized, or a 401 Response. ASYNC: `await requireAdminToken(...)`.
+// ---- Future Skyline: vision massing drafts --------------------------------
+// POST /admin/massing-vision {slug} — Fable studies the project's official
+// renderings plus a satellite crop of the site and drafts the 3D massing
+// (podium + towers as rectangles in a local metric frame). The server
+// validates the draft and converts it to lng/lat rings in the exact shape
+// journal/map/skyline-massings.json uses. Nothing is persisted here — the
+// batch driver reviews the drafts and commits the file.
+const MV_MAPBOX = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+let _mvCache = { t: 0, flat: null, foot: null };
+async function mvData() {
+  if (_mvCache.flat && Date.now() - _mvCache.t < 10 * 60 * 1000) return _mvCache;
+  const [flat, foot] = await Promise.all([
+    fetch('https://www.oftmw.com/map/projects-flat.json').then(r => r.json()),
+    fetch('https://www.oftmw.com/map/skyline-footprints.json').then(r => r.ok ? r.json() : ({})).catch(() => ({})),
+  ]);
+  _mvCache = { t: Date.now(), flat: Array.isArray(flat) ? flat : (flat.projects || []), foot };
+  return _mvCache;
+}
+function mvB64(buf) {
+  const bytes = new Uint8Array(buf); let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function mvRing(anchor, cx, cy, w, l, bearing) {
+  const mlat = 111320, mlng = 111320 * Math.cos(anchor[1] * Math.PI / 180);
+  const ur = bearing * Math.PI / 180, ux = Math.sin(ur), uy = Math.cos(ur), vx = -uy, vy = ux;
+  const pts = [[-1,-1],[1,-1],[1,1],[-1,1]].map(([su, sv]) => {
+    const ex = cx + su*(l/2)*ux + sv*(w/2)*vx, ey = cy + su*(l/2)*uy + sv*(w/2)*vy;
+    return [Math.round((anchor[0] + ex/mlng) * 1e6) / 1e6, Math.round((anchor[1] + ey/mlat) * 1e6) / 1e6];
+  });
+  pts.push(pts[0]);
+  return pts;
+}
+async function handleMassingVision(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  let body = {}; try { body = await request.json(); } catch (_) {}
+  const slug = String(body.slug || '').trim();
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  const { flat, foot } = await mvData();
+  const p = flat.find(x => x.Slug === slug);
+  if (!p) return json({ error: 'unknown slug' }, { status: 404 }, env, origin);
+  const lat = parseFloat(p.Latitude), lng = parseFloat(p.Longitude);
+  if (!isFinite(lat) || !isFinite(lng)) return json({ error: 'no coordinates' }, { status: 400 }, env, origin);
+  const floors = parseInt(String(p.Floors || '').replace(/\D/g, ''), 10) || 0;
+  const gfa = parseFloat(p.GfaSqFt) || 0;
+  // Anchor + parcel from the footprint file: ring -> centroid + outline;
+  // [deg,lng,lat] -> the land anchor; nothing -> the pin.
+  const fp = foot[slug];
+  let anchor = [lng, lat], parcelTxt = 'unknown — keep every piece within 120 m of the anchor';
+  if (Array.isArray(fp) && fp.length === 3 && typeof fp[0] === 'number') {
+    anchor = [fp[1], fp[2]];
+  } else if (Array.isArray(fp) && fp.length > 3) {
+    const n = fp.length - (String(fp[0]) === String(fp[fp.length-1]) ? 1 : 0);
+    let sx = 0, sy = 0;
+    for (let i = 0; i < n; i++) { sx += fp[i][0]; sy += fp[i][1]; }
+    anchor = [sx / n, sy / n];
+    const mlat = 111320, mlng = 111320 * Math.cos(anchor[1] * Math.PI / 180);
+    parcelTxt = 'polygon, metres from anchor: ' + fp.slice(0, n).map(pt =>
+      '[' + Math.round((pt[0]-anchor[0])*mlng) + ',' + Math.round((pt[1]-anchor[1])*mlat) + ']').join(' ');
+  }
+  // Satellite crop, fetched server-side with an oftmw Referer so the
+  // URL-restricted public token accepts it; skipped gracefully if it 4xxs.
+  const content = [];
+  let satOk = false;
+  try {
+    const su = `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${anchor[0].toFixed(6)},${anchor[1].toFixed(6)},16.5,0/640x640@2x?access_token=${MV_MAPBOX}`;
+    const sr = await fetch(su, { headers: { Referer: 'https://www.oftmw.com/' } });
+    if (sr.ok) {
+      const mt = (sr.headers.get('content-type') || 'image/jpeg').split(';')[0].trim();
+      content.push({ type: 'image', source: { type: 'base64', media_type: mt, data: mvB64(await sr.arrayBuffer()) } });
+      satOk = true;
+    }
+  } catch (_) {}
+  const renders = [p.ImageURL, p.Image2, p.Image3, p.Image4, p.Image5]
+    .filter(u => typeof u === 'string' && /^https:\/\//.test(u)).slice(0, 3);
+  renders.forEach(u => content.push({ type: 'image', source: { type: 'url', url: u } }));
+  const desc = String(p.DescriptionLong || p.Description || '').slice(0, 900);
+  content.push({ type: 'text', text:
+`You are drafting the 3D massing of a real-estate development so a map can render it as extruded blocks (like a physical architecture model).
+
+PROJECT: ${p.Title} — ${p.City || ''}
+FLOORS: ${floors || 'unknown'} (tallest tower top ≈ floors × 3.35 m)  GFA: ${gfa ? gfa.toLocaleString() + ' sq ft' : 'unknown'}
+DESCRIPTION: ${desc}
+
+FRAME: x = metres EAST of the anchor, y = metres NORTH. Anchor (0,0) = ${anchor[0].toFixed(6)}, ${anchor[1].toFixed(6)}.
+SITE PARCEL: ${parcelTxt}
+${satOk ? 'The FIRST image is a satellite view centred on the anchor, north up, roughly 500 m across.' : ''}${renders.length ? ' The remaining images are official renderings of the project.' : ' No renderings are available — work from the description and parcel.'}
+
+Return ONLY JSON, no prose:
+{"pieces":[{"cx":0,"cy":0,"w":30,"l":45,"bearing":0,"base":0,"top":100}],"confidence":0.7,"note":"one line"}
+
+Rules:
+- 1 to 6 rectangular pieces. cx,cy = piece centre in the frame; w,l = metres; bearing = degrees clockwise from north of the l axis; base/top = metres above ground.
+- Match the renderings: tower count, relative tower heights, podium if visible. A podium is a wide low piece; towers rising from it use base = the podium's top.
+- The tallest piece's top must equal floors × 3.35 (within a few metres) when floors is known.
+- Every piece must sit on the site parcel / the development site visible in the satellite view — never on water, roads, or neighbouring buildings.
+- Align bearings to the street grid visible in the satellite view.
+- |cx| and |cy| must stay ≤ 200.` });
+  const mvCall = async (blocks) => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model: WRITE_MODEL, max_tokens: 2500, messages: [{ role: 'user', content: blocks }] }),
+  });
+  let resp = await mvCall(content);
+  // A 400 is usually Anthropic failing to fetch a rendering URL (oversized or
+  // odd format) — retry once on satellite + text alone rather than failing.
+  if (resp.status === 400 && renders.length) {
+    resp = await mvCall(content.filter(b => !(b.type === 'image' && b.source && b.source.type === 'url')));
+  }
+  if (!resp.ok) return json({ error: 'model call failed', status: resp.status, detail: (await resp.text()).slice(0, 300) }, { status: 502 }, env, origin);
+  const out = await resp.json();
+  const txt = (out.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  let draft = null;
+  const i0 = txt.indexOf('{'), i1 = txt.lastIndexOf('}');
+  if (i0 >= 0 && i1 > i0) { try { draft = JSON.parse(txt.slice(i0, i1 + 1)); } catch (_) {} }
+  if (!draft || !Array.isArray(draft.pieces) || !draft.pieces.length) {
+    return json({ error: 'unparseable draft', raw: txt.slice(0, 400) }, { status: 422 }, env, origin);
+  }
+  const maxTop = Math.max(floors * 3.35 * 1.4, 80) + 30;
+  const pieces = [];
+  for (const pc of draft.pieces.slice(0, 6)) {
+    const cx = +pc.cx, cy = +pc.cy, w = +pc.w, l = +pc.l;
+    const bearing = ((+pc.bearing % 360) + 360) % 360 || 0;
+    const base = Math.max(0, +pc.base || 0), top = +pc.top || 0;
+    if (![cx, cy, w, l, top].every(isFinite)) continue;
+    if (Math.abs(cx) > 250 || Math.abs(cy) > 250) continue;
+    if (w < 6 || w > 220 || l < 6 || l > 260) continue;
+    if (top <= base || top > maxTop) continue;
+    pieces.push({ ring: mvRing(anchor, cx, cy, w, l, bearing), base: Math.round(base), top: Math.round(top) });
+  }
+  if (!pieces.length) return json({ error: 'no valid pieces after validation', raw: txt.slice(0, 400) }, { status: 422 }, env, origin);
+  return json({ slug, pieces, confidence: +draft.confidence || 0, note: String(draft.note || '').slice(0, 300),
+                satellite: satOk, renderings: renders.length, model: WRITE_MODEL }, {}, env, origin);
+}
+
 async function requireAdminToken(req, env, origin) {
   const auth = req.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
@@ -19640,6 +19776,10 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/admin/lead-notify-partner') {
         return await handleLeadNotifyPartner(request, env, origin);
+      }
+      // Future Skyline: vision massing draft for one project (batch-driven).
+      if (request.method === 'POST' && url.pathname === '/admin/massing-vision') {
+        return await handleMassingVision(request, env, origin);
       }
       // Enterprise orgs: admin provisioning + member-facing partner endpoints.
       if (request.method === 'GET'  && url.pathname === '/admin/orgs')        return await handleOrgsList(request, env, origin);
