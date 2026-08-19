@@ -14490,6 +14490,10 @@
           // What's Moving toggled while the skyline is up → recolor towers
           // live (purple filter on/off) without rebuilding the layers.
           try { tog.addEventListener('click', ()=>{ if (!skyOn) return; try { const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC()); } catch(e){} }); } catch(e){}
+          // The skyline IS the default view: plain loads boot with the toggle
+          // on and fly into the towers. Deep links (?project/?city) keep their
+          // own destination and arrive in 2D — the toggle is one click away.
+          if (!_bootDeepLink) setTimeout(()=>{ try { if (!skyOn) skyT.click(); } catch(e){} }, 700);
           // A tower is a real pin: click-through to the same project modal.
           map.on('click','tmw-sky-future', (e)=>{
             const uid = e.features && e.features[0] && e.features[0].properties.uid;
