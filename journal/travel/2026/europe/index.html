@@ -759,8 +759,11 @@ function initMobileDock(tries){
     document.getElementById('mdN').textContent = p.n;
     document.getElementById('mdT').textContent = p.loc.split(',')[0];
     document.getElementById('mdD').textContent = p.dates;
-    if(fly !== false) map.flyTo({ center:[p.lng, p.lat],
-      zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
+    if(fly !== false){
+      try{ map.resize(); }catch(e){}
+      map.flyTo({ center:[p.lng, p.lat],
+        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
+    }
   }
   // The stop card nearest beneath the dock wins; cards without a pin fall back
   // to the last pin at or before them.
@@ -799,7 +802,16 @@ function initMobileDock(tries){
   var startOff = false; try{ startOff = localStorage.getItem(MDOCK_OFF_KEY) === '1'; }catch(e){}
   if(startOff){ dock.classList.add('off'); pill.classList.add('on'); }
 
-  setTimeout(function(){ map.resize(); spy(); if(active < 0) setActive(0); }, 300);
+  // Same stale-size guard as the bottom route map: sync the projection a few
+  // times after init (fonts/images shift layout late), recentring instantly.
+  [150, 450, 1000].forEach(function(d){
+    setTimeout(function(){
+      try{ map.resize(); }catch(e){}
+      if(active >= 0) map.jumpTo({ center:[pins[active].lng, pins[active].lat],
+        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8 });
+    }, d);
+  });
+  setTimeout(function(){ spy(); if(active < 0) setActive(0); }, 320);
 }
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
