@@ -820,6 +820,12 @@ function initMobileDock(tries){
   if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
   tvFetchRoads(legs, function(){ var s=map.getSource('mdroute'); if(s) s.setData(tvFC(legs)); });
   veh = tvVehicle(map);
+  function fitLeg(L){
+    var b = new mapboxgl.LngLatBounds();
+    L.segs.forEach(function(s){ s.coords.forEach(function(c){ b.extend(c); }); });
+    try{ map.resize(); }catch(e){}
+    map.fitBounds(b, { padding:44, duration:800, maxZoom:7.5 });
+  }
 
   var active = -1;
   function setActive(k, fly){
@@ -833,13 +839,16 @@ function initMobileDock(tries){
     document.getElementById('mdD').textContent = p.dates;
     if(fly !== false){
       try{ map.resize(); }catch(e){}
-      map.flyTo({ center:[p.lng, p.lat],
-        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
-      if(veh){
-        if(predeparted === k){ predeparted = null; }
-        else if(legs[k] && prev === legs[k].fromIdx) veh.runSegs(legs[k].segs, false);
-        else if(legs[prev] && legs[prev].fromIdx === k) veh.runSegs(legs[prev].segs, true);
-        else veh.stop();
+      var flyHome = function(){ map.flyTo({ center:[p.lng, p.lat],
+        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true }); };
+      if(veh && predeparted !== k && legs[k] && prev === legs[k].fromIdx){
+        fitLeg(legs[k]); veh.runSegs(legs[k].segs, false, flyHome);
+      } else if(veh && predeparted !== k && legs[prev] && legs[prev].fromIdx === k){
+        fitLeg(legs[prev]); veh.runSegs(legs[prev].segs, true, flyHome);
+      } else if(predeparted === k){
+        predeparted = null; flyHome();
+      } else {
+        if(veh) veh.stop(); flyHome();
       }
     }
   }
@@ -867,7 +876,7 @@ function initMobileDock(tries){
       var r = c.getBoundingClientRect();
       var prog = (line - r.top) / Math.max(1, r.height);
       var nk = nextLegFrom(bi);
-      if(prog >= 0.75 && nk != null && predeparted !== nk){ predeparted = nk; veh.runSegs(legs[nk].segs, false); }
+      if(prog >= 0.75 && nk != null && predeparted !== nk){ predeparted = nk; fitLeg(legs[nk]); veh.runSegs(legs[nk].segs, false); }
     }
   }
   window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
@@ -940,8 +949,10 @@ function tvBuildPins(){
 var TV_ZRH = [8.54,47.37], TV_BOLZANO = [11.35,46.50], TV_VENICE = [12.32,45.44];
 var TV_SEGS = {
   'The Dolomites, Italy': function(a,b){
+    // The return train seg is ridden but NOT drawn — overlaying its dashes on
+    // the outbound line fills the gaps and reads as a solid stroke.
     return [ { mode:'train', coords:[a, TV_VENICE] },
-             { mode:'train', coords:[TV_VENICE, a] },
+             { mode:'train', coords:[TV_VENICE, a], draw:false },
              { mode:'car', via:[TV_BOLZANO], coords:[a,b] } ];
   },
   'Ljubljana, Slovenia': function(a,b){
@@ -985,6 +996,7 @@ function tvFetchRoads(legs, onUpdate){
 function tvFC(legs){
   var feats=[];
   legs.filter(Boolean).forEach(function(l){ l.segs.forEach(function(s){
+    if(s.draw === false) return;
     feats.push({ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:s.coords } }); }); });
   return { type:'FeatureCollection', features:feats };
 }
@@ -1020,14 +1032,14 @@ function tvVehicle(map){
     }
     raf=requestAnimationFrame(frame);
   }
-  function runSegs(segs, rev){
+  function runSegs(segs, rev, onDone){
     stop();
     var list = rev
       ? segs.slice().reverse().map(function(s){ return { mode:s.mode, coords:s.coords.slice().reverse() }; })
       : segs;
     var dur = list.length > 1 ? 1150 : 1900, i = 0;
     (function next(){
-      if(i >= list.length){ stop(); return; }
+      if(i >= list.length){ stop(); if(onDone) onDone(); return; }
       var s = list[i++]; run(s.coords, s.mode, dur, next);
     })();
   }
@@ -1078,7 +1090,7 @@ function initSplitView(){
   pill.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="10" height="16" rx="2"/><rect x="15" y="4" width="6" height="16" rx="2"/></svg>Map view';
   document.body.appendChild(pill);
 
-  var map = null, markers = [], bounds = null, active = -1;
+  var map = null, markers = [], bounds = null, active = -1, fitLeg = null;
   var cards = [].slice.call(document.querySelectorAll('#tl .stop'));
 
   function buildMap(){
@@ -1107,6 +1119,13 @@ function initSplitView(){
     if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
     tvFetchRoads(legs, function(){ var s=map.getSource('sproute'); if(s) s.setData(tvFC(legs)); });
     veh = tvVehicle(map);
+    // Zoom to hold the WHOLE leg in frame while the traveler rides it.
+    fitLeg = function(L){
+      var b = new mapboxgl.LngLatBounds();
+      L.segs.forEach(function(s){ s.coords.forEach(function(c){ b.extend(c); }); });
+      try{ map.resize(); }catch(e){}
+      map.fitBounds(b, { padding:70, duration:800, maxZoom:8 });
+    };
     [200, 600, 1200].forEach(function(d){ setTimeout(function(){ try{ map.resize(); }catch(e){} }, d); });
   }
 
@@ -1121,12 +1140,15 @@ function initSplitView(){
     document.getElementById('spD').textContent = p.dates;
     if(fly !== false && map){
       try{ map.resize(); }catch(e){}
-      map.flyTo({ center:[p.lng, p.lat], zoom:6.9, speed:0.9, curve:1.4, essential:true });
-      if(veh){
-        if(predeparted === k){ predeparted = null; }   // the leg already played on the way out
-        else if(legs[k] && prev === legs[k].fromIdx) veh.runSegs(legs[k].segs, false);
-        else if(legs[prev] && legs[prev].fromIdx === k) veh.runSegs(legs[prev].segs, true);
-        else veh.stop();
+      var flyHome = function(){ map.flyTo({ center:[p.lng, p.lat], zoom:6.9, speed:0.9, curve:1.4, essential:true }); };
+      if(veh && predeparted !== k && legs[k] && prev === legs[k].fromIdx){
+        fitLeg(legs[k]); veh.runSegs(legs[k].segs, false, flyHome);
+      } else if(veh && predeparted !== k && legs[prev] && legs[prev].fromIdx === k){
+        fitLeg(legs[prev]); veh.runSegs(legs[prev].segs, true, flyHome);
+      } else if(predeparted === k){
+        predeparted = null; flyHome();   // ride already played (or is mid-air) — don't cut it
+      } else {
+        if(veh) veh.stop(); flyHome();
       }
     }
   }
@@ -1156,7 +1178,7 @@ function initSplitView(){
       var r = c.getBoundingClientRect();
       var prog = (line - r.top) / Math.max(1, r.height);
       var nk = nextLegFrom(bi);
-      if(prog >= 0.75 && nk != null && predeparted !== nk){ predeparted = nk; veh.runSegs(legs[nk].segs, false); }
+      if(prog >= 0.75 && nk != null && predeparted !== nk){ predeparted = nk; fitLeg(legs[nk]); veh.runSegs(legs[nk].segs, false); }
     }
   }
   window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
