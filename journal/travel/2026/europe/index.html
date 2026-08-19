@@ -954,13 +954,13 @@ function initSplitView(){
   window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
 
   function enable(){
-    // Pre-display so the slide-in transition has a starting frame.
+    // Pre-display + forced reflow so the slide-in transition has a starting
+    // frame (rAF freezes in hidden tabs, so it can't be trusted for this).
     panel.classList.add('prep');
-    requestAnimationFrame(function(){ requestAnimationFrame(function(){
-      document.body.classList.add('spliton');
-      buildMap();
-      setTimeout(function(){ try{ map.resize(); }catch(e){} active = -1; spy(); if(active < 0) setActive(0); }, 480);
-    }); });
+    void panel.offsetWidth;
+    document.body.classList.add('spliton');
+    buildMap();
+    setTimeout(function(){ try{ map.resize(); }catch(e){} active = -1; spy(); if(active < 0) setActive(0); }, 480);
     try{ localStorage.removeItem(SPLIT_OFF_KEY); }catch(e){}
   }
   function disable(){
