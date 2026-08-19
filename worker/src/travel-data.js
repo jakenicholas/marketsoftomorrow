@@ -136,13 +136,13 @@ export const TRAVEL_STOPS = {
       'https://d1pe873sdaunfo.cloudfront.net/www.thechediandermatt.com-1283389050/cms/cache/v2/634012f2b4525.jpg/1920x1080/resize/80/c84e42eddb769d1f14348e6b935cd5a5.jpg',
       'https://media.cntraveler.com/photos/6973c1dd1dfa66ef6df9ff7b/16:9/w_2560%2Cc_limit/The%2520Chedi%2520Andermatt-The_Chedi_Andermatt_Exterior_Winter_Impressions%2520(1)_1.jpg'] },
 
-  { loc:'Lake Como, Italy', nights:'2 Nights · Sept 22 → 24', stay:'Private Stay', confirmed:true, noClient:true,
+  { loc:'Lake Como, Italy', nights:'2 Nights · Sept 22 → 24', stayPending:'Looking for a partner', pending:true,
     in:{ date:'Sept 22', mode:'car', note:'Andermatt → Lake Como' },
     vibe:'Two nights on the villa-lined shoreline: boats across the lake, Bellagio and Varenna, and aperitivo above the water.',
     logi:[['The Drive','<b>~3-hour drive</b> south from Zürich, over the Alps and down to the lake.']],
     imgs:['https://imageio.forbes.com/specials-images/imageserve/646b6b45d9b20ac15900fd8a/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds'] },
 
-  { loc:'St. Moritz, Switzerland', nights:'1 Night · Sept 24 → 25', stay:'Private Stay', confirmed:true, noClient:true,
+  { loc:'St. Moritz, Switzerland', nights:'1 Night · Sept 24 → 25', stayPending:'Looking for a partner', pending:true,
     in:{ date:'Sept 24', mode:'car', note:'Lake Como → St. Moritz' },
     vibe:'One night in the Engadin: champagne air at 1,800 meters, the lake below the village, and alpine glamour at the end of the Maloja Pass road.',
     logi:[['The Drive','<b>~2.5-hour climb</b> from Lake Como up the Maloja Pass into the Engadin.']],
