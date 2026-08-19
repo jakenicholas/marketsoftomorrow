@@ -185,6 +185,13 @@ def main():
             pieces.append({"ring": rect_ring(c, w, l, brg), "base": base, "top": top})
         if len(pieces) >= 2:
             out[slug] = pieces
+    # Vision-drafted entries (first piece carries "_src":"vision") outrank the
+    # text parser and survive regeneration.
+    if OUT.exists():
+        prev = json.loads(OUT.read_text())
+        for slug, pcs in prev.items():
+            if pcs and isinstance(pcs[0], dict) and pcs[0].get("_src") == "vision":
+                out[slug] = pcs
     OUT.write_text(json.dumps(out, separators=(",", ":")))
     print(f"{len(out)} multi-piece massings written to {OUT} ({OUT.stat().st_size // 1024} KB)")
     for s in list(out)[:12]:
