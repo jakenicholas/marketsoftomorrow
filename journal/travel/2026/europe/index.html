@@ -404,6 +404,13 @@
   /* ── Desktop split view (≥1100px): itinerary left, full-height following
         map right. body.spliton drives the whole layout; the panel and its
         toggle pill only exist at desktop widths. ── */
+  /* The little traveler: a terracotta chip that rides the leg line pin to pin. */
+  .tv-veh{width:30px;height:30px;border-radius:50%;background:var(--terra);color:#F5EEDF;
+          display:flex;align-items:center;justify-content:center;pointer-events:none;
+          box-shadow:0 3px 10px rgba(74,57,43,.4),0 0 0 2px rgba(243,235,220,.85)}
+  .tv-veh span{display:flex;transition:transform .12s linear}
+  .tv-veh svg{width:16px;height:16px;display:block}
+
   .splitpanel,.split-pill{display:none}
   .splitgrid{display:contents}   /* transparent unless split is on */
   @media(min-width:1100px){
@@ -773,9 +780,11 @@ function initMobileDock(tries){
   STOPS.forEach(function(s, si){
     var c = COORDS[s.loc]; if(!c) return;
     pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
+                mode:(s.in && s.in.mode) || 'car',
                 dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
   });
   if(pins.length < 2) return;
+  var legs = tvLegs(pins), veh = null;
   mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
   var map = new mapboxgl.Map({ container:'mdmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, dragRotate:false, pitchWithRotate:false,
@@ -792,17 +801,19 @@ function initMobileDock(tries){
   });
   function addRoute(){
     if(map.getSource('mdroute')) return;
-    map.addSource('mdroute', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString',
-      coordinates: pins.map(function(p){ return [p.lng, p.lat]; }) } } });
+    map.addSource('mdroute', { type:'geojson', data: tvFC(legs) });
     map.addLayer({ id:'mdroute', type:'line', source:'mdroute',
       layout:{ 'line-cap':'round', 'line-join':'round' },
       paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
   }
   if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
+  tvFetchRoads(legs, pins, function(){ var s=map.getSource('mdroute'); if(s) s.setData(tvFC(legs)); });
+  veh = tvVehicle(map);
 
   var active = -1;
   function setActive(k, fly){
     if(k === active || k < 0 || k >= pins.length) return;
+    var prev = active;
     active = k;
     var p = pins[k];
     markers.forEach(function(m, i){ m.classList.toggle('on', i === k); m.classList.toggle('done', i < k); });
@@ -813,6 +824,11 @@ function initMobileDock(tries){
       try{ map.resize(); }catch(e){}
       map.flyTo({ center:[p.lng, p.lat],
         zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
+      if(veh){
+        if(prev === k-1 && legs[k]) veh.run(legs[k].coords, legs[k].mode);
+        else if(prev === k+1 && legs[prev]) veh.run(legs[prev].coords.slice().reverse(), legs[prev].mode);
+        else veh.stop();
+      }
     }
   }
   // The stop card nearest beneath the dock wins; cards without a pin fall back
@@ -864,6 +880,77 @@ function initMobileDock(tries){
   setTimeout(function(){ spy(); if(active < 0) setActive(0); }, 320);
 }
 
+// ── Travel-line helpers shared by the dock and the split map ──
+// legs[i] = the path INTO pins[i]. Flights and ferries get a gentle arc;
+// car and train start straight and are upgraded to REAL road geometry via the
+// Mapbox Directions API (rail broadly follows the same valleys at these zooms).
+function tvDist(a,b){ var kx=Math.cos((a[1]+b[1])*Math.PI/360); var dx=(b[0]-a[0])*kx, dy=b[1]-a[1]; return Math.sqrt(dx*dx+dy*dy); }
+function tvArc(a,b,k){
+  var mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, dx=b[0]-a[0], dy=b[1]-a[1];
+  var cx=mx-dy*k, cy=my+dx*k, pts=[], n=56;
+  for(var i=0;i<=n;i++){ var t=i/n, u=1-t;
+    pts.push([u*u*a[0]+2*u*t*cx+t*t*b[0], u*u*a[1]+2*u*t*cy+t*t*b[1]]); }
+  return pts;
+}
+function tvLegs(pins){
+  var legs=[null];
+  for(var i=1;i<pins.length;i++){
+    var a=[pins[i-1].lng,pins[i-1].lat], b=[pins[i].lng,pins[i].lat], m=pins[i].mode||'car';
+    legs.push({ mode:m, coords: m==='flight' ? tvArc(a,b,0.16) : m==='ferry' ? tvArc(a,b,0.06) : [a,b] });
+  }
+  return legs;
+}
+function tvFetchRoads(legs, pins, onUpdate){
+  legs.forEach(function(l,i){
+    if(!l || l.mode==='flight' || l.mode==='ferry') return;
+    var a=[pins[i-1].lng,pins[i-1].lat], b=[pins[i].lng,pins[i].lat];
+    fetch('https://api.mapbox.com/directions/v5/mapbox/driving/'+a[0]+','+a[1]+';'+b[0]+','+b[1]
+        + '?geometries=geojson&overview=full&access_token='+mapboxgl.accessToken)
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var g = d.routes && d.routes[0] && d.routes[0].geometry;
+        if(g && g.coordinates && g.coordinates.length > 1){ l.coords = g.coordinates; if(onUpdate) onUpdate(); }
+      }).catch(function(){});
+  });
+}
+function tvFC(legs){
+  return { type:'FeatureCollection', features: legs.filter(Boolean).map(function(l){
+    return { type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:l.coords } }; }) };
+}
+function tvVehicle(map){
+  var el=document.createElement('div'); el.className='tv-veh'; el.style.display='none';
+  var ic=document.createElement('span'); el.appendChild(ic);
+  var mk=new mapboxgl.Marker({ element:el, anchor:'center' }).setLngLat([0,0]).addTo(map);
+  var raf=null;
+  function stop(){ if(raf) cancelAnimationFrame(raf); raf=null; el.style.display='none'; }
+  function run(coords, mode){
+    stop(); if(!coords || coords.length < 2) return;
+    ic.innerHTML = ICONS[mode] || ICONS.car;
+    var cum=[0], i;
+    for(i=1;i<coords.length;i++) cum.push(cum[i-1] + tvDist(coords[i-1], coords[i]));
+    var total = cum[cum.length-1] || 1e-9;
+    var t0 = performance.now(), DUR = 1900;
+    el.style.display='flex';
+    function at(d){
+      var j=1; while(j < cum.length-1 && cum[j] < d) j++;
+      var seg=(cum[j]-cum[j-1]) || 1e-9, f=(d-cum[j-1])/seg;
+      var a=coords[j-1], b=coords[j];
+      return { p:[a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f],
+               brg: Math.atan2((b[0]-a[0])*Math.cos((a[1]+b[1])*Math.PI/360), b[1]-a[1])*180/Math.PI };
+    }
+    function frame(now){
+      var t=Math.min(1,(now-t0)/DUR);
+      var e=t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      var s=at(total*e);
+      mk.setLngLat(s.p);
+      ic.style.transform = mode==='flight' ? 'rotate('+s.brg.toFixed(1)+'deg)' : '';
+      if(t<1) raf=requestAnimationFrame(frame); else stop();
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  return { run:run, stop:stop };
+}
+
 // ── Desktop split view: itinerary left, full-height following map right.
 // The pill toggles it; the choice is remembered. Defaults ON at wide screens
 // because the map is the point. Mobile has its own dock; this never runs there.
@@ -877,9 +964,11 @@ function initSplitView(){
   STOPS.forEach(function(s, si){
     var c = COORDS[s.loc]; if(!c) return;
     pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
+                mode:(s.in && s.in.mode) || 'car',
                 dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
   });
   if(pins.length < 2) return;
+  var legs = tvLegs(pins), veh = null;
 
   var panel = document.createElement('div');
   panel.className = 'splitpanel'; panel.id = 'splitpanel';
@@ -925,18 +1014,20 @@ function initSplitView(){
     });
     function addRoute(){
       if(map.getSource('sproute')) return;
-      map.addSource('sproute', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString',
-        coordinates: pins.map(function(p){ return [p.lng, p.lat]; }) } } });
+      map.addSource('sproute', { type:'geojson', data: tvFC(legs) });
       map.addLayer({ id:'sproute', type:'line', source:'sproute',
         layout:{ 'line-cap':'round', 'line-join':'round' },
         paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
     }
     if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
+    tvFetchRoads(legs, pins, function(){ var s=map.getSource('sproute'); if(s) s.setData(tvFC(legs)); });
+    veh = tvVehicle(map);
     [200, 600, 1200].forEach(function(d){ setTimeout(function(){ try{ map.resize(); }catch(e){} }, d); });
   }
 
   function setActive(k, fly){
     if(k === active || k < 0 || k >= pins.length) return;
+    var prev = active;
     active = k;
     var p = pins[k];
     markers.forEach(function(m, i){ m.classList.toggle('on', i === k); m.classList.toggle('done', i < k); });
@@ -946,6 +1037,11 @@ function initSplitView(){
     if(fly !== false && map){
       try{ map.resize(); }catch(e){}
       map.flyTo({ center:[p.lng, p.lat], zoom:6.9, speed:0.9, curve:1.4, essential:true });
+      if(veh){
+        if(prev === k-1 && legs[k]) veh.run(legs[k].coords, legs[k].mode);
+        else if(prev === k+1 && legs[prev]) veh.run(legs[prev].coords.slice().reverse(), legs[prev].mode);
+        else veh.stop();
+      }
     }
   }
   function pinFor(cardIdx){
@@ -971,6 +1067,8 @@ function initSplitView(){
     void panel.offsetWidth;
     document.body.classList.add('spliton');
     buildMap();
+    alignPanelTop();
+    [500, 1200, 2500].forEach(function(d){ setTimeout(alignPanelTop, d); });
     setTimeout(function(){ try{ map.resize(); }catch(e){} active = -1; spy(); if(active < 0) setActive(0); }, 480);
     try{ localStorage.removeItem(SPLIT_OFF_KEY); }catch(e){}
   }
@@ -979,6 +1077,16 @@ function initSplitView(){
     setTimeout(function(){ panel.classList.remove('prep'); }, 480);
     try{ localStorage.setItem(SPLIT_OFF_KEY, '1'); }catch(e){}
   }
+  // The map column starts below the first travel scribble: push the panel down
+  // to the first stop card's top. Re-measured late (images shift layout) + on resize.
+  function alignPanelTop(){
+    if(!document.body.classList.contains('spliton')) return;
+    var first = cards[0]; if(!first) return;
+    var off = first.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+    panel.style.marginTop = Math.max(0, Math.round(off)) + 'px';
+  }
+  window.addEventListener('resize', alignPanelTop);
+
   pill.addEventListener('click', enable);
   document.getElementById('spExit').addEventListener('click', disable);
   document.getElementById('spWhole').addEventListener('click', function(){
