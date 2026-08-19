@@ -400,6 +400,48 @@
     .mdock-pill svg{width:14px;height:14px}
     .stop{scroll-margin-top:210px}
   }
+
+  /* ── Desktop split view (≥1100px): itinerary left, full-height following
+        map right. body.spliton drives the whole layout; the panel and its
+        toggle pill only exist at desktop widths. ── */
+  .splitpanel,.split-pill{display:none}
+  @media(min-width:1100px){
+    .split-pill{position:fixed;top:18px;right:18px;z-index:70;display:flex;align-items:center;gap:8px;
+                background:rgba(243,235,220,.94);border:1px solid var(--hair2);border-radius:99px;
+                padding:10px 16px;font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.05em;
+                color:var(--brown);cursor:pointer;box-shadow:0 6px 20px rgba(74,57,43,.25);
+                transition:transform .15s,box-shadow .15s}
+    .split-pill:hover{transform:translateY(-1px);box-shadow:0 9px 26px rgba(74,57,43,.3)}
+    .split-pill svg{width:15px;height:15px;color:var(--terra)}
+    body.spliton .split-pill{display:none}
+
+    body.spliton{--split-w:46vw}
+    body.spliton #doc{margin-right:var(--split-w);transition:margin .45s cubic-bezier(.3,1,.35,1)}
+    body.spliton .wrap{max-width:820px;padding:0 40px}
+    body.spliton .routemap{display:none}   /* the recap map is the panel now */
+
+    .splitpanel{position:fixed;top:0;right:0;bottom:0;width:46vw;z-index:65;
+                border-left:1px solid var(--hair2);background:var(--panel);
+                transform:translateX(103%);transition:transform .45s cubic-bezier(.3,1,.35,1)}
+    body.spliton .splitpanel{display:block;transform:none}
+    .splitpanel.prep{display:block}        /* pre-slide so the transition can run */
+    #spmap{position:absolute;inset:0}
+    .sp-chip{position:absolute;left:16px;bottom:16px;z-index:5;display:flex;align-items:center;gap:9px;
+             background:rgba(243,235,220,.94);border:1px solid var(--hair2);border-radius:99px;
+             padding:8px 15px 8px 8px;box-shadow:0 4px 14px rgba(74,57,43,.22);max-width:70%}
+    .sp-chip .n{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--terra);color:#F5EEDF;
+                font-family:var(--serif);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center}
+    .sp-chip .t{font-size:13.5px;font-weight:600;color:var(--brown);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sp-chip .d{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--mute);white-space:nowrap}
+    .sp-ctl{position:absolute;right:16px;top:16px;z-index:5;display:flex;gap:7px}
+    .spbtn{height:34px;border-radius:10px;border:1px solid var(--hair2);background:rgba(243,235,220,.94);
+           color:var(--brown);display:flex;align-items:center;justify-content:center;cursor:pointer;
+           box-shadow:0 3px 10px rgba(74,57,43,.18);font-family:var(--sans);transition:transform .15s;padding:0 12px;
+           font-size:11.5px;font-weight:600;letter-spacing:.04em}
+    .spbtn:active{transform:scale(.95)}
+    .spbtn.icon{width:34px;padding:0}
+    .spbtn svg{width:15px;height:15px}
+  }
 </style>
 </head>
 <body>
@@ -817,6 +859,125 @@ function initMobileDock(tries){
   setTimeout(function(){ spy(); if(active < 0) setActive(0); }, 320);
 }
 
+// ── Desktop split view: itinerary left, full-height following map right.
+// The pill toggles it; the choice is remembered. Defaults ON at wide screens
+// because the map is the point. Mobile has its own dock; this never runs there.
+var SPLIT_OFF_KEY = 'tmwTravelSplitOff';
+function initSplitView(){
+  if(!window.matchMedia || !matchMedia('(min-width:1100px)').matches) return;
+  if(document.getElementById('splitpanel')) return;
+  if(typeof mapboxgl === 'undefined'){ setTimeout(initSplitView, 300); return; }
+
+  var pins = [];
+  STOPS.forEach(function(s, si){
+    var c = COORDS[s.loc]; if(!c) return;
+    pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
+                dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
+  });
+  if(pins.length < 2) return;
+
+  var panel = document.createElement('div');
+  panel.className = 'splitpanel'; panel.id = 'splitpanel';
+  panel.innerHTML = '<div id="spmap"></div>'
+    + '<div class="sp-chip"><span class="n" id="spN">1</span><span class="t" id="spT">&nbsp;</span><span class="d" id="spD"></span></div>'
+    + '<div class="sp-ctl">'
+    +   '<button class="spbtn" id="spWhole" type="button">Whole route</button>'
+    +   '<button class="spbtn icon" id="spExit" type="button" aria-label="Exit map view" title="Back to the single column">'
+    +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+    +   '</button>'
+    + '</div>';
+  document.body.appendChild(panel);
+
+  var pill = document.createElement('button');
+  pill.className = 'split-pill'; pill.type = 'button';
+  pill.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="10" height="16" rx="2"/><rect x="15" y="4" width="6" height="16" rx="2"/></svg>Map view';
+  document.body.appendChild(pill);
+
+  var map = null, markers = [], bounds = null, active = -1;
+  var cards = [].slice.call(document.querySelectorAll('#tl .stop'));
+
+  function buildMap(){
+    if(map) return;
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+    map = new mapboxgl.Map({ container:'spmap', style:'mapbox://styles/mapbox/light-v11',
+      attributionControl:false, dragRotate:false, pitchWithRotate:false,
+      center:[pins[0].lng, pins[0].lat], zoom:6 });
+    map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'bottom-right');
+    window.__spmap = map;
+    bounds = new mapboxgl.LngLatBounds();
+    pins.forEach(function(p){ bounds.extend([p.lng, p.lat]); });
+    markers = pins.map(function(p){
+      var m = document.createElement('div'); m.className='rm-marker'; m.innerHTML='<span class="rm-dot">'+p.n+'</span>';
+      m.addEventListener('click', function(){ var c = cards[p.stopIdx]; if(c) c.scrollIntoView({ behavior:'smooth', block:'center' }); });
+      new mapboxgl.Marker({ element:m, anchor:'center' }).setLngLat([p.lng, p.lat]).addTo(map);
+      return m;
+    });
+    function addRoute(){
+      if(map.getSource('sproute')) return;
+      map.addSource('sproute', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString',
+        coordinates: pins.map(function(p){ return [p.lng, p.lat]; }) } } });
+      map.addLayer({ id:'sproute', type:'line', source:'sproute',
+        layout:{ 'line-cap':'round', 'line-join':'round' },
+        paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
+    }
+    if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
+    [200, 600, 1200].forEach(function(d){ setTimeout(function(){ try{ map.resize(); }catch(e){} }, d); });
+  }
+
+  function setActive(k, fly){
+    if(k === active || k < 0 || k >= pins.length) return;
+    active = k;
+    var p = pins[k];
+    markers.forEach(function(m, i){ m.classList.toggle('on', i === k); m.classList.toggle('done', i < k); });
+    document.getElementById('spN').textContent = p.n;
+    document.getElementById('spT').textContent = p.loc.split(',')[0];
+    document.getElementById('spD').textContent = p.dates;
+    if(fly !== false && map){
+      try{ map.resize(); }catch(e){}
+      map.flyTo({ center:[p.lng, p.lat], zoom:6.9, speed:0.9, curve:1.4, essential:true });
+    }
+  }
+  function pinFor(cardIdx){
+    var k = -1;
+    pins.forEach(function(p, i){ if(p.stopIdx <= cardIdx) k = i; });
+    return k < 0 ? 0 : k;
+  }
+  var ticking = false;
+  function spy(){
+    ticking = false;
+    if(!document.body.classList.contains('spliton')) return;
+    var line = window.innerHeight * 0.45;
+    var best = 0;
+    cards.forEach(function(c, i){ if(c.getBoundingClientRect().top < line) best = i; });
+    setActive(pinFor(best));
+  }
+  window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
+
+  function enable(){
+    // Pre-display so the slide-in transition has a starting frame.
+    panel.classList.add('prep');
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      document.body.classList.add('spliton');
+      buildMap();
+      setTimeout(function(){ try{ map.resize(); }catch(e){} active = -1; spy(); if(active < 0) setActive(0); }, 480);
+    }); });
+    try{ localStorage.removeItem(SPLIT_OFF_KEY); }catch(e){}
+  }
+  function disable(){
+    document.body.classList.remove('spliton');
+    setTimeout(function(){ panel.classList.remove('prep'); }, 480);
+    try{ localStorage.setItem(SPLIT_OFF_KEY, '1'); }catch(e){}
+  }
+  pill.addEventListener('click', enable);
+  document.getElementById('spExit').addEventListener('click', disable);
+  document.getElementById('spWhole').addEventListener('click', function(){
+    if(map) map.fitBounds(bounds, { padding:{ top:70, bottom:70, left:70, right:70 }, maxZoom:6.9 });
+  });
+
+  var startOff = false; try{ startOff = localStorage.getItem(SPLIT_OFF_KEY) === '1'; }catch(e){}
+  if(!startOff && matchMedia('(min-width:1280px)').matches) enable();
+}
+
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function partnerBoxHtml(){
   var pend = STOPS.filter(function(s){ return s.pending; });
@@ -867,6 +1028,7 @@ function render(){
   initSlideshows();
   initRouteMap();
   initMobileDock();
+  initSplitView();
   // (Image lightbox intentionally disabled, no full-screen/zoom on images.)
 }
 
