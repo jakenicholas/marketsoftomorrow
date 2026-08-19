@@ -24,7 +24,7 @@ OVERPASS = "https://overpass-api.de/api/interpreter"
 
 CHUNK = 40          # projects per Overpass query
 RADIUS = 120        # metres searched around each pin
-MATCH_NEAR = 35     # metres: nearest-building match threshold when pin isn't inside one
+MATCH_NEAR = 15     # metres: nearest-building match threshold when pin isn't inside one
 MIN_AREA = 250      # m²: ignore sheds/kiosks
 MAX_AREA = 25000    # m²: ignore district-scale polygons (multi-block construction landuse)
 MAX_RING_PTS = 32
@@ -40,7 +40,16 @@ def load_projects():
         if not lat or not lng:
             continue
         try:
-            out.append({"slug": p.get("Slug", ""), "lat": float(lat), "lng": float(lng)})
+            fl = int("".join(c for c in str(p.get("Floors", "")) if c.isdigit()) or 0)
+        except ValueError:
+            fl = 0
+        try:
+            gfa = float(p.get("GfaSqFt") or 0)
+        except (TypeError, ValueError):
+            gfa = 0
+        try:
+            out.append({"slug": p.get("Slug", ""), "lat": float(lat), "lng": float(lng),
+                        "gfa": gfa, "fl": fl})
         except (TypeError, ValueError):
             continue
     return [p for p in out if p["slug"]]
@@ -106,6 +115,15 @@ def longest_edge_bearing(ring):
             best, bearing = d, math.degrees(math.atan2(dx, dy))
     return int(round(bearing)) % 90   # grid-symmetric
 
+def plausible(area, gfa, fl):
+    """Reject footprints wildly larger than the plate the project's own
+    GFA/floors imply — those are the OLD building on a redevelopment site
+    (a low curved hotel slab extruded to 66 floors looks absurd)."""
+    if gfa > 0 and fl >= 8:
+        implied = (gfa * 0.0929) / fl
+        return area <= max(3 * implied, 4500)
+    return True
+
 def decimate(ring):
     if len(ring) <= MAX_RING_PTS:
         return ring
@@ -121,6 +139,15 @@ def main():
     result = {}
     if OUT.exists():
         result = json.loads(OUT.read_text())
+        byslug = {p["slug"]: p for p in projects}
+        dropped = 0
+        for slug, v in list(result.items()):
+            pr = byslug.get(slug)
+            if isinstance(v, list) and pr and not plausible(area_m2([tuple(x) for x in v]), pr["gfa"], pr["fl"]):
+                result[slug] = longest_edge_bearing([tuple(x) for x in v])
+                dropped += 1
+        if dropped:
+            print(f"guard downgraded {dropped} implausible rings (old-building footprints) to bearings")
         solved = {s for s, v in result.items() if isinstance(v, list)}
         projects = [p for p in projects if p["slug"] not in solved]
     print(f"{len(projects)} projects to query ({len(result)} entries carried over)")
@@ -137,12 +164,14 @@ def main():
         for p in chunk:
             lng, lat = p["lng"], p["lat"]
             near = [(r, a) for r, a in rings if dist_m(r, lng, lat) <= RADIUS + 50]
-            containing = sorted((x for x in near if MIN_AREA <= x[1] <= MAX_AREA and contains(x[0], lng, lat)),
+            containing = sorted((x for x in near if MIN_AREA <= x[1] <= MAX_AREA
+                                 and plausible(x[1], p["gfa"], p["fl"]) and contains(x[0], lng, lat)),
                                 key=lambda x: x[1])
             if containing:
                 ring = containing[0][0]
             else:
-                cand = sorted(((r, a, dist_m(r, lng, lat)) for r, a in near if MIN_AREA <= a <= MAX_AREA),
+                cand = sorted(((r, a, dist_m(r, lng, lat)) for r, a in near
+                               if MIN_AREA <= a <= MAX_AREA and plausible(a, p["gfa"], p["fl"])),
                               key=lambda x: x[2])
                 ring = cand[0][0] if cand and cand[0][2] <= MATCH_NEAR else None
                 if ring is None:
