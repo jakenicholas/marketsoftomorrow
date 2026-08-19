@@ -731,6 +731,7 @@ function initMobileDock(tries){
   var map = new mapboxgl.Map({ container:'mdmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, dragRotate:false, pitchWithRotate:false,
     center:[pins[0].lng, pins[0].lat], zoom:5.4 });
+  window.__mdmap = map;   // debug handle: lets a console poke the dock camera
   var bounds = new mapboxgl.LngLatBounds();
   pins.forEach(function(p){ bounds.extend([p.lng, p.lat]); });
   var cards = [].slice.call(document.querySelectorAll('#tl .stop'));
