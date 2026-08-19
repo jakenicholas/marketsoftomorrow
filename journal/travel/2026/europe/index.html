@@ -405,6 +405,7 @@
         map right. body.spliton drives the whole layout; the panel and its
         toggle pill only exist at desktop widths. ── */
   .splitpanel,.split-pill{display:none}
+  .splitgrid{display:contents}   /* transparent unless split is on */
   @media(min-width:1100px){
     .split-pill{position:fixed;top:18px;right:18px;z-index:70;display:flex;align-items:center;gap:8px;
                 background:rgba(243,235,220,.94);border:1px solid var(--hair2);border-radius:99px;
@@ -415,16 +416,20 @@
     .split-pill svg{width:15px;height:15px;color:var(--terra)}
     body.spliton .split-pill{display:none}
 
-    body.spliton{--split-w:46vw}
-    body.spliton #doc{margin-right:var(--split-w);transition:margin .45s cubic-bezier(.3,1,.35,1)}
-    body.spliton .wrap{max-width:820px;padding:0 40px}
+    /* Hero stays full width; only the timeline row splits into two columns.
+       The map is an inset, rounded, sticky embed — not an edge-to-edge sheet. */
+    body.spliton .splitgrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(430px,44vw,880px);
+                            gap:0 8px;padding-right:18px;align-items:start}
+    body.spliton #tl{min-width:0;max-width:none;margin:0;padding:0 26px 0 clamp(26px,4vw,64px)}
     body.spliton .routemap{display:none}   /* the recap map is the panel now */
 
-    .splitpanel{position:fixed;top:0;right:0;bottom:0;width:46vw;z-index:65;
-                border-left:1px solid var(--hair2);background:var(--panel);
-                transform:translateX(103%);transition:transform .45s cubic-bezier(.3,1,.35,1)}
-    body.spliton .splitpanel{display:block;transform:none}
-    .splitpanel.prep{display:block}        /* pre-slide so the transition can run */
+    .splitpanel{align-self:start;position:sticky;top:14px;height:calc(100vh - 28px);z-index:5;
+                border:1px solid var(--hair2);border-radius:18px;overflow:hidden;background:var(--panel);
+                box-shadow:0 14px 40px rgba(74,57,43,.18);
+                opacity:0;transform:translateX(26px);
+                transition:transform .45s cubic-bezier(.3,1,.35,1),opacity .45s}
+    body.spliton .splitpanel{display:block;transform:none;opacity:1}
+    .splitpanel.prep{display:block}
     #spmap{position:absolute;inset:0}
     .sp-chip{position:absolute;left:16px;bottom:16px;z-index:5;display:flex;align-items:center;gap:9px;
              background:rgba(243,235,220,.94);border:1px solid var(--hair2);border-radius:99px;
@@ -886,7 +891,13 @@ function initSplitView(){
     +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
     +   '</button>'
     + '</div>';
-  document.body.appendChild(panel);
+  // Two-column mount: wrap #tl in a grid and give the panel the right column,
+  // so the hero above stays full width and the map scrolls in below it.
+  var tl = document.getElementById('tl');
+  var grid = document.createElement('div'); grid.className = 'splitgrid';
+  tl.parentNode.insertBefore(grid, tl);
+  grid.appendChild(tl);
+  grid.appendChild(panel);
 
   var pill = document.createElement('button');
   pill.className = 'split-pill'; pill.type = 'button';
