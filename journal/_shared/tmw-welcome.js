@@ -33,8 +33,8 @@
   var KEY = 'tmw-sub-lightbox-v1';
   var SUB_EMAIL_KEY = 'tmw-sub-email';
   // Same trial price ids as journal-paywall.js (2026-08 lineup).
-  var PRICE_MONTHLY = 'prc_pro-monthly-2026-08--rewl0anz';
-  var PRICE_ANNUAL = 'prc_pro-annual-trial-2026-08--rast0ag0';
+  var PRICE_MONTHLY = 'prc_pro-monthly-trial-7h1db07ik';
+  var PRICE_ANNUAL = 'prc_pro-annual-trial-s21dd07qf';
   var IMGS = [
     'https://media.oftmw.com/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg',
     'https://media.oftmw.com/2026/08/6940d5419dd3-Martis-3-wide.jpg',

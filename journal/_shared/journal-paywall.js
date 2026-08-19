@@ -12,25 +12,23 @@
 (function () {
   if (window.tmwShowPaywall) return;                 // singleton
 
-  // Pro pricing (2026-08-19): $90/mo, $900/yr, 2-week free trial. NOTE: the
-  // price IDs below are still the $32/$300 Memberstack objects — swap in the
-  // new $90/$900 objects (trial + no-trial pairs) as soon as they exist,
-  // or checkout will keep charging the old rate. Older price
+  // Pro pricing (2026-08-19): $90/mo, $900/yr, 2-week free trial — these are
+  // the live $90/$900 Memberstack objects. Older price
   // objects stay live in Memberstack so existing subscribers keep billing
   // their old rate (grandfathered) — we just point NEW signups at the new prices.
-  var PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-08--rewl0anz';
-  var PRICE_ID_ANNUAL  = 'prc_pro-annual-trial-2026-08--rast0ag0';
+  var PRICE_ID_MONTHLY = 'prc_pro-monthly-trial-7h1db07ik';
+  var PRICE_ID_ANNUAL  = 'prc_pro-annual-trial-s21dd07qf';
   // No-trial equivalents for returning members who already used their free trial.
   // LEGACY = old $9/$90 (members grandfathered from before the 2026-07-02 price
   // change); CURRENT = the standard-rate no-trial objects. The worker's
   // /trial-eligible returns `grandfathered`; startCheckout picks the map.
   var NOTRIAL_LEGACY = {
-    'prc_pro-annual-trial-2026-08--rast0ag0': 'prc_annual-9i2e0eab',
-    'prc_pro-monthly-2026-08--rewl0anz':      'prc_monthly-86u0uyc'
+    'prc_pro-annual-trial-s21dd07qf': 'prc_annual-9i2e0eab',
+    'prc_pro-monthly-trial-7h1db07ik': 'prc_monthly-86u0uyc'
   };
   var NOTRIAL_CURRENT = {
-    'prc_pro-annual-trial-2026-08--rast0ag0': 'prc_pro-annual-trial-2026-08--0ywr0acz',
-    'prc_pro-monthly-2026-08--rewl0anz':      'prc_pro-monthly-2026-08--3gws0ap4'
+    'prc_pro-annual-trial-s21dd07qf': 'prc_pro-annual-pk1bb0jtp',
+    'prc_pro-monthly-trial-7h1db07ik': 'prc_pro-monthly-bi1dc07r5'
   };
   var ICON = 'https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg';
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
