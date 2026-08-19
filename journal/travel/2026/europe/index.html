@@ -799,7 +799,7 @@ function initMobileDock(tries){
   mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
   var map = new mapboxgl.Map({ container:'mdmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, dragRotate:false, pitchWithRotate:false,
-    center:[pins[0].lng, pins[0].lat], zoom:5.4 });
+    center:[pins[0].lng, pins[0].lat], zoom:5 });
   window.__mdmap = map;   // debug handle: lets a console poke the dock camera
   var bounds = new mapboxgl.LngLatBounds();
   pins.forEach(function(p){ bounds.extend([p.lng, p.lat]); });
@@ -824,7 +824,7 @@ function initMobileDock(tries){
     var b = new mapboxgl.LngLatBounds();
     L.segs.forEach(function(s){ s.coords.forEach(function(c){ b.extend(c); }); });
     try{ map.resize(); }catch(e){}
-    map.fitBounds(b, { padding:44, duration:800, maxZoom:7.5 });
+    map.fitBounds(b, { padding:50, duration:800, maxZoom:6.6 });
   }
 
   var active = -1;
@@ -840,7 +840,7 @@ function initMobileDock(tries){
     if(fly !== false){
       try{ map.resize(); }catch(e){}
       var flyHome = function(){ map.flyTo({ center:[p.lng, p.lat],
-        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true }); };
+        zoom: dock.classList.contains('expanded') ? 6.1 : 5.2, speed:0.9, curve:1.4, essential:true }); };
       if(veh && predeparted !== k && legs[k] && prev === legs[k].fromIdx){
         fitLeg(legs[k]); veh.runSegs(legs[k].segs, false, flyHome);
       } else if(veh && predeparted !== k && legs[prev] && legs[prev].fromIdx === k){
@@ -886,7 +886,7 @@ function initMobileDock(tries){
     setTimeout(function(){
       map.resize();
       if(active >= 0) map.flyTo({ center:[pins[active].lng, pins[active].lat],
-        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:1.2, essential:true });
+        zoom: dock.classList.contains('expanded') ? 6.1 : 5.2, speed:1.2, essential:true });
     }, 470);
   });
   document.getElementById('mdWhole').addEventListener('click', function(){
@@ -906,7 +906,7 @@ function initMobileDock(tries){
     setTimeout(function(){
       try{ map.resize(); }catch(e){}
       if(active >= 0) map.jumpTo({ center:[pins[active].lng, pins[active].lat],
-        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8 });
+        zoom: dock.classList.contains('expanded') ? 6.1 : 5.2 });
     }, d);
   });
   setTimeout(function(){ spy(); if(active < 0) setActive(0); }, 320);
