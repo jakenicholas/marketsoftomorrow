@@ -14335,6 +14335,8 @@
           const dev = (mode==='dev'||mode==='both'), done = (mode==='completed'||mode==='both');
           window._developmentsVisible = dev; window._completedVisible = done;
           ['clusters','cluster-count','unclustered-glow','unclustered-point','featured-glow','watched-ring'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} } });
+          // Skyline mode owns the pin stack — towers ARE the pins there.
+          if (window._skyOn) ['unclustered-point','unclustered-glow','featured-glow','watched-ring'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility','none'); }catch(e){} } });
           ['clusters-completed','cluster-count-completed','unclustered-point-completed'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', done?'visible':'none'); }catch(e){} } });
           const cc=document.getElementById('completedCheckbox'), dc=document.getElementById('developmentsCheckbox');
           if(cc) cc.classList.toggle('checked', done); if(dc) dc.classList.toggle('checked', dev);
@@ -14395,8 +14397,12 @@
               ring.push(ring[0]);
               // Delivery year → the time scrubber filters towers like pins (yr 0 = unknown, always shown).
               const yM = String(p.deliveryDate || '').match(/20\d{2}/);
+              // What's Moving acts as a FILTER on the skyline, not a separate
+              // pin layer: movers render as purple towers (the pulse legend's
+              // purple), everything else keeps its status color.
+              const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:Math.round(fl*3.35), color:SKY_COLORS[p.delivery]||'#A78BFA', yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:Math.round(fl*3.35), color: mover ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300'), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             return { type:'FeatureCollection', features:feats };
@@ -14447,18 +14453,43 @@
             lastYr = undefined; apply();
             if (!scrubWatch) scrubWatch = setInterval(()=>{ if (skyOn) apply(); }, 350);
           }
+          // In skyline mode the What's Moving pulses fold into the towers
+          // (purple color), so the DOM markers hide. !important beats the
+          // inline display'' that zoomend's applyMoverVis re-applies.
+          try { const sst = document.createElement('style'); sst.textContent = 'body.tmw-sky-on .tmw-il-pulse{display:none !important}'; document.head.appendChild(sst); } catch(e){}
           skyT.addEventListener('click', ()=>{
             skyOn = !skyOn; skyT.classList.toggle('on', skyOn);
+            window._skyOn = skyOn;
+            document.body.classList.toggle('tmw-sky-on', skyOn);
             if (skyOn) {
               skyPrev = { pitch: map.getPitch() };
               skyAdd();
-              map.easeTo({ pitch: 62, duration: 900 });
+              // Towers only exist past zoom 13 — never leave the user staring
+              // at an unchanged flat view. From further out, fly to the nearest
+              // future tower; already in range, just tilt (and nudge past the
+              // minzoom edge so the skyline is actually on screen).
+              if (map.getZoom() < 13.2) {
+                const ctr = map.getCenter();
+                let tgt = null, bd = Infinity;
+                skyFC().features.forEach(ft=>{
+                  const c = ft.geometry.coordinates[0][0];
+                  const dx = c[0]-ctr.lng, dy = c[1]-ctr.lat, d = dx*dx + dy*dy;
+                  if (d < bd) { bd = d; tgt = c; }
+                });
+                if (tgt) map.flyTo({ center: tgt, zoom: 15.1, pitch: 62, bearing: map.getBearing(), speed: 1.4 });
+                else map.easeTo({ pitch: 62, duration: 900 });
+              } else {
+                map.easeTo({ pitch: 62, zoom: Math.max(map.getZoom(), 13.6), duration: 900 });
+              }
             } else {
               skyRemove();
               skyPinsBack();
               map.easeTo({ pitch: (skyPrev && skyPrev.pitch) || 0, duration: 700 });
             }
           });
+          // What's Moving toggled while the skyline is up → recolor towers
+          // live (purple filter on/off) without rebuilding the layers.
+          try { tog.addEventListener('click', ()=>{ if (!skyOn) return; try { const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC()); } catch(e){} }); } catch(e){}
           // A tower is a real pin: click-through to the same project modal.
           map.on('click','tmw-sky-future', (e)=>{
             const uid = e.features && e.features[0] && e.features[0].properties.uid;
@@ -19096,6 +19127,10 @@
         const vis = window._developmentsVisible ? 'visible' : 'none';
         ['clusters', 'cluster-count', 'unclustered-point', 'featured-glow', 'watched-ring'].forEach(id => {
           if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        });
+        // Skyline mode owns the flat pin stack — never re-show under towers.
+        if (window._skyOn) ['unclustered-point', 'featured-glow', 'watched-ring'].forEach(id => {
+          if (map.getLayer(id)) { try { map.setLayoutProperty(id, 'visibility', 'none'); } catch(e){} }
         });
       });
 
