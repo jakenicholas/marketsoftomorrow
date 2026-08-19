@@ -358,6 +358,46 @@
   .lock-in:focus{outline:none;border-color:var(--terra,#B0603A)}
   .lock-msg{margin-top:10px;font-size:13.5px;color:var(--mute2,#6b6b6b);min-height:14px}
   .lock-msg.err{color:#B0603A}
+
+  /* ── Mobile map dock: a sticky mini-map that follows the scroll (≤760px).
+        Desktop keeps the bottom route map; the dock never renders there. ── */
+  .rm-marker{position:relative}
+  .rm-marker.on .rm-dot{transform:scale(1.35);background:var(--terra);color:#F5EEDF;position:relative;z-index:3}
+  .rm-marker.on::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(176,96,58,.45);animation:mdring 1.6s ease-out infinite}
+  @keyframes mdring{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.25);opacity:0}}
+  .rm-marker.done .rm-dot{background:#E4D5BC;border-color:rgba(176,96,58,.45);color:rgba(138,63,34,.55)}
+  .mdock,.mdock-pill{display:none}
+  @media(max-width:760px){
+    .mdock{display:block;position:sticky;top:10px;z-index:40;margin:0 0 20px}
+    .mdock.off{display:none}
+    .mdock-frame{position:relative;border:1px solid var(--hair2);border-radius:14px;overflow:hidden;height:170px;
+                 background:var(--panel);box-shadow:0 10px 26px rgba(74,57,43,.18);
+                 transition:height .45s cubic-bezier(.3,1,.35,1)}
+    .mdock.expanded .mdock-frame{height:62vh}
+    #mdmap{position:absolute;inset:0}
+    .mdock-chip{position:absolute;left:10px;bottom:10px;z-index:5;display:flex;align-items:center;gap:8px;
+                background:rgba(243,235,220,.94);border:1px solid var(--hair2);border-radius:99px;
+                padding:6px 12px 6px 7px;box-shadow:0 4px 14px rgba(74,57,43,.22);max-width:76%}
+    .mdock-chip .n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--terra);color:#F5EEDF;
+                   font-family:var(--serif);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+    .mdock-chip .t{font-size:12.5px;font-weight:600;color:var(--brown);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mdock-chip .d{font-family:var(--serif);font-style:italic;font-size:11.5px;color:var(--mute);white-space:nowrap}
+    .mdock-ctl{position:absolute;right:10px;top:10px;z-index:5;display:flex;gap:6px}
+    .mdbtn{width:32px;height:32px;border-radius:9px;border:1px solid var(--hair2);background:rgba(243,235,220,.94);
+           color:var(--brown);display:flex;align-items:center;justify-content:center;cursor:pointer;
+           box-shadow:0 3px 10px rgba(74,57,43,.18);transition:transform .15s;font-family:var(--sans)}
+    .mdbtn:active{transform:scale(.93)}
+    .mdbtn svg{width:15px;height:15px;transition:transform .3s}
+    .mdock.expanded .mdbtn.expand svg{transform:rotate(180deg)}
+    .mdbtn.whole{width:auto;padding:0 11px;font-size:11px;font-weight:600;letter-spacing:.04em;display:none}
+    .mdock.expanded .mdbtn.whole{display:flex}
+    .mdock-pill.on{position:fixed;right:14px;bottom:18px;z-index:60;display:flex;align-items:center;gap:7px;
+                   background:var(--terra);color:#F5EEDF;border:0;border-radius:99px;padding:11px 16px;
+                   font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.05em;
+                   box-shadow:0 8px 24px rgba(74,57,43,.4);cursor:pointer}
+    .mdock-pill svg{width:14px;height:14px}
+    .stop{scroll-margin-top:210px}
+  }
 </style>
 </head>
 <body>
@@ -657,6 +697,111 @@ function initRouteMap(tries){
   window.addEventListener('resize', function(){ sync(false); });
 }
 
+// ── Mobile map dock: sticky mini-map that follows the scroll, stop by stop.
+// Markup renders for everyone; the map only initializes at phone widths. The
+// spy maps each .stop card to its route pin; camera flyTo follows the active
+// one, ⌄ expands, ✕ hides into a floating pill (choice remembered).
+var MDOCK_OFF_KEY = 'tmwTravelDockOff';
+function mobileDockHtml(){
+  return '<div class="mdock" id="mdock"><div class="mdock-frame">'
+    + '<div id="mdmap"></div>'
+    + '<div class="mdock-chip"><span class="n" id="mdN">1</span><span class="t" id="mdT">&nbsp;</span><span class="d" id="mdD"></span></div>'
+    + '<div class="mdock-ctl">'
+    +   '<button class="mdbtn whole" id="mdWhole" type="button">Whole route</button>'
+    +   '<button class="mdbtn expand" id="mdExpand" type="button" aria-label="Expand map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
+    +   '<button class="mdbtn" id="mdHide" type="button" aria-label="Hide map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+    + '</div>'
+    + '</div></div>'
+    + '<button class="mdock-pill" id="mdPill" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z"/></svg>Map</button>';
+}
+function initMobileDock(tries){
+  var dock = document.getElementById('mdock'); if(!dock) return;
+  if(!window.matchMedia || !matchMedia('(max-width:760px)').matches) return;
+  if(typeof mapboxgl === 'undefined'){ if((tries||0) < 40) setTimeout(function(){ initMobileDock((tries||0)+1); }, 250); return; }
+  var pill = document.getElementById('mdPill');
+  // Pins in stop order (n matches the bottom map: same COORDS filter).
+  var pins = [];
+  STOPS.forEach(function(s, si){
+    var c = COORDS[s.loc]; if(!c) return;
+    pins.push({ stopIdx:si, n:pins.length+1, loc:s.loc, lat:c[0], lng:c[1],
+                dates:(s.nights.indexOf('·')>=0 ? s.nights.split('·').pop().trim() : s.nights) });
+  });
+  if(pins.length < 2) return;
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var map = new mapboxgl.Map({ container:'mdmap', style:'mapbox://styles/mapbox/light-v11',
+    attributionControl:false, dragRotate:false, pitchWithRotate:false,
+    center:[pins[0].lng, pins[0].lat], zoom:5.4 });
+  var bounds = new mapboxgl.LngLatBounds();
+  pins.forEach(function(p){ bounds.extend([p.lng, p.lat]); });
+  var cards = [].slice.call(document.querySelectorAll('#tl .stop'));
+  var markers = pins.map(function(p){
+    var m = document.createElement('div'); m.className='rm-marker'; m.innerHTML='<span class="rm-dot">'+p.n+'</span>';
+    m.addEventListener('click', function(){ var c = cards[p.stopIdx]; if(c) c.scrollIntoView({ behavior:'smooth', block:'start' }); });
+    new mapboxgl.Marker({ element:m, anchor:'center' }).setLngLat([p.lng, p.lat]).addTo(map);
+    return m;
+  });
+  function addRoute(){
+    if(map.getSource('mdroute')) return;
+    map.addSource('mdroute', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString',
+      coordinates: pins.map(function(p){ return [p.lng, p.lat]; }) } } });
+    map.addLayer({ id:'mdroute', type:'line', source:'mdroute',
+      layout:{ 'line-cap':'round', 'line-join':'round' },
+      paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
+  }
+  if(map.isStyleLoaded()) addRoute(); else map.on('style.load', addRoute);
+
+  var active = -1;
+  function setActive(k, fly){
+    if(k === active || k < 0 || k >= pins.length) return;
+    active = k;
+    var p = pins[k];
+    markers.forEach(function(m, i){ m.classList.toggle('on', i === k); m.classList.toggle('done', i < k); });
+    document.getElementById('mdN').textContent = p.n;
+    document.getElementById('mdT').textContent = p.loc.split(',')[0];
+    document.getElementById('mdD').textContent = p.dates;
+    if(fly !== false) map.flyTo({ center:[p.lng, p.lat],
+      zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:0.9, curve:1.4, essential:true });
+  }
+  // The stop card nearest beneath the dock wins; cards without a pin fall back
+  // to the last pin at or before them.
+  function pinFor(cardIdx){
+    var k = -1;
+    pins.forEach(function(p, i){ if(p.stopIdx <= cardIdx) k = i; });
+    return k < 0 ? 0 : k;
+  }
+  var ticking = false;
+  function spy(){
+    ticking = false;
+    if(dock.classList.contains('off')) return;
+    var line = dock.getBoundingClientRect().bottom + 130;
+    var best = 0;
+    cards.forEach(function(c, i){ if(c.getBoundingClientRect().top < line) best = i; });
+    setActive(pinFor(best));
+  }
+  window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(spy); } }, { passive:true });
+
+  document.getElementById('mdExpand').addEventListener('click', function(){
+    dock.classList.toggle('expanded');
+    setTimeout(function(){
+      map.resize();
+      if(active >= 0) map.flyTo({ center:[pins[active].lng, pins[active].lat],
+        zoom: dock.classList.contains('expanded') ? 6.6 : 5.8, speed:1.2, essential:true });
+    }, 470);
+  });
+  document.getElementById('mdWhole').addEventListener('click', function(){
+    map.fitBounds(bounds, { padding:{ top:46, bottom:46, left:46, right:46 }, maxZoom:6.6 });
+  });
+  function hideDock(){ dock.classList.add('off'); pill.classList.add('on'); try{ localStorage.setItem(MDOCK_OFF_KEY,'1'); }catch(e){} }
+  function showDock(){ dock.classList.remove('off'); pill.classList.remove('on'); try{ localStorage.removeItem(MDOCK_OFF_KEY); }catch(e){}
+    setTimeout(function(){ map.resize(); spy(); }, 60); }
+  document.getElementById('mdHide').addEventListener('click', hideDock);
+  pill.addEventListener('click', showDock);
+  var startOff = false; try{ startOff = localStorage.getItem(MDOCK_OFF_KEY) === '1'; }catch(e){}
+  if(startOff){ dock.classList.add('off'); pill.classList.add('on'); }
+
+  setTimeout(function(){ map.resize(); spy(); if(active < 0) setActive(0); }, 300);
+}
+
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function partnerBoxHtml(){
   var pend = STOPS.filter(function(s){ return s.pending; });
@@ -685,7 +830,7 @@ function partnerBoxHtml(){
 }
 function render(){
   buildTopShow();
-  var html = '<div class="timeline">' + partnerBoxHtml(), num = 0;
+  var html = '<div class="timeline">' + mobileDockHtml() + partnerBoxHtml(), num = 0;
   STOPS.forEach(function(s){
     if(s.in) html += legHtml(s.in);
     var marker = s.tentative ? '◇' : (++num);   // ◇ for tentative day trips
@@ -706,6 +851,7 @@ function render(){
 
   initSlideshows();
   initRouteMap();
+  initMobileDock();
   // (Image lightbox intentionally disabled, no full-screen/zoom on images.)
 }
 
