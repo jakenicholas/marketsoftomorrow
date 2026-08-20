@@ -14078,7 +14078,7 @@
           '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s Moving</b><i>Pulse Recent Milestones</i></span></div>' +
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
-          '<div class="tmw-il-toggle tmw-il-sky" style="margin-top:2px"><span class="tmw-il-sw"></span><span><b>Future Skyline</b><i>3D Pipeline Towers</i></span></div>' +
+          '<div class="tmw-il-toggle tmw-il-sky" style="margin-top:2px"><span class="tmw-il-sw"></span><span><b>Future Skyline</b><i>3D up close, pins from afar</i></span></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
             '<div><span class="d" style="background:#A78BFA"></span>Moved In The Last 90 Days</div>' +
@@ -14347,7 +14347,7 @@
           window._developmentsVisible = dev; window._completedVisible = done;
           ['clusters','cluster-count','unclustered-glow','unclustered-point','featured-glow','watched-ring','pin-names'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} } });
           // Skyline mode owns the pin stack — towers ARE the pins there.
-          if (window._skyOn) ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility','none'); }catch(e){} } });
+          if (window._skyOn && window._skyZoomSync) window._skyZoomSync(true);
           ['clusters-completed','cluster-count-completed','unclustered-point-completed','pin-names-completed'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', done?'visible':'none'); }catch(e){} } });
           const cc=document.getElementById('completedCheckbox'), dc=document.getElementById('developmentsCheckbox');
           if(cc) cc.classList.toggle('checked', done); if(dc) dc.classList.toggle('checked', dev);
@@ -14584,15 +14584,31 @@
             } catch(e){}
             skyBreathe();
             skyScrub();
-            // The towers ARE the pins now — hide the flat dots underneath them.
-            // Clusters (far zoom) and completed pins are untouched; the pin set
-            // comes back exactly per the Pipeline/Completed toggle on exit.
-            ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility','none'); }catch(e){} });
+            // The towers ARE the pins up close; from afar the pins return.
+            skyZoomSync(true);
           }
           function skyPinsBack(){
             const dev = window._developmentsVisible !== false;
             ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} });
           }
+          function skyHidePins(){
+            ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility','none'); }catch(e){} });
+          }
+          // DYNAMIC MODE: 3D towers own the close zooms; the moment the user
+          // scrolls past the 3D horizon (the towers' minzoom), the pins take
+          // over automatically — no dead empty map at country scale.
+          let pinsShown = null;
+          function skyZoomSync(force){
+            if (!skyOn) return;
+            const three = map.getZoom() >= 12.9;
+            document.body.classList.toggle('tmw-sky-on', three);   // mover pulses return with the pins
+            const showPins = !three;
+            if (!force && showPins === pinsShown) return;
+            pinsShown = showPins;
+            if (showPins) skyPinsBack(); else skyHidePins();
+          }
+          try { map.on('zoom', ()=>skyZoomSync(false)); } catch(e){}
+          window._skyZoomSync = skyZoomSync;
           // Sync with the Delivering-by-year scrubber: towers appear as their
           // year comes into range, exactly like the pins. Watches _scrubYear
           // (set by applyYear) so the play button animates the skyline too.
@@ -14642,6 +14658,7 @@
             } else {
               skySpinStop();
               skyRemove();
+              pinsShown = null;
               skyPinsBack();
               try { map.setFog(skyPrev && skyPrev.fog !== undefined ? skyPrev.fog : null); } catch(e){}
               map.easeTo({ pitch: (skyPrev && skyPrev.pitch) || 0, duration: 700 });
