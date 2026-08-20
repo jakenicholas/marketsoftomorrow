@@ -18821,13 +18821,43 @@ async function handlePostComment(request, env, origin) {
   try {
     await ensureCommentsTable(env);
     let lvl = 1; try { const st = await computeMemberGameStats(env, id); lvl = (st && st.level) || 1; } catch {}
-    if (lvl < 2) return json({ error: 'level', message: 'Reach Reader level to comment.' }, { status: 403 }, env, origin);
+    if (lvl < 2) {
+      // Pro members comment instantly — the level ladder is for free accounts.
+      // Verified server-side: member_id → email (events) → live Stripe sub.
+      let pro = false;
+      try {
+        const er = await env.DB.prepare(`SELECT email FROM events WHERE member_id = ? AND email IS NOT NULL AND email != '' LIMIT 1`).bind(id).first();
+        const em = er && er.email;
+        if (em) { const sub = await findSubByEmail(env, em); pro = !!(sub && ['trialing', 'active', 'past_due'].includes(sub.status)); }
+      } catch {}
+      if (!pro) return json({ error: 'level', message: 'Reach Reader level to comment.' }, { status: 403 }, env, origin);
+    }
     const ts = Math.floor(Date.now() / 1000);
     const res = await env.DB.prepare(`INSERT INTO comments (post_slug, member_id, member_name, body, ts, status) VALUES (?,?,?,?,?, 'visible')`).bind(slug, id, name, body, ts).run();
     try { await env.DB.prepare(`INSERT INTO events (ts, member_id, member_name, event_name, path, props_json) VALUES (?,?,?,?,?,?)`).bind(ts, id, name, 'comment_posted', '/post/' + slug, JSON.stringify({ slug })).run(); } catch {}
     const cid = (res && res.meta && res.meta.last_row_id) || null;
     return json({ ok: true, comment: { id: cid, name: name || 'Member', body, ts } }, {}, env, origin);
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+
+// GET /admin/comments?page=&limit= — the Studio's moderation feed: who said
+// what, where, newest first, with the member's email joined in from events.
+async function handleAdminComments(request, env, origin, url) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ comments: [], total: 0 }, {}, env, origin);
+  const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get('limit'), 10) || 12));
+  const page = Math.max(1, parseInt(url.searchParams.get('page'), 10) || 1);
+  try {
+    await ensureCommentsTable(env);
+    const tot = await env.DB.prepare(`SELECT COUNT(*) AS n FROM comments WHERE status = 'visible'`).first();
+    const rs = await env.DB.prepare(
+      `SELECT c.id, c.post_slug, c.member_id, c.member_name, c.body, c.ts,
+              (SELECT e.email FROM events e WHERE e.member_id = c.member_id AND e.email IS NOT NULL AND e.email != '' LIMIT 1) AS email
+         FROM comments c WHERE c.status = 'visible' ORDER BY c.ts DESC LIMIT ? OFFSET ?`
+    ).bind(limit, (page - 1) * limit).all();
+    return json({ total: (tot && tot.n) || 0, page, limit, comments: rs.results || [] }, {}, env, origin);
+  } catch (e) { return json({ error: 'comments: ' + e.message }, { status: 500 }, env, origin); }
 }
 
 // ═══════════════════════ GIVEAWAYS ═══════════════════════
@@ -19962,6 +19992,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/email-stats')         return await handleEmailStats(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/daily-pulse')         return await handleDailyPulse(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/admin/signups')             return await handleSignups(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/admin/comments')            return await handleAdminComments(request, env, origin, url);
       if ((request.method === 'POST' || request.method === 'DELETE') && url.pathname === '/admin/desk-events') return await handleDeskEvents(request, env, origin);
       // Resend newsletter analytics: public Svix-verified event sink + one-click setup.
       if (request.method === 'POST' && url.pathname === '/resend/webhook')            return await handleResendWebhook(request, env);

@@ -1202,9 +1202,11 @@ function initComments(slug, post) {
   function gate(m){
     myId=m.id; if(lastItems)renderList(lastItems);   // now that we know who's reading, show delete on their own comments
     var cf=m.customFields||{}; var name=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||(m.auth&&m.auth.email)||'Member';
-    // Commenting is open to ANY member at Reader level (lvl>=2) — not PRO-gated.
-    // Everyone earns XP and climbs regardless of plan, so a free account that
-    // reaches Reader level can post.
+    // Pro members comment instantly (server verifies against Stripe too);
+    // free accounts climb to Reader level (lvl>=2) by earning XP.
+    var pro=false;
+    try{ pro=(m.planConnections||[]).some(function(pc){ return pc && ['ACTIVE','TRIALING','PAST_DUE'].indexOf(String(pc.status||'').toUpperCase())>=0 && String(pc.type||'').toUpperCase()!=='FREE'; }); }catch(e){}
+    if(pro){ showComposer(m.id,name); return; }
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(m.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(st){
       var lvl=(st&&st.level)||1;
       if(lvl<2){ lockBox('Almost there','Reach Reader level to unlock commenting — keep reading to earn XP.','View your progress',function(){location.href='/account';}); return; }
