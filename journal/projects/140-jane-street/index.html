@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>140 Jane Street, New York | Markets of Tomorrow</title>
   <meta name="description" content="140 Jane Street is a discreet, low-density West Village address organized around a small number of very large homes rather than a tower's worth of units. Designed by BKSK Architects and Leroy Street S…">
   <meta name="robots" content="index, follow">

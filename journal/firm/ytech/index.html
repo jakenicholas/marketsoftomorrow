@@ -530,6 +530,8 @@
           .ai-assump .ar .k{color:var(--ai-muted)}
           .ai-assump .ar .v{color:#f4f4f5;font-family:var(--ai-mono);font-weight:500;font-size:12px}
           .ai-locked .ai-val{filter:blur(7px);user-select:none;opacity:.85}
+          html.tmw-paid .ai-locked .ai-val{filter:none;opacity:.4} /* no blur flash for Pro */
+          html.tmw-paid .ai-gate{display:none}
           .ai-gate{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding:14px 18px;border:1px solid rgba(167,139,250,.35);background:var(--ai-purple-dim);border-radius:13px;box-shadow:0 0 24px rgba(167,139,250,.14)}
           .ai-gate .gt{font-size:13px;color:#f4f4f5}
           .ai-gate .gt b{color:var(--ai-purple)}

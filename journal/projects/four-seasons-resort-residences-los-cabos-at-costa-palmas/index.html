@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Four Seasons Resort & Residences, Los Cabos at Costa Palmas, La Ribera | Markets of Tomorrow</title>
   <meta name="description" content="Four Seasons Resort Los Cabos at Costa Palmas brings the brand's hospitality to Baja's less-traveled East Cape, set on the calm, swimmable waters of the Sea of Cortez. The 118-key resort offers suites…">
   <meta name="robots" content="index, follow">

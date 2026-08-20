@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Kalea Bay Tower 500, Naples | Markets of Tomorrow</title>
   <meta name="description" content="Kalea Bay Tower 500 is the final and most expansive high-rise at Kalea Bay, a gated luxury community at 13910 Old Coast Road in North Naples, Florida. The 22-story tower holds 120 residences with four…">
   <meta name="robots" content="index, follow">

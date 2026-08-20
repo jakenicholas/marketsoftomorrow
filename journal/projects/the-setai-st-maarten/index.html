@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>The Setai, St. Maarten, Indigo Bay | Markets of Tomorrow</title>
   <meta name="description" content="The Setai, St. Maarten is an ultra-luxury beachfront resort and branded-residence community taking shape on the Indigo Bay peninsula along the island's southwestern coast, marking the first Caribbean…">
   <meta name="robots" content="index, follow">

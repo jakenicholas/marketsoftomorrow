@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Hangzhou Qiantang Bay Art Museum, Hangzhou | Markets of Tomorrow</title>
   <meta name="description" content="Snøhetta's design for the Hangzhou riverfront art museum takes the form of two wave-like volumes that rise and dip across the site like shifting tides on the Qiantang River, their crests and troughs c…">
   <meta name="robots" content="index, follow">

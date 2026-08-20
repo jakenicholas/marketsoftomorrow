@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Bourbon Hotel Courchevel, Courchevel | Markets of Tomorrow</title>
   <meta name="description" content="Bourbon Hotel is Chapitre Six's alpine property in Courchevel 1850, occupying the building that formerly housed the Hotel des 3 Vallees on Rue Park City, with direct ski-in, ski-out access to the pist…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Jack's Bay Club & Resort, Bahamas | Markets of Tomorrow</title>
   <meta name="description" content="Jack's Bay Club & Resort is a 1,200-acre private golf and residential community on the southern tip of Eleuthera in the Bahamas, wrapped by more than four miles of oceanfront. It is anchored by two ma…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Ónix Delray Beach, Delray Beach | Markets of Tomorrow</title>
   <meta name="description" content="Ónix Delray Beach is a boutique luxury condominium at 318 SE 5th Avenue in downtown Delray Beach, Florida, just three blocks from the dining and nightlife of Atlantic Avenue. Developed by 1112 Develop…">
   <meta name="robots" content="index, follow">

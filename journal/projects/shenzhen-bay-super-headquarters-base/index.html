@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Shenzhen Bay Super Headquarters Base, Shenzhen | Markets of Tomorrow</title>
   <meta name="description" content="Shenzhen Bay Super Headquarters Base is a waterfront central-business-district masterplan in Shenzhen's Nanshan District, spanning roughly 117 hectares with about 5.2 million square metres of planned…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>101 SE 7th Street, Fort Lauderdale | Markets of Tomorrow</title>
   <meta name="description" content="101 SE 7th Street is a 45-story mixed-use skyscraper planned for downtown Fort Lauderdale, Florida, set between the New and Tarpon Rivers just south of Las Olas Boulevard. Designed by ODA and develope…">
   <meta name="robots" content="index, follow">

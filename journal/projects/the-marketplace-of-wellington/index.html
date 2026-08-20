@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>The Marketplace of Wellington, Wellington | Markets of Tomorrow</title>
   <meta name="description" content="The Marketplace of Wellington is the walkable town-center of Wellington Lifestyle Partners' master-planned community in Palm Beach County's equestrian heart. Spanning roughly 18 acres, the mixed-use v…">
   <meta name="robots" content="index, follow">

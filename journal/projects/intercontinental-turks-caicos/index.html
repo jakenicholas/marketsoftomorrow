@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>InterContinental Turks & Caicos, Providenciales | Markets of Tomorrow</title>
   <meta name="description" content="InterContinental Turks & Caicos is IHG's luxury debut in Turks and Caicos, an all-suite, seven-story beachfront resort on the white sands of Grace Bay in The Bight, Providenciales. Developed by Molo H…">
   <meta name="robots" content="index, follow">

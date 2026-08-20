@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Nora Apartments, West Palm Beach | Markets of Tomorrow</title>
   <meta name="description" content="Nora Apartments is a 12-story, 350-residence rental building on North Railroad Avenue in West Palm Beach's Nora District, the 40-acre adaptive-reuse neighborhood being redeveloped by NDT Development,…">
   <meta name="robots" content="index, follow">

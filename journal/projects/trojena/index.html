@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Trojena, Saudi Arabia | Markets of Tomorrow</title>
   <meta name="description" content="Trojena is a year-round mountain destination rising in the Sarawat range within Saudi Arabia's NEOM giga-project, set roughly 1,500 to 2,600 meters above sea level in the country's northwest. Master-p…">
   <meta name="robots" content="index, follow">

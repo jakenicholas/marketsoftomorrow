@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>6800 Sunset, Los Angeles | Markets of Tomorrow</title>
   <meta name="description" content="6800 Sunset is a two-building mixed-use complex anchoring the prominent southwest corner of Sunset Boulevard and Highland Avenue in the heart of Hollywood. Designed by Gensler with landscape architect…">
   <meta name="robots" content="index, follow">

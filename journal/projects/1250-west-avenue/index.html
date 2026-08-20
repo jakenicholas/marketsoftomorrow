@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>1250 West Avenue, Miami Beach | Markets of Tomorrow</title>
   <meta name="description" content="1250 West Avenue is a slender waterfront condominium tower planned for the West Avenue bayfront in Miami Beach's South Beach. Developed by a partnership led by Terra alongside JDS Development Group an…">
   <meta name="robots" content="index, follow">

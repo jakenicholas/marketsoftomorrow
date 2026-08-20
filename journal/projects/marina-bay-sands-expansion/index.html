@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Marina Bay Sands Expansion, Singapore | Markets of Tomorrow</title>
   <meta name="description" content="Safdie Architects' 55-story fourth tower at the iconic Marina Bay Sands — 570 ultra-luxury suites with triple-height sky terraces, paired with a Populous-designed 15,000-seat arena.">
   <meta name="robots" content="index, follow">

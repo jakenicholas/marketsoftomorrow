@@ -110,6 +110,7 @@
     .om-psf { display:block; font-size:17px; font-weight:700; margin-top:7px; filter:blur(6px); opacity:.85; user-select:none; font-variant-numeric:tabular-nums; }
     .om-psf i { font-style:normal; font-size:10px; color:rgba(255,255,255,.45); margin-left:3px; }
     .om-psf.on { filter:none; opacity:1; color:#A78BFA; }
+    html.tmw-paid .om-psf:not(.on) { filter:none; opacity:.4; } /* no blur flash for Pro */
     /* Page-level Atlas Intelligence banner (below the rail, above supply) */
     .mk-onyx-kicker { display:flex; align-items:center; gap:12px; padding:26px 2px 2px; }
     .mk-ok-l { display:inline-flex; align-items:center; gap:9px; font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:#A78BFA; font-weight:700; }
@@ -204,6 +205,7 @@
     .rc-s b { color:#fff; font-weight:550; }
     .rc-card.pro { border-color:rgba(167,139,250,.32); background:radial-gradient(240px 120px at 20% 0%,rgba(167,139,250,.10),transparent 60%),rgba(255,255,255,0.05); }
     .rc-blur { filter:blur(7px); user-select:none; opacity:.85; }
+    html.tmw-paid .rc-blur { filter:none; opacity:.4; } /* no blur flash for Pro */
     .rc-pro-tag { float:right; font-size:9px; font-weight:700; letter-spacing:.1em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:2px 8px; }
     .cmp-grid { display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:12px; }
     .cmp-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:17px 18px; text-decoration:none; color:inherit; }
@@ -220,6 +222,7 @@
     .cmp-r .k { color:rgba(255,255,255,.5); }
     .cmp-r .v { font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }
     .cmp-r .v.blur { filter:blur(6px); user-select:none; opacity:.85; }
+    html.tmw-paid .cmp-r .v.blur { filter:none; opacity:.4; } /* no blur flash for Pro */
     @media (max-width:900px) {
       .jc-grid,.br-row,.rc-row { grid-template-columns:repeat(2,1fr); }
       .ot-row,.ot-row.ot-4,.ot-row.ot-3 { grid-template-columns:repeat(2,1fr); }
@@ -635,7 +638,7 @@
         <div class="card-title">Louis Vuitton 103 Champs-Élysées</div>
         <div class="card-loc">Paris · 8th arrondissement</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Aug 3, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Aug 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>

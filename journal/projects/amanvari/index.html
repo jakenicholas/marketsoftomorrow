@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Amanvari, Los Cabos | Markets of Tomorrow</title>
   <meta name="description" content="Amanvari is Aman's first resort in Mexico, set on the secluded East Cape of Baja California Sur within the 1,500-acre Costa Palmas community near Los Cabos. Developed by Irongate and designed by Elast…">
   <meta name="robots" content="index, follow">

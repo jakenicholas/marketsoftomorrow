@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Rolex HQ, New York City | Markets of Tomorrow</title>
   <meta name="description" content="The Rolex Building is a 30-story, roughly 165,000-square-foot boutique office-and-retail tower at 665 Fifth Avenue in Midtown Manhattan, designed by Sir David Chipperfield as Rolex's North American he…">
   <meta name="robots" content="index, follow">

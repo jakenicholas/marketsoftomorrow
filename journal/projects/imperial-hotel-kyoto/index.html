@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Imperial Hotel, Kyoto, Kyoto | Markets of Tomorrow</title>
   <meta name="description" content="Imperial Hotel, Kyoto is the fourth property from one of Japan's most storied hospitality houses and its first new hotel in thirty years, set within the Yasaka Kaikan on the grounds of the Gion Kobu K…">
   <meta name="robots" content="index, follow">

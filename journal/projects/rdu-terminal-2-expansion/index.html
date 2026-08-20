@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>RDU Terminal 2 Expansion, Morrisville | Markets of Tomorrow</title>
   <meta name="description" content="Transform RDU is a multibillion-dollar, decade-long overhaul of the Triangle's airport, headlined by a major Terminal 2 expansion that grows the concourse from thirty-six to fifty-three gates and roug…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Aman Niseko, Niseko | Markets of Tomorrow</title>
   <meta name="description" content="Aman Niseko is an ultra-private alpine wellness retreat rising on the protected slopes of Mount Moiwa in Niseko, Hokkaido, Japan, overlooking the iconic cone of Mount Yotei. Developed by Nihon Harmony…">
   <meta name="robots" content="index, follow">

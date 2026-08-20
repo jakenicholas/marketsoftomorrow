@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Rosewood Tokyo, Tokyo | Markets of Tomorrow</title>
   <meta name="description" content="Rosewood Tokyo marks the ultra-luxury brand's first urban address in Japan, crowning the top floors of a 330-metre landmark tower in Roppongi — Tokyo's magnetic hub of contemporary art, architecture a…">
   <meta name="robots" content="index, follow">

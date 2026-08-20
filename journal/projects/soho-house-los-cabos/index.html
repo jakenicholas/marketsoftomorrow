@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Soho House Los Cabos, Cabo San Lucas | Markets of Tomorrow</title>
   <meta name="description" content="Soho House Los Cabos is the members' club's first beach house in Mexico, set on the oceanfront at Cabo del Sol on the Los Cabos coast where the Sea of Cortez meets the Pacific. Developed by FIBRA SOMA…">
   <meta name="robots" content="index, follow">

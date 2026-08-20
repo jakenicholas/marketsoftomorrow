@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Aman Karingani, Karingani Game Reserve | Markets of Tomorrow</title>
   <meta name="description" content="Aman Karingani is the storied Aman brand's first safari retreat on the African continent, set within the 150,000-hectare Karingani Game Reserve in southern Mozambique, bordering South Africa's Kruger…">
   <meta name="robots" content="index, follow">

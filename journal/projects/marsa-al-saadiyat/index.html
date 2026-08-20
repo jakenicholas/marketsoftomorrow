@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Marsa Al Saadiyat, Abu Dhabi | Markets of Tomorrow</title>
   <meta name="description" content="Marsa Al Saadiyat is an AED 100 billion waterfront destination master-developed by Aldar Properties as the final phase of Saadiyat Island's transformation in Abu Dhabi. Spanning roughly 6.4 million sq…">
   <meta name="robots" content="index, follow">

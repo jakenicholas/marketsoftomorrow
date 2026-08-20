@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>ʻUlu o Lele, Lahaina | Markets of Tomorrow</title>
   <meta name="description" content="ʻUlu o Lele is an open-air interim marketplace on the former Outlets of Maui site near Front Street in Lahaina, Maui, and the first commercial project to bring storefronts back to the historic distric…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Cabo Real Surf Club, Los Cabos | Markets of Tomorrow</title>
   <meta name="description" content="Cabo Real Surf Club is a private residential club opening in late 2026 within the established 3,000-acre Cabo Real masterplan in the Los Cabos Tourist Corridor, between Cabo San Lucas and San José del…">
   <meta name="robots" content="index, follow">

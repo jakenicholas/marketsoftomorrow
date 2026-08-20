@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>The Lido, Nekoosa | Markets of Tomorrow</title>
   <meta name="description" content="The Lido at Sand Valley is a meticulous re-creation of one of golf's great vanished courses, the original Lido Golf Club that C.B. Macdonald and Seth Raynor built on Long Island before it was lost to…">
   <meta name="robots" content="index, follow">

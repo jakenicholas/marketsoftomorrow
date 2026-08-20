@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Singer Island Gateway, Riviera Beach | Markets of Tomorrow</title>
   <meta name="description" content="Singer Island Gateway is a luxury Intracoastal condominium proposed by New York-based The Continuum Company at 2525 Lake Drive on Singer Island in Riviera Beach, Florida. Designed by Arquitectonica, t…">
   <meta name="robots" content="index, follow">

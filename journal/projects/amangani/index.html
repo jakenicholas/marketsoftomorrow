@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Amangani, Jackson | Markets of Tomorrow</title>
   <meta name="description" content="Amangani is Aman's first U.S. resort and one of the brand's most distinctive properties — a 40-suite hilltop retreat set 7,000 feet above the Snake River Valley on East Gros Ventre Butte, with sweepin…">
   <meta name="robots" content="index, follow">

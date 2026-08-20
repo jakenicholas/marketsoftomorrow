@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Currie Park Towers, West Palm Beach | Markets of Tomorrow</title>
   <meta name="description" content="Currie Park Towers is a planned twin-tower luxury condominium development on a 1.6-acre waterfront assemblage at 2085 North Flagler Drive in West Palm Beach's Northwood district, directly across from…">
   <meta name="robots" content="index, follow">

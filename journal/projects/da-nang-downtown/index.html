@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Da Nang Downtown, Da Nang | Markets of Tomorrow</title>
   <meta name="description" content="Da Nang Downtown is a riverfront mega-development by Sun Group on the former Asia Park site in Hai Chau, anchored by a 408-metre, 69-storey supertall that is set to rank as the tallest tower in centra…">
   <meta name="robots" content="index, follow">

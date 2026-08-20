@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Waldorf Astoria Miami Beach, Miami Beach | Markets of Tomorrow</title>
   <meta name="description" content="Waldorf Astoria Miami Beach marks the luxury brand's debut in the Miami Beach market, created through the transformation of a landmark oceanfront hotel at 2201 Collins Avenue, one of the city's most s…">
   <meta name="robots" content="index, follow">

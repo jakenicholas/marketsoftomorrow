@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>The Waterfront Daniel Island, Charleston | Markets of Tomorrow</title>
   <meta name="description" content="The Waterfront is a 22-acre, six-phase master-planned waterfront community on Daniel Island in Charleston, South Carolina, developed by East West Partners where River Landing Drive meets the Wando Riv…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Skyline OC, Santa Ana | Markets of Tomorrow</title>
   <meta name="description" content="Skyline OC is a 25-story, dual-tower condo conversion by Miami-based developer Crescent Heights, restoring ownership to Orange County's tallest residential building at 9 MacArthur Place in Santa Ana.…">
   <meta name="robots" content="index, follow">

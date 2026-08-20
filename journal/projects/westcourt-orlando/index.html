@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Westcourt Orlando, Orlando | Markets of Tomorrow</title>
   <meta name="description" content="Westcourt is a roughly $500 million mixed-use sports and entertainment district on 8.4 acres just north of the Kia Center in downtown Orlando, developed by a joint venture of JMA Ventures, the Machete…">
   <meta name="robots" content="index, follow">

@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>HB Capital Group Tower, Orlando | Markets of Tomorrow</title>
   <meta name="description" content="The HB Capital Group Tower is a proposed 37-story, 425-foot mixed-use skyscraper on a 0.63-acre parcel at East Washington Street and North Rosalind Avenue, directly across from Lake Eola Park in downt…">
   <meta name="robots" content="index, follow">

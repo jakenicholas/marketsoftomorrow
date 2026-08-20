@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Waldorf Astoria London Admiralty Arch, London | Markets of Tomorrow</title>
   <meta name="description" content="Waldorf Astoria London Admiralty Arch marks the conversion of one of London's most prominent civic landmarks into a luxury hotel, opening July 2026. Designed in 1912 by Sir Aston Webb and built as a m…">
   <meta name="robots" content="index, follow">

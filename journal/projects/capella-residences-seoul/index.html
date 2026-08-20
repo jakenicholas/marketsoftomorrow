@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Capella Residences Seoul, Seoul | Markets of Tomorrow</title>
   <meta name="description" content="Capella Residences Seoul is Capella Hotel Group's first branded residential address in South Korea, a collection of roughly 30 homes set within Heonin Village in Naegok-dong, Seocho-gu, on the wooded…">
   <meta name="robots" content="index, follow">

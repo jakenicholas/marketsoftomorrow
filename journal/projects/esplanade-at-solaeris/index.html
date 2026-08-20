@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>Esplanade at Solaeris, Port St. Lucie | Markets of Tomorrow</title>
   <meta name="description" content="Esplanade at Solaeris is a gated, resort-lifestyle master-planned community rising within the 3,300-acre Solaeris development in Port St. Lucie, Florida. Built by Taylor Morrison under its signature E…">
   <meta name="robots" content="index, follow">

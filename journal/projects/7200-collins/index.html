@@ -12,6 +12,10 @@
        in body copy aren't auto-linked into tappable blue text -->
   <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
   <meta name="x-apple-disable-message-reformatting" content="">
+  <!-- First-paint Pro hint: Pro members must never see Atlas values blurred
+       while auth + the projection fetch resolve. journal-auth.js owns the
+       durable tmw_auth_state signal; this only pre-applies the class. -->
+  <script>try{if(localStorage.getItem('tmw_auth_state')==='pro')document.documentElement.classList.add('tmw-paid');}catch(e){}</script>
   <title>7200 Collins, Miami Beach | Markets of Tomorrow</title>
   <meta name="description" content="7200 Collins is a 12-story luxury condominium under construction at 7200 Collins Avenue in Miami Beach's North Beach neighborhood, one block from the Atlantic and within the newly designated North Bea…">
   <meta name="robots" content="index, follow">
