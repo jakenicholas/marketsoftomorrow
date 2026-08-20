@@ -5683,6 +5683,15 @@ async function handleTravelAccess(req, env, origin) {
   if (!validEmail(email)) return json({ error: 'Please enter a valid email.' }, { status: 400 }, env, origin);
   const identity = email, method = 'email';
   const domain = identity.includes('@') ? identity.split('@')[1] : '';
+  // iCloud Private Relay / VPN detection. A real visitor's ISP is never a CDN
+  // backbone — but Apple routes Safari traffic through relay egress nodes run
+  // by Cloudflare (AS13335), Akamai (AS20940/16625/36183) and Fastly (AS54113),
+  // so the IP geolocates to the RELAY's exit city, not the person (a West
+  // Salem, WI test surfaced as Annapolis, MD this way). Flag it rather than
+  // assert a wrong city as fact.
+  const RELAY_ASNS = [13335, 20940, 16625, 36183, 54113];
+  const visitorAsn = (req.cf && Number(req.cf.asn)) || 0;
+  const relayed = RELAY_ASNS.indexOf(visitorAsn) >= 0;
   try {
     if (env.DB) {
       await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)').bind(
@@ -5695,6 +5704,8 @@ async function handleTravelAccess(req, env, origin) {
           region: (req.cf && (req.cf.regionCode || req.cf.region)) || '',
           ua: (req.headers.get('User-Agent') || '').slice(0, 200),
           ref: (req.headers.get('Referer') || '').slice(0, 200),
+          asn: visitorAsn || null,
+          relayed: relayed || undefined,
         }),
       ).run();
     }
@@ -5707,7 +5718,7 @@ async function handleTravelAccess(req, env, origin) {
     const place = [(req.cf && req.cf.city) || '', (req.cf && req.cf.country) || ''].filter(Boolean).join(', ');
     await pushAll(env, {
       title: 'Travel itinerary unlock',
-      body: email + (slug && slug !== '*' ? ' · ' + slug : '') + (place ? ' · ' + place : ''),
+      body: email + (slug && slug !== '*' ? ' · ' + slug : '') + (place ? ' · ' + place : '') + (relayed ? ' (relay, location approx)' : ''),
       url: 'https://admin.oftmw.com/analytics.html#travel',
     });
   } catch (_) {}
@@ -5737,7 +5748,7 @@ async function handleTravelAccessLog(req, env, origin, url) {
         identity: p.identity || p.to || '', method: p.method || '',
         domain: p.domain || ((p.identity || p.to || '').split('@')[1] || ''),
         slug: p.slug || '', country: p.country || '', city: p.city || '',
-        region: p.region || '', ip: p.ip || '',
+        region: p.region || '', ip: p.ip || '', relayed: !!p.relayed,
         // "Nashville, TN" — what actually lets you recognise a viewer.
         // Deliberately EMPTY when the edge gave no city: falling back to the
         // country would mix a bare "US" into the per-person place list and make
