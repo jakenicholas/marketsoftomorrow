@@ -5699,6 +5699,18 @@ async function handleTravelAccess(req, env, origin) {
       ).run();
     }
   } catch (_) {}
+  // iPhone ping: someone just identified themselves at the itinerary gate.
+  // High-signal and low-volume (a handful a week), so every unlock notifies
+  // every subscribed Studio device. Never blocks the unlock: the visitor's
+  // token matters more than our notification, so failures are swallowed.
+  try {
+    const place = [(req.cf && req.cf.city) || '', (req.cf && req.cf.country) || ''].filter(Boolean).join(', ');
+    await pushAll(env, {
+      title: 'Travel itinerary unlock',
+      body: email + (slug && slug !== '*' ? ' · ' + slug : '') + (place ? ' · ' + place : ''),
+      url: 'https://admin.oftmw.com/analytics.html#travel',
+    });
+  } catch (_) {}
   // '*' so one unlock covers every trip — re-prompting per page would just push
   // people to screenshot and forward the content instead.
   const token = await mintTravelToken(env, '*', identity, 30);
