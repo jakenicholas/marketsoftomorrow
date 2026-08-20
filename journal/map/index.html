@@ -14410,7 +14410,7 @@
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
-                const col0 = (movingOn && isMover(f)) ? '#E8DEFF' : '#B48CFF';
+                const col0 = (movingOn && isMover(f)) ? '#F0E8FF' : '#C29CFF';
                 ms.forEach(pc => {
                   if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4) return;
                   const r2 = pc.ring.slice();
@@ -14466,7 +14466,7 @@
               // purple), everything else keeps its status color.
               const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#E8DEFF' : '#B48CFF', yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#F0E8FF' : '#C29CFF', yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
@@ -14488,7 +14488,7 @@
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
-            ['tmw-sky-names','tmw-sky-shell','tmw-sky-future','tmw-sky-halo','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            ['tmw-sky-names','tmw-sky-shell','tmw-sky-future','tmw-sky-halo','tmw-sky-grid'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
             [SKY_SRC, SKY_SHL, SKY_LBL].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
           function skyAdd(){
@@ -14515,13 +14515,14 @@
               if (skyPrev && skyPrev.fog === undefined) skyPrev.fog = (map.getFog && map.getFog()) || null;
               map.setFog({ color:'rgb(18,12,34)', 'high-color':'rgb(38,20,70)', 'horizon-blend':0.12, 'space-color':'rgb(6,6,12)', 'star-intensity':0.35 });
             } catch(e){}
-            // Existing city as dark monoliths — only when the style carries
-            // building footprints (the satellite style is raster-only).
+            // THE VOID x TRON: no existing 3D city (demolished buildings can't
+            // clash with their replacements) — instead the street grid itself
+            // glows, and the pipeline rises alone from the light-city.
             try {
               if (map.getSource('composite')) {
-                map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
-                  minzoom:13, filter:['==',['get','extrude'],'true'],
-                  paint:{ 'fill-extrusion-color':'#171830','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.12 } });
+                map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:13,
+                  paint:{ 'line-color':'#7E5CF0','line-opacity':0.45,'line-emissive-strength':1,
+                    'line-width':['interpolate',['exponential',1.5],['zoom'],13,0.6,16,2.4] } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
@@ -14534,7 +14535,7 @@
             map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
               paint:{ 'fill-extrusion-color':'#9D7BFF','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.13,'fill-extrusion-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':true } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':false } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
             try {
