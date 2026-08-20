@@ -14410,7 +14410,7 @@
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
-                const col0 = (movingOn && isMover(f)) ? '#F0E8FF' : '#C29CFF';
+                const col0 = (movingOn && isMover(f)) ? '#B9A0FF' : '#7B4FE8';
                 ms.forEach(pc => {
                   if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4) return;
                   const r2 = pc.ring.slice();
@@ -14466,7 +14466,7 @@
               // purple), everything else keeps its status color.
               const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#F0E8FF' : '#C29CFF', yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#B9A0FF' : '#7B4FE8', yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
@@ -14474,7 +14474,7 @@
             // so every tower stays discoverable even when its glass is occluded.
             _skyShell = { type:'FeatureCollection', features: feats.map(ft => ({
               type:'Feature',
-              properties:{ uid:ft.properties.uid, height:ft.properties.height + 5, base:ft.properties.base, yr:ft.properties.yr },
+              properties:{ uid:ft.properties.uid, height:ft.properties.height + Math.max(24, Math.round(ft.properties.height * 0.35)), base:ft.properties.base, yr:ft.properties.yr },
               geometry:{ type:'Polygon', coordinates:[ skyScaleRing(ft.geometry.coordinates[0], 1.18) ] } })) };
             const best = {};
             feats.forEach(ft => { const pp = ft.properties;
@@ -14521,8 +14521,8 @@
             try {
               if (map.getSource('composite')) {
                 map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:13,
-                  paint:{ 'line-color':'#7E5CF0','line-opacity':0.45,'line-emissive-strength':1,
-                    'line-width':['interpolate',['exponential',1.5],['zoom'],13,0.6,16,2.4] } });
+                  paint:{ 'line-color':'#6B4BD6','line-opacity':0.24,'line-emissive-strength':1,
+                    'line-width':['interpolate',['exponential',1.5],['zoom'],13,0.5,16,1.7] } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
@@ -14533,9 +14533,9 @@
             map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13,
               paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
-              paint:{ 'fill-extrusion-color':'#9D7BFF','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.13,'fill-extrusion-emissive-strength':1 } });
+              paint:{ 'fill-extrusion-color':'#A78BFA','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.14,'fill-extrusion-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':false } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.45,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
             try {
@@ -14642,7 +14642,7 @@
               if (document.visibilityState === 'visible') {
                 const pz = 0.5 + 0.5 * Math.sin(performance.now() / 1000 * 1.4);
                 try {
-                  if (map.getLayer('tmw-sky-shell')) map.setPaintProperty('tmw-sky-shell','fill-extrusion-opacity', 0.09 + 0.08 * pz);
+                  if (map.getLayer('tmw-sky-shell')) map.setPaintProperty('tmw-sky-shell','fill-extrusion-opacity', 0.10 + 0.10 * pz);
                   if (map.getLayer('tmw-sky-halo')) map.setPaintProperty('tmw-sky-halo','fill-opacity', 0.06 + 0.07 * pz);
                 } catch(e){}
               }
