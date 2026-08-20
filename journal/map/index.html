@@ -1164,6 +1164,7 @@
     /* ‚îÄ‚îÄ‚îÄ MOBILE FLOATING BUTTONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     /* ‚îÄ‚îÄ‚îÄ MOBILE SEARCH PILL (Redfin-style) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     #mobileTilesButton {
+      display: none;   /* legacy: v2 never shows it; hidden from first paint so slow loads can't flash it */
       position: fixed;
       bottom: calc(env(safe-area-inset-bottom) + var(--button-bottom-offset, 80px));
       left: 50%;
@@ -1247,7 +1248,7 @@
     #mobileHomeButton:active { background: #333; }
 
     @media(max-width:800px) {
-      #mobileTilesButton { display: flex; }
+      /* legacy pill stays hidden — v2's capsule is the only mobile search entry */
       #mobileHomeButton { display: flex; }
     }
     #mobileDrawer.expanded ~ #mobileTilesButton { display: none !important; }
@@ -3144,7 +3145,16 @@
       transition: width var(--transition-med), box-shadow var(--transition-med);
     }
     @media(min-width:801px) {
-      #desktopSearchPill { display: flex; }
+      /* HIDDEN UNTIL V2 BOOTS. This is the legacy search pill; on a slow
+         connection it used to paint (with its em-dash "— results") until JS
+         added body.ui-v2 and faded it out — the "old interface flashing"
+         report. It now starts hidden and only ever shows in the one state v2
+         actually wants it: sidebar collapsed. NOTE for future removal: the v2
+         sidebar/capsule read counts THROUGH these legacy nodes (sync() copies
+         desktopPillCount.textContent, the filter button click()s the legacy
+         badge), so deleting the DOM outright breaks v2 — rewire those reads
+         first. */
+      body.ui-v2.v2-sidebar-collapsed #desktopSearchPill { display: flex; }
     }
     #desktopSearchPill .pill-search-icon {
       display: flex; align-items: center; justify-content: center;
@@ -16848,7 +16858,10 @@
                   (hasPage ? `<a class="pa-go" href="/markets/${cSlug}/">${p.city} market →</a>` : '') + `</div>`;
               }
               if (pm && pm.modeled) {
-                rows += `<div class="pa-row pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val">$•,•••/sf</b><a class="pa-go" href="${projectShareUrl(p.title)}">Full projection →</a></div>`;
+                // Durable Pro hint (journal-auth's tmw_auth_state): a Pro member must
+                // never see the blurred mask flash while the real value loads.
+                const proHint = (function(){try{return localStorage.getItem('tmw_auth_state')==='pro'}catch(e){return false}})();
+                rows += `<div class="pa-row pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val${proHint ? ' pa-on' : ''}">$•,•••/sf</b><a class="pa-go" href="${projectShareUrl(p.title)}">Full projection →</a></div>`;
               }
               if (!rows) return;
               cur.innerHTML = `<div class="pa-box">${rows}</div>`; cur.hidden = false;
@@ -17729,7 +17742,9 @@
               rows += `<div class="pa-row"><span class="pa-dot" style="background:${col}"></span>Supply pressure <b style="color:${col}">${mk.score}</b>&nbsp;· ${mk.level}</div>`;
             }
             if (pm && pm.modeled) {
-              rows += `<div class="pa-row pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val">$•,•••/sf</b><span class="pa-lock">Pro</span></div>`;
+              // Same Pro hint as the modal chips: no blur, no Pro pill flash.
+              const proHint = (function(){try{return localStorage.getItem('tmw_auth_state')==='pro'}catch(e){return false}})();
+              rows += `<div class="pa-row pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val${proHint ? ' pa-on' : ''}">$•,•••/sf</b>${proHint ? '' : '<span class="pa-lock">Pro</span>'}</div>`;
             }
             if (!rows) return;
             const boxHtml = `<div class="pa-box popup-atlas">${rows}</div>`;

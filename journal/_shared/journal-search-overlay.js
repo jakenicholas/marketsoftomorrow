@@ -1141,8 +1141,13 @@
     + '.tmw-pv-spine-bar{position:relative;height:5px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}'
     + '.tmw-pv-spine-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#7b5cff,#9b7bff)}'
     + '.tmw-pv-spine-stages{display:flex;justify-content:space-between;margin-top:8px;gap:4px}'
-    + '.tmw-pv-spine-stages span{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#6f776f;white-space:nowrap}'
-    + '.tmw-pv-spine-stages span.on{color:#b9a6ff;font-weight:700}'
+    /* Stage legend — typography matches the article project card's timeline
+       (.pm-tl-stage in tmw-project-intel.js) so both cards read identically. */
+    + '.tmw-pv-spine-stages span{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}'
+    + '.tmw-pv-spine-stages span:first-child{text-align:left}'
+    + '.tmw-pv-spine-stages span:last-child{text-align:right}'
+    + '.tmw-pv-spine-stages span.done{color:rgba(255,255,255,.5)}'
+    + '.tmw-pv-spine-stages span.on{color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)}'
     /* stat tiles */
     + '.tmw-pv-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}'
     + '.tmw-pv-stat{background:#141714;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 13px;min-width:0}'
@@ -1159,6 +1164,13 @@
     + '.tmw-pv-btn.ghost:hover{border-color:rgba(255,255,255,.4)}'
     + '.tmw-pv-btn svg{width:15px;height:15px}'
     /* Watch button on the project card — purple, flips gold when watching */
+    + '.tmw-pv-bell{position:absolute;top:14px;right:16px;z-index:2;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(10,12,10,.6);border:1px solid rgba(255,255,255,.22);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:0;transition:transform .15s,border-color .15s,box-shadow .15s}'
+    + '.tmw-pv-bell:hover{border-color:rgba(167,139,250,.7);color:#B9A6FF;transform:translateY(-1px)}'
+    + '.tmw-pv-bell svg{width:17px;height:17px}'
+    + '.tmw-pv-bell .ic-check{display:none}'
+    + '.tmw-pv-bell.on{background:rgba(230,197,116,.18);color:#f0d68a;border-color:rgba(230,197,116,.6);box-shadow:0 0 16px rgba(230,197,116,.45)}'
+    + '.tmw-pv-bell.on .ic-bell{display:none}'
+    + '.tmw-pv-bell.on .ic-check{display:flex}'
     + '.tmw-pv-btn.watch{background:rgba(167,139,250,.12);color:#B9A6FF;border:1px solid rgba(167,139,250,.4)}'
     + '.tmw-pv-btn.watch:hover{border-color:rgba(167,139,250,.7);transform:translateY(-1px)}'
     + '.tmw-pv-btn.watch.on{background:rgba(230,197,116,.14);color:#f0d68a;border:1px solid rgba(230,197,116,.6);box-shadow:0 0 16px rgba(230,197,116,.45)}'
@@ -2484,7 +2496,7 @@
   //    replacing the old SEO-page iframe embed). All data comes from the
   //    project object we already hold client-side. ──────────────────────────
   var SPINE_ORDER = ['Announced','Breaking Ground','Under Construction','Opening Soon','Now Open'];
-  var SPINE_SHORT = { 'Announced':'Announced','Breaking Ground':'Breaking','Under Construction':'Construction','Opening Soon':'Opening soon','Now Open':'Now open' };
+  var SPINE_SHORT = { 'Announced':'Announced','Breaking Ground':'Breaking Ground','Under Construction':'Construction','Opening Soon':'Opening Soon','Now Open':'Now Open' };
   function _spinePct(st){ var i = SPINE_ORDER.indexOf(st); return i < 0 ? 8 : [8,32,62,88,100][i]; }
   function _projImages(p){
     var out = [];
@@ -2545,11 +2557,12 @@
     var desc = clipBio(firstField(p, ['DescriptionLong','description_long','Description','description']) || '', 300);
     var type = String(firstField(p, ['PreferredType','ProjectType']) || '').split(',')[0].trim();
     var slug = p.Slug || p.slug || '';
+    var _sti = SPINE_ORDER.indexOf(st);
     var spine = '<div class="tmw-pv-spine"><div class="tmw-pv-spine-bar"><div class="tmw-pv-spine-fill" style="width:' + _spinePct(st) + '%"></div></div>'
-      + '<div class="tmw-pv-spine-stages">' + SPINE_ORDER.map(function(s){ return '<span class="' + (s === st ? 'on' : '') + '">' + esc(SPINE_SHORT[s] || s) + '</span>'; }).join('') + '</div></div>';
+      + '<div class="tmw-pv-spine-stages">' + SPINE_ORDER.map(function(s, i){ var cls = i === _sti ? 'on' : (i >= 0 && i < _sti ? 'done' : ''); return '<span class="' + cls + '">' + esc(SPINE_SHORT[s] || s) + '</span>'; }).join('') + '</div></div>';
     var hasGeo = p.Latitude && p.Longitude;
     return '<div class="tmw-pv">'
-      + '<div class="tmw-pv-hero">' + hero + '<div class="scrim"></div><span class="tmw-pv-badge ' + badge.cls + '"><i></i>' + esc(badge.label || st) + '</span></div>'
+      + '<div class="tmw-pv-hero">' + hero + '<div class="scrim"></div><span class="tmw-pv-badge ' + badge.cls + '"><i></i>' + esc(badge.label || st) + '</span>' + (slug ? '<button class="tmw-pv-bell" type="button" data-pvwatch data-slug="' + esc(slug) + '" aria-label="Watch this project"><svg class="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></button>' : '') + '</div>'
       + '<div class="tmw-pv-body">'
       +   '<h2 class="tmw-pv-title">' + esc(p.Title || '') + '</h2>'
       +   '<div class="tmw-pv-loc">' + esc(_locOf(p) || '') + (type ? ' &middot; ' + esc(type) : '') + '</div>'
@@ -2559,7 +2572,6 @@
       +   '<div class="tmw-pv-cta">'
       +     (hasGeo ? '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</a>' : '')
       +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
-      +     (slug ? '<button class="tmw-pv-btn watch" type="button" data-pvwatch data-slug="' + esc(slug) + '"><svg class="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span class="tmw-pv-watch-txt">Watch</span></button>' : '')
       +   '</div>'
       + '</div></div>';
   }

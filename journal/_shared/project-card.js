@@ -216,10 +216,11 @@
     return '' +
     '<div class="pc-media">' +
       (rec.ImageURL ? '<img src="' + esc(img(rec.ImageURL)) + '" alt="' + esc(rec.Title) + '" loading="lazy">' : '') +
-      // "View on Map" — identical to the map project modal\'s pm-viewmap-btn (map-pin
-      // icon + label); opens this project on the Map of Tomorrow.
-      '<button class="pc-flyover" type="button" aria-label="View on Map"><span class="lbl">View on Map</span>' +
-        '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>' +
+      // Watch bell — top-right of the image, matching the TMW Intelligence hero
+      // card. Toggles the same Memberstack favorites store; gold when watching.
+      '<button class="pc-flyover pc-bell" type="button" aria-label="Watch this project" data-watch="' + esc(slug) + '"><span class="lbl pc-watch-lbl">Watch</span>' +
+        '<svg class="ic-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>' +
+        '<svg class="ic-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></button>' +
     '</div>' +
     '<div class="pc-body">' +
       '<h3 class="pc-name">' + esc(rec.Title) + '</h3>' +
@@ -255,30 +256,14 @@
         // The map deep-link now lives on the top-right View on Map button.
         '<a class="pc-btn dive" href="https://www.oftmw.com/projects/' + encodeURIComponent(rec.Slug || slug) + '/">Dive Deeper ' +
           '<svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a>' +
-        // Watch — bell + "Watch" label (check when watching), toggles the same Memberstack favorites the map/SEO pages use.
-        '<button class="pc-btn watch" type="button" data-watch="' + esc(slug) + '" aria-label="Watch this project">' +
-          '<svg class="ic-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>' +
-          '<svg class="ic-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' +
-          '<span class="pc-watch-lbl">Watch</span></button>' +
       '</div>' +
     '</div>';
   }
 
   function wire(card, slug) {
-    var fly = card.querySelector('.pc-flyover');
-    // View on Map → the map tile deep-link (fullscreen + normalized mapSlug),
-    // SAME TAB. Was window.open('/map/?project=<raw-hyphen-slug>','_blank') — a new
-    // tab AND a slug the map couldn't resolve; projectUrl() is the link Dive Deeper
-    // used to carry, which lands on the actual project on the map. Route through the
-    // site loader (the "future is here" departure board) so the map's boot is
-    // covered — this button is a <button>, so the loader's <a>-click interception
-    // never catches it on its own.
-    if (fly) fly.addEventListener('click', function () {
-      var url = projectUrl(slug);
-      if (window.tmwLoader && window.tmwLoader.go) { window.tmwLoader.go(url); }
-      else { window.location.href = url; }
-    });
-    var wb = card.querySelector('.pc-btn.watch');
+    // Top-right bell = the card's Watch control (was the View on Map deep-link;
+    // the map stays reachable through the project page).
+    var wb = card.querySelector('.pc-bell');
     if (wb) { hydrateWatch(wb, slug); wb.addEventListener('click', function () { toggleWatch(wb, slug); }); }
     var ib = card.querySelector('.pc-inquire');
     if (ib) ib.addEventListener('click', function () {
@@ -437,14 +422,13 @@
       '@keyframes pcDiveGlow{0%,100%{box-shadow:0 6px 22px rgba(167,139,250,.28), 0 0 30px rgba(167,139,250,.22)}50%{box-shadow:0 6px 24px rgba(167,139,250,.45), 0 0 44px rgba(167,139,250,.4)}}',
       '@media (prefers-reduced-motion:reduce){.tmw-pcard .pc-btn.dive{animation:none}}',
       // Watch — dark pill, eye + "Watch" label; green-tinted once watching.
-      '.tmw-pcard .pc-btn.watch{background:rgba(255,255,255,.06); color:var(--cream); border:1px solid rgba(255,255,255,.16)}',
-      '.tmw-pcard .pc-btn.watch:hover{background:rgba(255,255,255,.11); color:#fff}',
-      '.tmw-pcard .pc-btn.watch svg{width:16px;height:16px;stroke-width:1.8}',
-      '.tmw-pcard .pc-btn.watch .ic-check{display:none;stroke-width:2.4}',
-      '.tmw-pcard .pc-btn.watch.watching .ic-bell{display:none}',
-      '.tmw-pcard .pc-btn.watch.watching .ic-check{display:inline-block}',
-      '.tmw-pcard .pc-btn.watch.watching{background:rgba(31,223,103,.12); border-color:rgba(31,223,103,.5); color:var(--grn)}',
-      '.tmw-pcard .pc-btn.watch.watching:hover{background:rgba(31,223,103,.18)}',
+      '.tmw-pcard .pc-bell:hover{border-color:rgba(167,139,250,.7); color:#B9A6FF}',
+      '.tmw-pcard .pc-bell .ic-bell{stroke-width:1.8}',
+      '.tmw-pcard .pc-bell .ic-check{display:none;stroke-width:2.4}',
+      '.tmw-pcard .pc-bell.watching .ic-bell{display:none}',
+      '.tmw-pcard .pc-bell.watching .ic-check{display:flex}',
+      '.tmw-pcard .pc-bell.watching{background:rgba(230,197,116,.18); border-color:rgba(230,197,116,.6); color:#f0d68a; box-shadow:0 0 16px rgba(230,197,116,.45)}',
+      '.tmw-pcard .pc-bell.watching:hover{border-color:rgba(230,197,116,.85)}',
       // Official Website — subtle text link with arrow, below the CTAs (mirrors .btn-website).
       '.tmw-pcard .pc-website{display:inline-flex; align-items:center; gap:6px; margin:14px 0 2px; color:#fff; opacity:.82; font-size:13px; font-weight:500; text-decoration:none; transition:opacity .15s, gap .15s}',
       '.tmw-pcard .pc-website:hover{opacity:1; gap:9px}',

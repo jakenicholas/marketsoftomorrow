@@ -996,6 +996,8 @@ def market_band_html(m: dict) -> str:
         .sp-band-n{{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.38)}}
         .sp-band-cta{{margin-left:auto;text-decoration:none;font-size:11.5px;font-weight:700;padding:7px 13px;border-radius:999px;background:#A78BFA;color:#0a0a0a}}
         #spBand.locked .sp-band-val,#spBand.locked .sp-band-range{{filter:blur(7px);user-select:none;opacity:.85}}
+        /* Pro-hinted visitors (html.tmw-paid from the head inline) never see blur while the value loads */
+        html.tmw-paid #spBand.locked .sp-band-val,html.tmw-paid #spBand.locked .sp-band-range{{filter:none;opacity:.4}}
       </style>
       <script>
       (function(){{
@@ -1940,6 +1942,7 @@ def render_page(
     .om-psf {{ display:block; font-size:17px; font-weight:700; margin-top:7px; filter:blur(6px); opacity:.85; user-select:none; font-variant-numeric:tabular-nums; }}
     .om-psf i {{ font-style:normal; font-size:10px; color:rgba(255,255,255,.45); margin-left:3px; }}
     .om-psf.on {{ filter:none; opacity:1; color:#A78BFA; }}
+    html.tmw-paid .om-psf:not(.on) {{ filter:none; opacity:.4; }} /* no blur flash for Pro */
     /* Page-level Atlas Intelligence banner (below the rail, above supply) */
     .mk-onyx-kicker {{ display:flex; align-items:center; gap:12px; padding:26px 2px 2px; }}
     .mk-ok-l {{ display:inline-flex; align-items:center; gap:9px; font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:#A78BFA; font-weight:700; }}
@@ -2034,6 +2037,7 @@ def render_page(
     .rc-s b {{ color:#fff; font-weight:550; }}
     .rc-card.pro {{ border-color:rgba(167,139,250,.32); background:radial-gradient(240px 120px at 20% 0%,rgba(167,139,250,.10),transparent 60%),rgba(255,255,255,0.05); }}
     .rc-blur {{ filter:blur(7px); user-select:none; opacity:.85; }}
+    html.tmw-paid .rc-blur {{ filter:none; opacity:.4; }} /* no blur flash for Pro */
     .rc-pro-tag {{ float:right; font-size:9px; font-weight:700; letter-spacing:.1em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:2px 8px; }}
     .cmp-grid {{ display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:12px; }}
     .cmp-card {{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:17px 18px; text-decoration:none; color:inherit; }}
@@ -2050,6 +2054,7 @@ def render_page(
     .cmp-r .k {{ color:rgba(255,255,255,.5); }}
     .cmp-r .v {{ font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }}
     .cmp-r .v.blur {{ filter:blur(6px); user-select:none; opacity:.85; }}
+    html.tmw-paid .cmp-r .v.blur {{ filter:none; opacity:.4; }} /* no blur flash for Pro */
     @media (max-width:900px) {{
       .jc-grid,.br-row,.rc-row {{ grid-template-columns:repeat(2,1fr); }}
       .ot-row,.ot-row.ot-4,.ot-row.ot-3 {{ grid-template-columns:repeat(2,1fr); }}

@@ -1130,7 +1130,7 @@
   // journal-search-overlay.js or journal-search-core.js changes. (This file is
   // itself must-revalidate, so a compliant browser picks up the new token; once
   // it does, the versioned URL guarantees the new search code loads.)
-  var SEARCH_V = '20260815-hero-city-token';
+  var SEARCH_V = '20260820-hero-bell';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');
@@ -1197,13 +1197,13 @@
     // truth, no per-page drift. It self-injects its CSS and exposes window.TMWIntel.
     if (!document.querySelector('script[src*="tmw-project-intel.js"]')) {
       var pi = document.createElement('script');
-      pi.src = '/_shared/tmw-project-intel.js';
+      pi.src = '/_shared/tmw-project-intel.js?v=20260820-bell';
       pi.async = false;  // run before project-card.js (insertion order)
       document.head.appendChild(pi);
     }
     if (document.querySelector('script[src*="project-card.js"]')) return;
     var s = document.createElement('script');
-    s.src = '/_shared/project-card.js';
+    s.src = '/_shared/project-card.js?v=20260820-bell';
     s.async = false;  // wait for tmw-project-intel.js so window.TMWIntel is ready
     document.head.appendChild(s);
   }
