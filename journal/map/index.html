@@ -14598,13 +14598,33 @@
               } else {
                 map.easeTo({ pitch: 62, zoom: Math.max(map.getZoom(), 13.6), duration: 900 });
               }
+              skySpinStop(); skySpin();
             } else {
+              skySpinStop();
               skyRemove();
               skyPinsBack();
               try { map.setFog(skyPrev && skyPrev.fog !== undefined ? skyPrev.fog : null); } catch(e){}
               map.easeTo({ pitch: (skyPrev && skyPrev.pitch) || 0, duration: 700 });
             }
           });
+          // Cinematic orbit: the camera drifts slowly around the skyline until
+          // the user takes the controls (drag / touch / scroll), then never
+          // fights them. Restarts fresh each time the skyline turns on.
+          let skySpinOn = false, skySpinT = null;
+          function skySpin(){
+            if (skySpinOn) return; skySpinOn = true;
+            const loop = () => {
+              if (!skyOn || !skySpinOn) { skySpinOn = false; return; }
+              if (map.isMoving()) { skySpinT = setTimeout(loop, 1500); return; }   // let the fly-in land
+              if (document.visibilityState === 'visible' && map.getZoom() >= 13) {
+                try { map.easeTo({ bearing: map.getBearing() + 5, duration: 10000, easing: x => x }); } catch(e){}
+              }
+              skySpinT = setTimeout(loop, 10000);
+            };
+            skySpinT = setTimeout(loop, 1500);
+          }
+          function skySpinStop(){ skySpinOn = false; clearTimeout(skySpinT); }
+          ['mousedown','touchstart','wheel'].forEach(ev => { try { map.on(ev, skySpinStop); } catch(e){} });
           // Breathing glow: shells + halos pulse slowly while the skyline is
           // up. Paused when the tab is hidden; stops itself on toggle-off.
           let skyPulse = false;
