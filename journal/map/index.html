@@ -14521,7 +14521,7 @@
               if (map.getSource('composite')) {
                 map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
                   minzoom:13, filter:['==',['get','extrude'],'true'],
-                  paint:{ 'fill-extrusion-color':'#0d0d16','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.95,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.05 } });
+                  paint:{ 'fill-extrusion-color':'#454a5c','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.72,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.28 } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
@@ -14534,7 +14534,7 @@
             map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
               paint:{ 'fill-extrusion-color':'#8B6CFF','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.13,'fill-extrusion-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.75,'fill-extrusion-emissive-strength':0.9,'fill-extrusion-vertical-gradient':true } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.92,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
             try {
