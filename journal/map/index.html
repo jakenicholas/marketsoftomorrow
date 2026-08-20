@@ -14335,10 +14335,10 @@
         function setProjects(mode){
           const dev = (mode==='dev'||mode==='both'), done = (mode==='completed'||mode==='both');
           window._developmentsVisible = dev; window._completedVisible = done;
-          ['clusters','cluster-count','unclustered-glow','unclustered-point','featured-glow','watched-ring'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} } });
+          ['clusters','cluster-count','unclustered-glow','unclustered-point','featured-glow','watched-ring','pin-names'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} } });
           // Skyline mode owns the pin stack — towers ARE the pins there.
-          if (window._skyOn) ['unclustered-point','unclustered-glow','featured-glow','watched-ring'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility','none'); }catch(e){} } });
-          ['clusters-completed','cluster-count-completed','unclustered-point-completed'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', done?'visible':'none'); }catch(e){} } });
+          if (window._skyOn) ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility','none'); }catch(e){} } });
+          ['clusters-completed','cluster-count-completed','unclustered-point-completed','pin-names-completed'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', done?'visible':'none'); }catch(e){} } });
           const cc=document.getElementById('completedCheckbox'), dc=document.getElementById('developmentsCheckbox');
           if(cc) cc.classList.toggle('checked', done); if(dc) dc.classList.toggle('checked', dev);
           // Keep the folder/list in sync with the toggle — the renderGrid filter
@@ -14410,7 +14410,7 @@
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
-                const col0 = (movingOn && isMover(f)) ? '#D8C9FF' : '#A78BFA';
+                const col0 = (movingOn && isMover(f)) ? '#E8DEFF' : '#B48CFF';
                 ms.forEach(pc => {
                   if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4) return;
                   const r2 = pc.ring.slice();
@@ -14466,7 +14466,7 @@
               // purple), everything else keeps its status color.
               const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#D8C9FF' : '#A78BFA', yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#E8DEFF' : '#B48CFF', yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
@@ -14521,7 +14521,7 @@
               if (map.getSource('composite')) {
                 map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
                   minzoom:13, filter:['==',['get','extrude'],'true'],
-                  paint:{ 'fill-extrusion-color':'#454a5c','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.72,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.28 } });
+                  paint:{ 'fill-extrusion-color':'#171830','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.12 } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
@@ -14532,14 +14532,14 @@
             map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13,
               paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
-              paint:{ 'fill-extrusion-color':'#8B6CFF','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.13,'fill-extrusion-emissive-strength':1 } });
+              paint:{ 'fill-extrusion-color':'#9D7BFF','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.13,'fill-extrusion-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.92,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':true } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
             try {
               map.addLayer({ id:'tmw-sky-names', type:'symbol', source:SKY_LBL, minzoom:13.8,
-                layout:{ 'symbol-z-elevate':true, 'text-field':['get','title'], 'text-font':['DIN Pro Bold','Arial Unicode MS Bold'],
+                layout:{ 'symbol-z-elevate':true, 'text-field':['get','title'],
                   'text-size':['interpolate',['linear'],['zoom'],14,10,16,12.5], 'text-anchor':'bottom', 'text-offset':[0,-0.9], 'text-padding':4 },
                 paint:{ 'text-color':'#EDE8FF', 'text-halo-color':'rgba(20,10,45,0.95)', 'text-halo-width':1.6, 'text-emissive-strength':1,
                   'text-opacity':['interpolate',['linear'],['zoom'],13.9,0,14.4,1] } });
@@ -14549,11 +14549,11 @@
             // The towers ARE the pins now — hide the flat dots underneath them.
             // Clusters (far zoom) and completed pins are untouched; the pin set
             // comes back exactly per the Pipeline/Completed toggle on exit.
-            ['unclustered-point','unclustered-glow','featured-glow','watched-ring'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility','none'); }catch(e){} });
+            ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility','none'); }catch(e){} });
           }
           function skyPinsBack(){
             const dev = window._developmentsVisible !== false;
-            ['unclustered-point','unclustered-glow','featured-glow','watched-ring'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} });
+            ['unclustered-point','unclustered-glow','featured-glow','watched-ring','pin-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} });
           }
           // Sync with the Delivering-by-year scrubber: towers appear as their
           // year comes into range, exactly like the pins. Watches _scrubYear
@@ -14623,7 +14623,13 @@
             };
             skySpinT = setTimeout(loop, 1500);
           }
-          function skySpinStop(){ skySpinOn = false; clearTimeout(skySpinT); }
+          let skyIdleT = null;
+          function skySpinStop(){
+            skySpinOn = false; clearTimeout(skySpinT); clearTimeout(skyIdleT);
+            // Resume the drift after a few idle seconds — the orbit always
+            // comes back when the user's hands leave the map.
+            skyIdleT = setTimeout(()=>{ if (skyOn && !skySpinOn) skySpin(); }, 5000);
+          }
           ['mousedown','touchstart','wheel'].forEach(ev => { try { map.on(ev, skySpinStop); } catch(e){} });
           // Breathing glow: shells + halos pulse slowly while the skyline is
           // up. Paused when the tab is hidden; stops itself on toggle-off.
@@ -20328,6 +20334,16 @@
                    'circle-stroke-opacity':0}
           }, 'unclustered-point');
         }
+        if (!map.getLayer('pin-names')) {
+          map.addLayer({ id:'pin-names', type:'symbol', source:'projects', filter:['!',['has','point_count']], minzoom:14.6,
+            layout:{ 'text-field':['get','label'], 'text-size':['interpolate',['linear'],['zoom'],14.6,10,16.5,12], 'text-anchor':'top', 'text-offset':[0,0.9], 'text-padding':2, 'text-optional':true },
+            paint:{ 'text-color':'#EDE8FF','text-halo-color':'rgba(10,10,18,0.9)','text-halo-width':1.4,'text-opacity':['interpolate',['linear'],['zoom'],14.6,0,15,1] } });
+        }
+        if (!map.getLayer('pin-names-completed') && map.getSource('projects-completed')) {
+          map.addLayer({ id:'pin-names-completed', type:'symbol', source:'projects-completed', filter:['!',['has','point_count']], minzoom:14.6,
+            layout:{ visibility:completedRestoreVis, 'text-field':['get','label'], 'text-size':['interpolate',['linear'],['zoom'],14.6,10,16.5,12], 'text-anchor':'top', 'text-offset':[0,0.9], 'text-padding':2, 'text-optional':true },
+            paint:{ 'text-color':'#CFE8DC','text-halo-color':'rgba(10,14,12,0.9)','text-halo-width':1.4,'text-opacity':['interpolate',['linear'],['zoom'],14.6,0,15,1] } });
+        }
           // Re-apply any active filters
         updateMapPinFilters();
         renderGrid('gridDesktop');
@@ -20402,6 +20418,11 @@
                 floors: p.Floors || '',
                 gfa: p.GfaSqFt || '',   // ground-truth scale for the Future Skyline footprints
                 slug: p.Slug || '',     // keys the real OSM footprint in skyline-footprints.json
+                // Short display label for pin/roof nametags: cut at the brand
+                // comma, then trim to ~20 chars at a word boundary.
+                label: (function(n){ n = String(n||'').trim(); const c = n.indexOf(','); if (c > 2) n = n.slice(0, c).trim();
+                  if (n.length > 20){ let t = n.slice(0, 20); const sp = t.lastIndexOf(' '); if (sp > 6) t = t.slice(0, sp); n = t; }
+                  return n.replace(/[\s,.;:!?&/\\-]+$/g, ''); })(p.Title),
                 // Optional prose context. configSummary describes the layout
                 // when "X floors" alone is misleading (multi-tower projects).
                 // deliveryPhases describes staggered openings when the single
@@ -20652,6 +20673,14 @@
           // "yellow halo on featured pins". Only the green watched ring
           // is added back here on re-init.
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], minzoom:8, paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0} }, 'unclustered-point');
+          // Pin nametags: every pin grows a name once you're close enough.
+          map.addLayer({ id:'pin-names', type:'symbol', source:'projects', filter:['!',['has','point_count']], minzoom:14.6,
+            layout:{ 'text-field':['get','label'], 'text-size':['interpolate',['linear'],['zoom'],14.6,10,16.5,12], 'text-anchor':'top', 'text-offset':[0,0.9], 'text-padding':2, 'text-optional':true },
+            paint:{ 'text-color':'#EDE8FF','text-halo-color':'rgba(10,10,18,0.9)','text-halo-width':1.4,'text-opacity':['interpolate',['linear'],['zoom'],14.6,0,15,1] } });
+          map.addLayer({ id:'pin-names-completed', type:'symbol', source:'projects-completed', filter:['!',['has','point_count']], minzoom:14.6,
+            layout:{ visibility:completedVis, 'text-field':['get','label'], 'text-size':['interpolate',['linear'],['zoom'],14.6,10,16.5,12], 'text-anchor':'top', 'text-offset':[0,0.9], 'text-padding':2, 'text-optional':true },
+            paint:{ 'text-color':'#CFE8DC','text-halo-color':'rgba(10,14,12,0.9)','text-halo-width':1.4,'text-opacity':['interpolate',['linear'],['zoom'],14.6,0,15,1] } });
+
 
           // Cluster zoom-expand handlers — same pattern for both stacks, just
           // different source names.
