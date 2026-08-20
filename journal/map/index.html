@@ -14369,7 +14369,7 @@
           // NEON VIOLET: the skyline glows as one monochrome purple signature.
           // Movers (What's Moving) read brighter; selection isn't needed — the
           // click opens the modal. Derived shells + roof labels rebuilt by skyFC.
-          let _skyShell = { type:'FeatureCollection', features:[] }, _skyLabels = { type:'FeatureCollection', features:[] };
+          let _skyShell = { type:'FeatureCollection', features:[] }, _skyLabels = { type:'FeatureCollection', features:[] }, _skyClip = null;
           function skyRingCentroid(r){ const n = r.length - 1; let x = 0, y = 0; for (let i = 0; i < n; i++){ x += r[i][0]; y += r[i][1]; } return [x/n, y/n]; }
           function skyScaleRing(r, f){ const c = skyRingCentroid(r); return r.map(pt => [c[0] + (pt[0]-c[0])*f, c[1] + (pt[1]-c[1])*f]); }
           function skySetData(){
@@ -14377,6 +14377,9 @@
               const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC());
               const sh = map.getSource(SKY_SHL); if (sh) sh.setData(_skyShell);
               const ls = map.getSource(SKY_LBL); if (ls) ls.setData(_skyLabels);
+              if (_skyClip && map.getLayer('tmw-sky-existing')) {
+                map.setFilter('tmw-sky-existing', ['all', ['==',['get','extrude'],'true'], ['!', ['within', _skyClip]]]);
+              }
             } catch(e){}
           }
           function skyFC(){
@@ -14477,12 +14480,24 @@
               if (!pp.uid) return;
               if (!best[pp.uid] || pp.height > best[pp.uid].height) best[pp.uid] = { uid:pp.uid, title:pp.title, height:pp.height, yr:pp.yr, ring:ft.geometry.coordinates[0] };
             });
-            // Aura columns: one per project, rising FROM the roofline — the
-            // body below stays an unobstructed solid mass.
-            _skyShell = { type:'FeatureCollection', features: Object.values(best).map(b => ({
-              type:'Feature',
-              properties:{ uid:b.uid, base:b.height, height:b.height + Math.max(28, Math.round(b.height * 0.4)), yr:b.yr },
-              geometry:{ type:'Polygon', coordinates:[ skyScaleRing(b.ring, 1.06) ] } })) };
+            // Aura: three nested translucent columns per project rising from
+            // the roofline — widening and fading outward, so the beacon reads
+            // as a soft blurred glow instead of a hard-edged box.
+            const auraFeats = [];
+            Object.values(best).forEach(b => {
+              const a = Math.max(28, Math.round(b.height * 0.4));
+              [[1, 1.05, 0.9], [2, 1.28, 1.05], [3, 1.55, 1.2]].forEach(([tier, sc, hf]) => {
+                auraFeats.push({ type:'Feature',
+                  properties:{ uid:b.uid, tier, base:Math.max(0, b.height - 2), height:b.height + Math.round(a * hf), yr:b.yr },
+                  geometry:{ type:'Polygon', coordinates:[ skyScaleRing(b.ring, sc) ] } });
+              });
+            });
+            _skyShell = { type:'FeatureCollection', features: auraFeats };
+            // Demolition mask: existing basemap buildings standing fully inside
+            // a pipeline parcel are assumed cleared for construction — the
+            // 'within' filter on the existing layer hides them.
+            _skyClip = { type:'MultiPolygon',
+              coordinates: feats.map(ft => [ skyScaleRing(ft.geometry.coordinates[0], 1.2) ]) };
             _skyLabels = { type:'FeatureCollection', features: Object.values(best).map(b => ({
               type:'Feature',
               properties:{ uid:b.uid, title:(typeof shortName === 'function' ? shortName(b.title) : b.title), yr:b.yr },
@@ -14490,7 +14505,7 @@
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
-            ['tmw-sky-names','tmw-sky-shell','tmw-sky-future','tmw-sky-halo','tmw-sky-grid'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
             [SKY_SRC, SKY_SHL, SKY_LBL].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
           function skyAdd(){
@@ -14534,8 +14549,11 @@
             map.addSource(SKY_LBL, { type:'geojson', data:_skyLabels });
             map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13,
               paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
-            map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
-              paint:{ 'fill-extrusion-color':'#A78BFA','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.14,'fill-extrusion-emissive-strength':1 } });
+            [[1, 0.12], [2, 0.055], [3, 0.028]].forEach(([tier, op]) => {
+              map.addLayer({ id:'tmw-sky-aura'+tier, type:'fill-extrusion', source:SKY_SHL, minzoom:13,
+                filter:['==',['get','tier'],tier],
+                paint:{ 'fill-extrusion-color':'#A78BFA','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':op,'fill-extrusion-emissive-strength':1 } });
+            });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
               paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.55,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
@@ -14568,7 +14586,9 @@
               if (y === lastYr) return;
               lastYr = y;
               const flt = (y == null) ? null : ['any', ['==',['get','yr'],0], ['<=',['get','yr'],y]];
-              ['tmw-sky-future','tmw-sky-halo','tmw-sky-shell','tmw-sky-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
+              ['tmw-sky-future','tmw-sky-halo','tmw-sky-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
+              [1,2,3].forEach(t=>{ const tf = ['==',['get','tier'],t];
+                try{ if(map.getLayer('tmw-sky-aura'+t)) map.setFilter('tmw-sky-aura'+t, flt ? ['all', tf, flt] : tf); }catch(e){} });
             };
             lastYr = undefined; apply();
             if (!scrubWatch) scrubWatch = setInterval(()=>{ if (skyOn) apply(); }, 350);
@@ -14644,7 +14664,9 @@
               if (document.visibilityState === 'visible') {
                 const pz = 0.5 + 0.5 * Math.sin(performance.now() / 1000 * 1.4);
                 try {
-                  if (map.getLayer('tmw-sky-shell')) map.setPaintProperty('tmw-sky-shell','fill-extrusion-opacity', 0.10 + 0.10 * pz);
+                  if (map.getLayer('tmw-sky-aura1')) map.setPaintProperty('tmw-sky-aura1','fill-extrusion-opacity', 0.085 + 0.07 * pz);
+                  if (map.getLayer('tmw-sky-aura2')) map.setPaintProperty('tmw-sky-aura2','fill-extrusion-opacity', 0.04 + 0.035 * pz);
+                  if (map.getLayer('tmw-sky-aura3')) map.setPaintProperty('tmw-sky-aura3','fill-extrusion-opacity', 0.02 + 0.018 * pz);
                   if (map.getLayer('tmw-sky-halo')) map.setPaintProperty('tmw-sky-halo','fill-opacity', 0.06 + 0.07 * pz);
                 } catch(e){}
               }
@@ -14667,7 +14689,7 @@
             const f = (window.allProjectFeatures||[]).find(x => x.properties && x.properties.uid === uid);
             if (f && window.openProjectModal) window.openProjectModal(f, 'skyline');
           }
-          ['tmw-sky-future','tmw-sky-shell','tmw-sky-names'].forEach(id => {
+          ['tmw-sky-future','tmw-sky-aura1','tmw-sky-names'].forEach(id => {
             map.on('click', id, skyClick);
             map.on('mouseenter', id, ()=>{ map.getCanvas().style.cursor='pointer'; });
             map.on('mouseleave', id, ()=>{ map.getCanvas().style.cursor=''; });
