@@ -66,7 +66,7 @@
   <meta name="format-detection" content="address=no">
   <meta name="format-detection" content="email=no">
   
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <!-- Cross-subdomain SSO: keep the Memberstack session in a cookie on the ROOT
@@ -643,7 +643,7 @@
   }
   </script>
   
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet" />
   <style>/* drawer-search chase glow: at-rules must be top-level */
   @property --v2sang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
   @keyframes v2SearchChase { to { --v2sang: 360deg; } }
@@ -13460,6 +13460,7 @@
     try { var _bp = new URLSearchParams(location.search); _bootDeepLink = !!(_bp.get('project') || _bp.get('city')); } catch (e) {}
     const map = new mapboxgl.Map({
       container: 'map',
+      projection: 'mercator',   // explicit: GL v3 must not switch us to globe
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
       center: _bootDeepLink ? [-96.0, 38.6] : [-80.191, 25.774],
       zoom:   _bootDeepLink ? 3.5 : (isMobile ? 12.5 : 11)
@@ -14364,8 +14365,20 @@
           const skyT = panel.querySelector('.tmw-il-sky');
           if (!skyT) return;
           let skyOn = false, skyPrev = null;
-          const SKY_SRC = 'tmw-sky';
-          const SKY_COLORS = { 'Announced':'#FFD300', 'Breaking Ground':'#3FA9F5', 'Under Construction':'#3FA9F5', 'Opening Soon':'#1FDF67', 'Now Open':'#1FDF67' };
+          const SKY_SRC = 'tmw-sky', SKY_SHL = 'tmw-sky-shell-src', SKY_LBL = 'tmw-sky-names-src';
+          // NEON VIOLET: the skyline glows as one monochrome purple signature.
+          // Movers (What's Moving) read brighter; selection isn't needed — the
+          // click opens the modal. Derived shells + roof labels rebuilt by skyFC.
+          let _skyShell = { type:'FeatureCollection', features:[] }, _skyLabels = { type:'FeatureCollection', features:[] };
+          function skyRingCentroid(r){ const n = r.length - 1; let x = 0, y = 0; for (let i = 0; i < n; i++){ x += r[i][0]; y += r[i][1]; } return [x/n, y/n]; }
+          function skyScaleRing(r, f){ const c = skyRingCentroid(r); return r.map(pt => [c[0] + (pt[0]-c[0])*f, c[1] + (pt[1]-c[1])*f]); }
+          function skySetData(){
+            try {
+              const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC());
+              const sh = map.getSource(SKY_SHL); if (sh) sh.setData(_skyShell);
+              const ls = map.getSource(SKY_LBL); if (ls) ls.setData(_skyLabels);
+            } catch(e){}
+          }
           function skyFC(){
             const src = window.allProjectFeatures || [];
             const feats = [];
@@ -14397,7 +14410,7 @@
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
-                const col0 = (movingOn && isMover(f)) ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300');
+                const col0 = (movingOn && isMover(f)) ? '#D8C9FF' : '#A78BFA';
                 ms.forEach(pc => {
                   if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4) return;
                   const r2 = pc.ring.slice();
@@ -14453,14 +14466,30 @@
               // purple), everything else keeps its status color.
               const mover = movingOn && isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#A78BFA' : (SKY_COLORS[p.delivery]||'#FFD300'), yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#D8C9FF' : '#A78BFA', yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
+            // Derived: breathing glow shells (scaled copies) + one roof label
+            // per project — labels ride ABOVE the extrusions (symbol-z-elevate)
+            // so every tower stays discoverable even when its glass is occluded.
+            _skyShell = { type:'FeatureCollection', features: feats.map(ft => ({
+              type:'Feature',
+              properties:{ uid:ft.properties.uid, height:ft.properties.height + 5, base:ft.properties.base, yr:ft.properties.yr },
+              geometry:{ type:'Polygon', coordinates:[ skyScaleRing(ft.geometry.coordinates[0], 1.18) ] } })) };
+            const best = {};
+            feats.forEach(ft => { const pp = ft.properties;
+              if (!pp.uid) return;
+              if (!best[pp.uid] || pp.height > best[pp.uid].height) best[pp.uid] = { uid:pp.uid, title:pp.title, height:pp.height, yr:pp.yr, ring:ft.geometry.coordinates[0] };
+            });
+            _skyLabels = { type:'FeatureCollection', features: Object.values(best).map(b => ({
+              type:'Feature',
+              properties:{ uid:b.uid, title:(typeof shortName === 'function' ? shortName(b.title) : b.title), yr:b.yr },
+              geometry:{ type:'Point', coordinates: skyRingCentroid(b.ring) } })) };
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
-            ['tmw-sky-future','tmw-sky-halo','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
-            try{ if(map.getSource(SKY_SRC)) map.removeSource(SKY_SRC); }catch(e){}
+            ['tmw-sky-names','tmw-sky-shell','tmw-sky-future','tmw-sky-halo','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            [SKY_SRC, SKY_SHL, SKY_LBL].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
           function skyAdd(){
             skyRemove();
@@ -14477,24 +14506,45 @@
                 if (mj) window._skyMass = mj;
                 if (oj) window._skyOver = oj;   // Studio editor hand-fixes: top priority
                 if (!fj && !mj && !oj) return;
-                try { const s = map.getSource(SKY_SRC); if (s && skyOn) s.setData(skyFC()); } catch(e){}
+                if (skyOn) skySetData();
               });
             }
-            // Existing city in gray — only when the style carries building
-            // footprints (the satellite style is raster-only and would throw).
+            // Deep violet night: purple haze on the horizon, stars above.
+            // The previous fog is saved once and restored on toggle-off.
+            try {
+              if (skyPrev && skyPrev.fog === undefined) skyPrev.fog = (map.getFog && map.getFog()) || null;
+              map.setFog({ color:'rgb(18,12,34)', 'high-color':'rgb(38,20,70)', 'horizon-blend':0.12, 'space-color':'rgb(6,6,12)', 'star-intensity':0.35 });
+            } catch(e){}
+            // Existing city as dark monoliths — only when the style carries
+            // building footprints (the satellite style is raster-only).
             try {
               if (map.getSource('composite')) {
                 map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
                   minzoom:13, filter:['==',['get','extrude'],'true'],
-                  paint:{ 'fill-extrusion-color':'#30332f','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true } });
+                  paint:{ 'fill-extrusion-color':'#0d0d16','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.95,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.05 } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
             // fades in exactly where the 3D city does instead of far-view spikes.
             map.addSource(SKY_SRC, { type:'geojson', data:skyFC() });
-            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13, paint:{ 'fill-color':['get','color'], 'fill-opacity':0.16 } });
+            map.addSource(SKY_SHL, { type:'geojson', data:_skyShell });
+            map.addSource(SKY_LBL, { type:'geojson', data:_skyLabels });
+            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13,
+              paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
+            map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
+              paint:{ 'fill-extrusion-color':'#8B6CFF','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.13,'fill-extrusion-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.88,'fill-extrusion-vertical-gradient':true } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.75,'fill-extrusion-emissive-strength':0.9,'fill-extrusion-vertical-gradient':true } });
+            // Roof names: elevated symbols ride on top of the extrusions, so
+            // occluded towers stay findable and clickable — the pins, reborn.
+            try {
+              map.addLayer({ id:'tmw-sky-names', type:'symbol', source:SKY_LBL, minzoom:13.8,
+                layout:{ 'symbol-z-elevate':true, 'text-field':['get','title'], 'text-font':['DIN Pro Bold','Arial Unicode MS Bold'],
+                  'text-size':['interpolate',['linear'],['zoom'],14,10,16,12.5], 'text-anchor':'bottom', 'text-offset':[0,-0.9], 'text-padding':4 },
+                paint:{ 'text-color':'#EDE8FF', 'text-halo-color':'rgba(20,10,45,0.95)', 'text-halo-width':1.6, 'text-emissive-strength':1,
+                  'text-opacity':['interpolate',['linear'],['zoom'],13.9,0,14.4,1] } });
+            } catch(e){}
+            skyBreathe();
             skyScrub();
             // The towers ARE the pins now — hide the flat dots underneath them.
             // Clusters (far zoom) and completed pins are untouched; the pin set
@@ -14515,7 +14565,7 @@
               if (y === lastYr) return;
               lastYr = y;
               const flt = (y == null) ? null : ['any', ['==',['get','yr'],0], ['<=',['get','yr'],y]];
-              ['tmw-sky-future','tmw-sky-halo'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
+              ['tmw-sky-future','tmw-sky-halo','tmw-sky-shell','tmw-sky-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
             };
             lastYr = undefined; apply();
             if (!scrubWatch) scrubWatch = setInterval(()=>{ if (skyOn) apply(); }, 350);
@@ -14551,25 +14601,48 @@
             } else {
               skyRemove();
               skyPinsBack();
+              try { map.setFog(skyPrev && skyPrev.fog !== undefined ? skyPrev.fog : null); } catch(e){}
               map.easeTo({ pitch: (skyPrev && skyPrev.pitch) || 0, duration: 700 });
             }
           });
+          // Breathing glow: shells + halos pulse slowly while the skyline is
+          // up. Paused when the tab is hidden; stops itself on toggle-off.
+          let skyPulse = false;
+          function skyBreathe(){
+            if (skyPulse) return; skyPulse = true;
+            const step = () => {
+              if (!skyOn) { skyPulse = false; return; }
+              if (document.visibilityState === 'visible') {
+                const pz = 0.5 + 0.5 * Math.sin(performance.now() / 1000 * 1.4);
+                try {
+                  if (map.getLayer('tmw-sky-shell')) map.setPaintProperty('tmw-sky-shell','fill-extrusion-opacity', 0.09 + 0.08 * pz);
+                  if (map.getLayer('tmw-sky-halo')) map.setPaintProperty('tmw-sky-halo','fill-opacity', 0.06 + 0.07 * pz);
+                } catch(e){}
+              }
+              requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          }
           // What's Moving toggled while the skyline is up → recolor towers
-          // live (purple filter on/off) without rebuilding the layers.
-          try { tog.addEventListener('click', ()=>{ if (!skyOn) return; try { const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC()); } catch(e){} }); } catch(e){}
+          // live (brighter movers) without rebuilding the layers.
+          try { tog.addEventListener('click', ()=>{ if (skyOn) skySetData(); }); } catch(e){}
           // The skyline IS the default view: plain loads boot with the toggle
           // on and fly into the towers. Deep links (?project/?city) keep their
           // own destination and arrive in 2D — the toggle is one click away.
           if (!_bootDeepLink) setTimeout(()=>{ try { if (!skyOn) skyT.click(); } catch(e){} }, 700);
-          // A tower is a real pin: click-through to the same project modal.
-          map.on('click','tmw-sky-future', (e)=>{
+          // A tower is a real pin: glass, glow shell, or roof name — click any
+          // of them and the same project modal opens.
+          function skyClick(e){
             const uid = e.features && e.features[0] && e.features[0].properties.uid;
             if (!uid) return;
             const f = (window.allProjectFeatures||[]).find(x => x.properties && x.properties.uid === uid);
             if (f && window.openProjectModal) window.openProjectModal(f, 'skyline');
+          }
+          ['tmw-sky-future','tmw-sky-shell','tmw-sky-names'].forEach(id => {
+            map.on('click', id, skyClick);
+            map.on('mouseenter', id, ()=>{ map.getCanvas().style.cursor='pointer'; });
+            map.on('mouseleave', id, ()=>{ map.getCanvas().style.cursor=''; });
           });
-          map.on('mouseenter','tmw-sky-future', ()=>{ map.getCanvas().style.cursor='pointer'; });
-          map.on('mouseleave','tmw-sky-future', ()=>{ map.getCanvas().style.cursor=''; });
           // Default/Satellite switching rebuilds the style and drops our layers;
           // re-add AFTER addAllMapLayers has run so we stack above the pins.
           map.on('style.load', ()=>{ if (skyOn) setTimeout(skyAdd, 500); });
