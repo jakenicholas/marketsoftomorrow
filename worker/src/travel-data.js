@@ -66,13 +66,11 @@ export const TRAVEL_STOPS = {
   // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
   { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ start:true, date:'September 3', mode:'flight', note:'Depart home, arrive Rome the 4th' },
-    vibe:'Opening nights in the Eternal City: a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
     logi:[], imgs:[
       'https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg'] },
 
   { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true, confirmed:true,
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
-    vibe:'Fair Verona on the Adige: the Roman arena, frescoed piazzas, and a relaxed Veneto base — with Venice a quick train away for a day on the water.',
     logi:[],
     todo:[
       { a:'Day Trip', t:'Venice · A Day on the Water', img:'https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg' }
@@ -80,7 +78,6 @@ export const TRAVEL_STOPS = {
     imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
   { loc:'The Dolomites, Italy', nights:'2 Nights · Sept 11 → 13', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ date:'Sept 11', mode:'car', note:'Verona → the Dolomites' },
-    vibe:'Two nights up in the pale peaks: jagged limestone towers, alpine lakes, and ridgeline trails out of Cortina, with the stillness only the mountains carry.',
     logi:[['The Drive','<b>~3-hour drive</b> north from Verona into the heart of the Dolomites.']],
     todo:[
       { a:'Stay', t:'Faloria Mountain Spa Resort', img:'https://faloriasparesort.com/wp-content/uploads/sites/18/2019/02/faloria_2146-2F-LOW.jpg' },
@@ -96,14 +93,12 @@ export const TRAVEL_STOPS = {
 
   { loc:'Milan, Italy', nights:'1 Night · Sept 13 → 14', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 13', mode:'car', note:'The Dolomites → Milan' },
-    vibe:'A night in Italy\u2019s design capital: the Duomo at dusk, the Galleria, and an early start for the flight south to the islands.',
     logi:[['The Drive','<b>~4-hour drive</b> down from the mountains to Milan.']],
     imgs:['https://assets.purewow.com/wp-content/uploads/2024/03/things-to-do-in-milan_uni.jpg'] },
 
   // ── Part 1: The Greek Isles ──
   { loc:'Mykonos', nights:'2 Nights · Sept 14 → 16', stay:'Cali Mykonos', confirmed:true,
     in:{ date:'Sept 14', mode:'flight', note:'Milan → Mykonos' },
-    vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock, an ultra-exclusive escape away from the intense Mykonos crowds.',
     logi:[['Transit','Fly Air Serbia from Milan on Sept 14, landing in Mykonos at <b>3:50 PM</b>.']],
     todo:[
       { a:'Dinner', t:'Apollo Restaurant', partner:'J/PR', img:'https://www.calimykonos.com/sites/default/files/2026-06/Cali-Apollo_dusk-1200x1600.jpg' }
@@ -114,7 +109,6 @@ export const TRAVEL_STOPS = {
 
   { loc:'Santorini, Greece', nights:'2 Nights · Sept 16 → 18', stay:'Andronis Arcadia', confirmed:true,
     in:{ date:'Sept 16', mode:'ferry', note:'Ferry to Santorini' },
-    vibe:'Classic Cycladic white-plaster cave suites built into the dramatic volcanic cliffs of Oia, every suite with its own private infinity or heated cave plunge pool facing the deep-blue caldera, and the famous clifftop, candlelit Lycabettus restaurant above the sea.',
     logi:[['Transit','Ferry from Mykonos to Santorini, <b>11:30 AM → 1:40 PM</b>.']],
     imgs:[
       'https://media.cntraveler.com/photos/6638fe33e2d99e8ecd3db913/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Pacman%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg',
@@ -124,13 +118,11 @@ export const TRAVEL_STOPS = {
   // ── Part 2: Switzerland, the Lakes & Slovenia ──
   { loc:'Zürich, Switzerland', nights:'1 Night · Sept 18 → 19', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 18', mode:'flight', note:'Santorini → Zürich' },
-    vibe:'A first night on the Limmat: the old town’s guild houses and the lakefront promenade before heading up into the Alps.',
     logi:[['Transit','Fly from Santorini to <b>Zürich</b> on Sept 18.']],
     imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 
   { loc:'Andermatt, Switzerland', nights:'3 Nights · Sept 19 → 22', stay:'The Chedi Andermatt', client:'Quinn', inworks:true,
     in:{ date:'Sept 19', mode:'car', note:'Zürich → Andermatt' },
-    vibe:'Three nights at 1,400 meters in the Urseren valley: The Chedi’s alpine-Asian timber and stone, granite peaks out every window, and the Gemsstock and Oberalp passes on the doorstep.',
     logi:[['The Drive','<b>~1.5-hour drive</b> south from Zürich up the Reuss valley to Andermatt.']],
     imgs:[
       'https://d1pe873sdaunfo.cloudfront.net/www.thechediandermatt.com-1283389050/cms/cache/v2/634012f2b4525.jpg/1920x1080/resize/80/c84e42eddb769d1f14348e6b935cd5a5.jpg',
@@ -138,19 +130,16 @@ export const TRAVEL_STOPS = {
 
   { loc:'Lake Como, Italy', nights:'2 Nights · Sept 22 → 24', stayPending:'Looking for a partner', pending:true,
     in:{ date:'Sept 22', mode:'car', note:'Andermatt → Lake Como' },
-    vibe:'Two nights on the villa-lined shoreline: boats across the lake, Bellagio and Varenna, and aperitivo above the water.',
     logi:[['The Drive','<b>~3-hour drive</b> south from Zürich, over the Alps and down to the lake.']],
     imgs:['https://imageio.forbes.com/specials-images/imageserve/646b6b45d9b20ac15900fd8a/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds'] },
 
   { loc:'St. Moritz, Switzerland', nights:'1 Night · Sept 24 → 25', stayPending:'Looking for a partner', pending:true,
     in:{ date:'Sept 24', mode:'car', note:'Lake Como → St. Moritz' },
-    vibe:'One night in the Engadin: champagne air at 1,800 meters, the lake below the village, and alpine glamour at the end of the Maloja Pass road.',
     logi:[['The Drive','<b>~2.5-hour climb</b> from Lake Como up the Maloja Pass into the Engadin.']],
     imgs:['https://assets.vogue.com/photos/65ccb18a486b55e585379e53/master/w_2560%2Cc_limit/GettyImages-1353085015.jpg'] },
 
   { loc:'Ljubljana, Slovenia', nights:'4 Nights · Sept 25 → 29', stay:'Private Stay', confirmed:true, noClient:true,
     in:{ date:'Sept 25', mode:'flight', note:'St. Moritz → Zürich Airport → Ljubljana' },
-    vibe:'Closing the trip in Slovenia’s capital: café terraces along the Ljubljanica under the castle hill, with Lake Bled’s island church an easy day trip. Then home.',
     logi:[['The Drive','<b>~2.5-hour drive</b> from St. Moritz to Zürich Airport.'],['Transit','Fly Zürich → <b>Ljubljana</b>. Fly home from Ljubljana on the 29th.']],
     todo:[
       { a:'Day Trip', t:'Lake Bled', img:'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg' }
