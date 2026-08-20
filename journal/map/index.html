@@ -14542,14 +14542,21 @@
               if (skyPrev && skyPrev.fog === undefined) skyPrev.fog = (map.getFog && map.getFog()) || null;
               map.setFog({ color:'rgb(18,12,34)', 'high-color':'rgb(38,20,70)', 'horizon-blend':0.12, 'space-color':'rgb(6,6,12)', 'star-intensity':0.35 });
             } catch(e){}
-            // THE VOID x TRON: no existing 3D city (demolished buildings can't
-            // clash with their replacements) — instead the street grid itself
-            // glows, and the pipeline rises alone from the light-city.
+            // Glowing street grid + the existing city as dark indigo
+            // monoliths — minus any building standing fully inside a pipeline
+            // parcel (assumed demolished for the new tower: the 'within'
+            // filter hides it so old and new never stack).
             try {
               if (map.getSource('composite')) {
                 map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:13,
                   paint:{ 'line-color':'#6B4BD6','line-opacity':0.24,'line-emissive-strength':1,
                     'line-width':['interpolate',['exponential',1.5],['zoom'],13,0.5,16,1.7] } });
+                const exFilter = _skyClip
+                  ? ['all', ['==',['get','extrude'],'true'], ['!', ['within', _skyClip]]]
+                  : ['==',['get','extrude'],'true'];
+                map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
+                  minzoom:13, filter:exFilter,
+                  paint:{ 'fill-extrusion-color':'#171830','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.12 } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
