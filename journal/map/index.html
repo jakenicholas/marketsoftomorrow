@@ -14472,15 +14472,17 @@
             // Derived: breathing glow shells (scaled copies) + one roof label
             // per project — labels ride ABOVE the extrusions (symbol-z-elevate)
             // so every tower stays discoverable even when its glass is occluded.
-            _skyShell = { type:'FeatureCollection', features: feats.map(ft => ({
-              type:'Feature',
-              properties:{ uid:ft.properties.uid, height:ft.properties.height + Math.max(24, Math.round(ft.properties.height * 0.35)), base:ft.properties.base, yr:ft.properties.yr },
-              geometry:{ type:'Polygon', coordinates:[ skyScaleRing(ft.geometry.coordinates[0], 1.18) ] } })) };
             const best = {};
             feats.forEach(ft => { const pp = ft.properties;
               if (!pp.uid) return;
               if (!best[pp.uid] || pp.height > best[pp.uid].height) best[pp.uid] = { uid:pp.uid, title:pp.title, height:pp.height, yr:pp.yr, ring:ft.geometry.coordinates[0] };
             });
+            // Aura columns: one per project, rising FROM the roofline — the
+            // body below stays an unobstructed solid mass.
+            _skyShell = { type:'FeatureCollection', features: Object.values(best).map(b => ({
+              type:'Feature',
+              properties:{ uid:b.uid, base:b.height, height:b.height + Math.max(28, Math.round(b.height * 0.4)), yr:b.yr },
+              geometry:{ type:'Polygon', coordinates:[ skyScaleRing(b.ring, 1.06) ] } })) };
             _skyLabels = { type:'FeatureCollection', features: Object.values(best).map(b => ({
               type:'Feature',
               properties:{ uid:b.uid, title:(typeof shortName === 'function' ? shortName(b.title) : b.title), yr:b.yr },
@@ -14535,7 +14537,7 @@
             map.addLayer({ id:'tmw-sky-shell', type:'fill-extrusion', source:SKY_SHL, minzoom:13,
               paint:{ 'fill-extrusion-color':'#A78BFA','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':0.14,'fill-extrusion-emissive-strength':1 } });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
-              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.45,'fill-extrusion-vertical-gradient':true } });
+              paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.55,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
             try {
