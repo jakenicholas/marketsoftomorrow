@@ -1203,7 +1203,7 @@
     }
     if (document.querySelector('script[src*="project-card.js"]')) return;
     var s = document.createElement('script');
-    s.src = '/_shared/project-card.js?v=20260820-bell';
+    s.src = '/_shared/project-card.js?v=20260820-firmpills';
     s.async = false;  // wait for tmw-project-intel.js so window.TMWIntel is ready
     document.head.appendChild(s);
   }

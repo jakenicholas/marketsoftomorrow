@@ -187,9 +187,41 @@
     if (rec.Units) stats.push('<div class="pc-stat"><span class="n">' + esc(rec.Units) + '</span><span class="l">Units</span></div>');
     if (rec.Floors) stats.push('<div class="pc-stat"><span class="n">' + esc(rec.Floors) + '</span><span class="l">Floors</span></div>');
     if (rec.Keys) stats.push('<div class="pc-stat"><span class="n">' + esc(rec.Keys) + '</span><span class="l">Keys</span></div>');
-    var firms = [];
-    if (rec.Developer) firms.push('Developed by <b>' + esc(rec.Developer) + '</b>');
-    if (rec.Architect) firms.push('Architecture by <b>' + esc(rec.Architect) + '</b>');
+    // Firm pill groups — same markup/logic as the TMW Intelligence hero card:
+    // uppercase group label + clickable pills to /firm/<slug>/ with the green
+    // arrow; firms without a DB slug render as plain pills. Names can contain
+    // commas within one firm ("Skidmore, Owings & Merrill"), so pair greedily
+    // against the slugs rather than naive comma-splitting.
+    function fcSlug(t) { return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+    function fcHuman(v) { return String(v || '').replace(/[-_]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+    function pairFirms(raw, rawSlugs) {
+      var names = String(raw || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+      var slugs = String(rawSlugs || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+      if (!slugs.length) return names.map(function (n) { return { name: n, slug: '' }; });
+      var out = [], i = 0;
+      slugs.forEach(function (sl) {
+        var acc = '', matched = false;
+        for (var j = i; j < names.length; j++) {
+          acc = acc ? (acc + ', ' + names[j]) : names[j];
+          if (fcSlug(acc) === sl) { out.push({ name: acc, slug: sl }); i = j + 1; matched = true; break; }
+        }
+        if (!matched) { out.push({ name: names[i] || fcHuman(sl), slug: sl }); if (i < names.length) i++; }
+      });
+      for (; i < names.length; i++) out.push({ name: names[i], slug: '' });
+      return out;
+    }
+    function firmGroup(label, raw, rawSlugs) {
+      var pairs = pairFirms(raw, rawSlugs);
+      if (!pairs.length) return '';
+      var chips = pairs.map(function (f) {
+        var nm = '<span class="nm">' + esc(f.name) + '</span>';
+        return f.slug
+          ? '<a class="pc-firm" href="https://www.oftmw.com/firm/' + esc(f.slug) + '/">' + nm + '</a>'
+          : '<span class="pc-firm is-plain">' + nm + '</span>';
+      }).join('');
+      return '<div class="pc-fgroup"><div class="pc-fk">' + (label === 'Design' ? label : label + (pairs.length > 1 ? 's' : '')) + '</div><div class="pc-fchips">' + chips + '</div></div>';
+    }
+    var firmsHtml = firmGroup('Developer', rec.Developer, rec.DeveloperSlugs) + firmGroup('Design', rec.Architect, rec.ArchitectSlugs);
     // Start / delivery line. When a date is a TMW estimate (speculative) rather
     // than developer-confirmed, label it "Estimated to start/deliver" so readers
     // know it's our projection, not an announced date.
@@ -243,7 +275,7 @@
             (delivLine ? '<div class="pc-delivery">' + delivLine + '</div>' : '') +
           '</div>') +
       (stats.length ? '<div class="pc-stats">' + stats.join('') + '</div>' : '') +
-      (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
+      (firmsHtml ? '<div class="pc-firms">' + firmsHtml + '</div>' : '') +
       renderIntel(entry, rec) +
       '<div class="pc-actions">' +
         // Request Info — the lead-capture front door, styled like Dive Deeper and
@@ -379,8 +411,15 @@
       '.tmw-pcard .pc-stats{display:flex; gap:30px; margin-top:20px}',
       '.tmw-pcard .pc-stat .n{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:28px; color:#fff; line-height:1; letter-spacing:-.02em}',
       '.tmw-pcard .pc-stat .l{display:block; font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-top:6px}',
-      '.tmw-pcard .pc-firms{font-size:13px; color:var(--mute2); margin-top:18px; font-weight:300}',
-      '.tmw-pcard .pc-firms b{color:var(--cream); font-weight:600}',
+      '.tmw-pcard .pc-firms{display:flex; flex-wrap:wrap; gap:16px; margin-top:18px}',
+      '.tmw-pcard .pc-fgroup{min-width:0}',
+      '.tmw-pcard .pc-fk{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:#8b938b; margin-bottom:6px}',
+      '.tmw-pcard .pc-fchips{display:flex; flex-wrap:wrap; gap:6px}',
+      '.tmw-pcard .pc-firm{display:inline-flex; align-items:center; max-width:100%; padding:7px 12px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); font-size:13px; font-weight:600; color:#fff; text-decoration:none; line-height:1; box-sizing:border-box; transition:border-color .15s,background .15s}',
+      '.tmw-pcard .pc-firm .nm{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}',
+      '.tmw-pcard a.pc-firm::after{content:"\\2197"; font-size:12px; margin-left:6px; color:#1FDF67; opacity:.75}',
+      '.tmw-pcard a.pc-firm:hover{border-color:rgba(31,223,103,.5); background:rgba(31,223,103,.10)}',
+      '.tmw-pcard .pc-firm.is-plain{color:#C2C9C3; cursor:default}',
       // TMW Intelligence — verbatim from the map's project modal (.pm-intel-*)
       '.tmw-pcard .pm-intel{margin:22px 0 0; padding:18px; background:rgba(167,139,250,.06); border:1px solid rgba(167,139,250,.18); border-radius:12px}',
       '.tmw-pcard .pm-intel-head{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap}',
