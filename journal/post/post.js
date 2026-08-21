@@ -1204,8 +1204,11 @@ function initComments(slug, post) {
     var cf=m.customFields||{}; var name=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||(m.auth&&m.auth.email)||'Member';
     // Pro members comment instantly (server verifies against Stripe too);
     // free accounts climb to Reader level (lvl>=2) by earning XP.
+    // Same rule as journal-auth's isPaid: ANY live plan connection counts —
+    // including hand-comped Memberstack plans with no Stripe behind them.
     var pro=false;
-    try{ pro=(m.planConnections||[]).some(function(pc){ return pc && ['ACTIVE','TRIALING','PAST_DUE'].indexOf(String(pc.status||'').toUpperCase())>=0 && String(pc.type||'').toUpperCase()!=='FREE'; }); }catch(e){}
+    try{ pro=(m.planConnections||[]).some(function(pc){ return !!pc && (pc.active===true || /^(active|trialing|past_due)$/i.test(String(pc.status||''))); }); }catch(e){}
+    if(!pro && window._isPaidMember===true) pro=true;
     if(pro){ showComposer(m.id,name); return; }
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(m.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(st){
       var lvl=(st&&st.level)||1;

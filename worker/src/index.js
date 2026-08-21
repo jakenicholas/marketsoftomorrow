@@ -18911,6 +18911,16 @@ async function handlePostComment(request, env, origin) {
         const er = await env.DB.prepare(`SELECT email FROM events WHERE member_id = ? AND email IS NOT NULL AND email != '' LIMIT 1`).bind(id).first();
         const em = er && er.email;
         if (em) { const sub = await findSubByEmail(env, em); pro = !!(sub && ['trialing', 'active', 'past_due'].includes(sub.status)); }
+        if (em && !pro) {
+          // Comped Pro: a hand-attached Memberstack plan (no Stripe behind it)
+          // also counts — the same any-live-plan-connection rule as the client's
+          // isPaid, so comped members clear every gate the same way.
+          const members = await msFetchAllMembers(env);
+          const low = String(em).trim().toLowerCase();
+          const me = (members || []).find(m => String((m.auth && m.auth.email) || m.email || '').trim().toLowerCase() === low);
+          const pcs = (me && (me.planConnections || me.plan_connections)) || [];
+          pro = pcs.some(pc => !!pc && (pc.active === true || /^(active|trialing|past_due)$/i.test(String(pc.status || ''))));
+        }
       } catch {}
       if (!pro) return json({ error: 'level', message: 'Reach Reader level to comment.' }, { status: 403 }, env, origin);
     }
