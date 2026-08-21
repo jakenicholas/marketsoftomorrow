@@ -12989,6 +12989,36 @@ async function matchLessonToExisting(env, noteText) {
 // 2 per article, so no single piece can distort future writing. A lesson that
 // RECURS across articles is reinforced (and a legacy pool note graduates into the
 // always-on band) — recurrence, not one article's quirks, is what compounds.
+// ── Conflict gate: no lesson may enter the brain if it contradicts what's
+// already there. Canon (hand-set truth) always wins — a conflicting newcomer is
+// dropped and logged. Against editor/format notes the NEWER lesson wins (it
+// reflects the current editing hand): the old note retires, the new one lands.
+// One cheap classifier call per genuinely-new lesson; fails open (no block).
+async function checkLessonConflict(env, note) {
+  try {
+    const rows = ((await env.DB.prepare(
+      `SELECT id, tier, note FROM brand_notes WHERE active=1 AND tier IN ('canon','editor','format') ORDER BY tier LIMIT 90`
+    ).all()).results) || [];
+    if (!rows.length) return null;
+    const list = rows.map((r, i) => `${i + 1}. [${r.tier}] ${String(r.note).slice(0, 220)}`).join('\n');
+    const sys = 'You maintain a style guide. Decide if the NEW RULE directly CONTRADICTS any EXISTING rule — contradiction means a writer could not follow both at once (e.g. "use X" vs "never use X" for the same scope). Different topics, refinements, or narrower scopes are NOT contradictions. Output ONLY JSON: {"conflict": <number of the contradicted rule, or null>}';
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 60, system: sys,
+        messages: [{ role: 'user', content: 'EXISTING RULES:\n' + list + '\n\nNEW RULE:\n' + note }] }),
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+    const m = txt.match(/\{[\s\S]*\}/); if (!m) return null;
+    const idx = (JSON.parse(m[0]) || {}).conflict;
+    if (!idx || idx < 1 || idx > rows.length) return null;
+    const hit = rows[idx - 1];
+    return { id: hit.id, tier: hit.tier, note: String(hit.note).slice(0, 200) };
+  } catch (_) { return null; }
+}
+
 export async function routeLessons(env, lessons, { source, evidence, injected_ids = [] } = {}) {
   const now = Math.floor(Date.now() / 1000);
   await ensureBrandNotes(env);
@@ -13012,7 +13042,21 @@ export async function routeLessons(env, lessons, { source, evidence, injected_id
       } catch (_) {}
       continue;
     }
-    // New wide-scope lesson → auto-apply straight into the always-on editor band.
+    // New wide-scope lesson → conflict-gate it, then auto-apply into the band.
+    const clash = await checkLessonConflict(env, note);
+    if (clash && clash.tier === 'canon') {
+      // Canon is Jake's hand-set truth: the newcomer loses, loudly.
+      try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(now, source || 'system', 'brain_conflict', JSON.stringify({ action: 'dropped', lesson: note.slice(0, 300), against: clash.id, against_note: clash.note })).run(); } catch (_) {}
+      continue;
+    }
+    if (clash) {
+      // Editor/format conflict: the newer lesson reflects the current hand — the
+      // old note retires so the brain never argues with itself.
+      try { await retireBrandNotes(env, [clash.id]); } catch (_) {}
+      try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(now, source || 'system', 'brain_conflict', JSON.stringify({ action: 'superseded', lesson: note.slice(0, 300), retired: clash.id, retired_note: clash.note })).run(); } catch (_) {}
+    }
     await addEditorNote(env, { kind, note, source, evidence, now });
   }
   await capEditorBand(env, 15);

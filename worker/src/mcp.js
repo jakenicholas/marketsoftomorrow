@@ -209,7 +209,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         title: { type: 'string', description: 'Article headline' },
-        body_markdown: { type: 'string', description: 'Article body in Markdown. Supports: # / ## / ### headings, paragraphs, **bold**, *italic*, [links](url), `- ` bullet lists, and IMAGES via ![alt](url) -- a paragraph that is JUST an image becomes a <figure>, and ![alt](url "caption text") adds a <figcaption>. Use real image URLs (R2 / official press kit URLs), never link a website as if it were an image. Use AT MOST 10 images per article (any beyond the first 10 are dropped automatically). Avoid em dashes (—) in the prose; use commas or periods instead.' },
+        body_markdown: { type: 'string', description: 'Article body in Markdown. Supports: # / ## / ### headings, paragraphs, **bold**, *italic*, [links](url), `- ` bullet lists, and IMAGES via ![alt](url) -- a paragraph that is JUST an image becomes a <figure>, and ![alt](url "caption text") adds a <figcaption>. Use real image URLs (R2 / official press kit URLs), never link a website as if it were an image. Use AT MOST 10 images per article (any beyond the first 10 are dropped automatically). Em dashes (—) are fine in article prose SELECTIVELY (a few per article); excess ones are converted to commas on save.' },
         excerpt: { type: 'string', description: '1–2 sentence summary (optional; auto-derived if omitted)' },
         category: { type: 'string', description: 'Optional — must be an EXISTING category label (call search_posts/list_posts to see what exists). New/unknown labels are NOT created here; they are dropped and the post saves uncategorized. Categories are created only in the Studio Categories tab.' },
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
@@ -231,7 +231,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         title:         { type: 'string', description: 'Shared title for the article and the design.' },
-        body_markdown: { type: 'string', description: 'Article body in Markdown (same syntax as create_post_draft). Folder photos are auto-inserted between paragraphs; you may also place ![alt](url) yourself. Articles use AT MOST 10 images (folder pull + any you place is capped at 10). Avoid em dashes (—) in the prose; use commas or periods instead.' },
+        body_markdown: { type: 'string', description: 'Article body in Markdown (same syntax as create_post_draft). Folder photos are auto-inserted between paragraphs; you may also place ![alt](url) yourself. Articles use AT MOST 10 images (folder pull + any you place is capped at 10). Em dashes (—) are fine in article prose SELECTIVELY (a few per article); excess ones are converted to commas on save.' },
         slides: {
           type: 'array',
           description: 'Carousel slides for the design — one per slide: { text, template?, image?, tagline? }. Same shape as create_design_draft.',
@@ -304,7 +304,7 @@ const TOOLS = [
       properties: {
         slug: { type: 'string', description: 'Slug of the draft to edit' },
         title: { type: 'string' },
-        body_markdown: { type: 'string', description: 'Replacement body in Markdown. Same syntax as create_post_draft: headings, **bold**, *italic*, [links](url), `- ` lists, and IMAGES via ![alt](url) (or ![alt](url "caption") for a captioned figure). Use real image URLs, not website links. Use AT MOST 10 images per article (extras are dropped automatically). Avoid em dashes (—) in the prose; use commas or periods instead.' },
+        body_markdown: { type: 'string', description: 'Replacement body in Markdown. Same syntax as create_post_draft: headings, **bold**, *italic*, [links](url), `- ` lists, and IMAGES via ![alt](url) (or ![alt](url "caption") for a captioned figure). Use real image URLs, not website links. Use AT MOST 10 images per article (extras are dropped automatically). Em dashes (—) are fine in article prose SELECTIVELY (a few per article); excess ones are converted to commas on save.' },
         excerpt: { type: 'string' },
         category: { type: 'string', description: 'Re-categorize into an EXISTING category label only. New/unknown labels are ignored (the post keeps its current categories); categories are created in the Studio Categories tab only.' },
         cover_image: { type: 'string' },
@@ -1311,15 +1311,20 @@ function mdToHtml(md) {
 }
 
 function stripHtml(html) { return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
-// Per Jake: keep em dashes out of article copy — swap them for commas (safety net;
-// the tool also instructs the model to avoid them). Leaves unspaced en dashes
-// (number ranges like 2020–2024) alone.
+// Per Jake (2026-08-21): em dashes are welcome in ARTICLE prose selectively —
+// his own edits kept adding them back while this scrubber deleted them, which
+// had the learn loop and the style rules in a permanent tug of war. Articles
+// keep them but CAPPED (beyond 6 the extras become commas, so a draft can't
+// dash every sentence); website/UI wording never uses them (that rule lives in
+// the brain canon, not here — this function only ever sees article copy).
+// Spaced en dashes posing as em dashes normalize to real ones; unspaced en
+// dashes (2020–2024 ranges) stay untouched.
 function deDash(s) {
-  return String(s || '')
-    .replace(/\s*—\s*/g, ', ')      // em dash (—), spaced or not → comma
-    .replace(/(\S)\s+–\s+(\S)/g, '$1, $2')  // spaced en dash used as an em dash → comma
-    .replace(/,\s*,/g, ',')         // tidy any doubled commas
-    .replace(/,\s*([.!?;:])/g, '$1');       // ", ." → "."
+  let out = String(s || '').replace(/(\S)\s+–\s+(\S)/g, '$1 — $2');
+  const MAX_EM = 6;
+  let seen = 0;
+  out = out.replace(/\s*—\s*/g, () => (++seen <= MAX_EM ? ' — ' : ', '));
+  return out.replace(/,\s*,/g, ',').replace(/,\s*([.!?;:])/g, '$1');
 }
 
 let _projectsCache = null;
@@ -2880,7 +2885,7 @@ const IMPL = {
       'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<SEO dek, see below>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
       'THE EXCERPT IS THE SEO META DESCRIPTION — it is what Google shows under the headline and the single thing that decides whether a stranger clicks through, so it is never an afterthought and never optional. Write 1 to 2 COMPLETE sentences, 150 to 200 characters, ending in a period; never a fragment, never cut off mid-thought. Front-load what people actually search: the project or brand name, the city or neighborhood, and what it IS (condominium, hotel, golf club), then the strongest specific (unit count, architect, opening year). Active voice, no clickbait, and do not restate the headline word for word.',
       'CLAIMS LEDGER (required): list EVERY factual assertion the article makes — statuses, dates, numbers, prices, names, attributions — as {"claim":"<the assertion, one line>","type":"status"|"date"|"number"|"name"|"other","source":"facts"|"database"|"model"}. "facts" = stated in the provided facts; "database" = from the related-projects context above; "model" = from your own knowledge. BE HONEST about "model" — those get fact-checked against the live web, and a false "facts" tag is worse than an honest "model" tag.',
-      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation. HOW IT ENDS: land on a real closing PARAGRAPH, forward-looking, in your own prose. NEVER end with a call to action, a newsletter or subscribe pitch, a follow-us line, or any sign-off boilerplate (our older archive is full of "Sign up for ... free newsletter below" endings; that branding is retired and they must never be reproduced). NEVER end on an image either: photos belong between paragraphs, and the last thing a reader sees is your conclusion.',
+      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Em dashes: use them selectively where they earn their place (a connected clause, an aside) — a few per article at most; never in UI/website copy. Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation. HOW IT ENDS: land on a real closing PARAGRAPH, forward-looking, in your own prose. NEVER end with a call to action, a newsletter or subscribe pitch, a follow-us line, or any sign-off boilerplate (our older archive is full of "Sign up for ... free newsletter below" endings; that branding is retired and they must never be reproduced). NEVER end on an image either: photos belong between paragraphs, and the last thing a reader sees is your conclusion.',
       // BINDING + LAST. The learned house rules used to sit mid-prompt, where the
       // generic "strong hook" advice below them and the per-take hints above them
       // quietly outvoted the editor's actual instructions. Recency matters: they
@@ -2996,7 +3001,7 @@ const IMPL = {
         .concat(vio1.map((v) => 'SPEC: ' + v))
         .concat((jud1.tells || []).map((t) => 'TELL (a forensic judge spotted this as AI-written): ' + t));
       if (problems.length) {
-        const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Our QA flagged the draft below (style violations, measured-spec misses, and/or a forensic judge identified it as AI-written). Rewrite so a reader could not tell it from our published work — fix EVERY listed problem, change nothing else. Preserve every fact, number, name, date, and price exactly. Avoid em dashes. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.'
+        const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Our QA flagged the draft below (style violations, measured-spec misses, and/or a forensic judge identified it as AI-written). Rewrite so a reader could not tell it from our published work — fix EVERY listed problem, change nothing else. Preserve every fact, number, name, date, and price exactly. Em dashes sparingly. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.'
           + (fp ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp) : '');
         const fixUsr = 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
         const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: GEN_TOKENS, tier: 'draft' });
@@ -3207,7 +3212,7 @@ const IMPL = {
       'You are the senior staff editor for Markets of Tomorrow (TMW). Revise the article below per the instruction, keeping it on-brand.',
       brain.text || '',
       'OUTPUT: return ONLY the revised, COMPLETE article as Markdown — no JSON, no fences, no commentary.',
-      'RULES: Preserve every fact from the original (do NOT invent or drop verified facts, numbers, dates, prices, or firm names). NEVER fabricate a quotation or attribute words to anyone. TMW voice per the brand brain. Avoid em dashes. Return the whole article, not a diff.',
+      'RULES: Preserve every fact from the original (do NOT invent or drop verified facts, numbers, dates, prices, or firm names). NEVER fabricate a quotation or attribute words to anyone. TMW voice per the brand brain. Em dashes sparingly (a few per article at most). Return the whole article, not a diff.',
       // Binding + last, same as the generator: the editor's banked rules must not
       // be outvoted by the generic guidance that follows them.
       brain.voice ? 'THE HOUSE RULES BELOW ARE BINDING and outrank every other instruction here. Before you output, check the opening line, the structure, and the ending against them one by one:\n' + brain.voice : '',
@@ -3223,7 +3228,7 @@ const IMPL = {
       const gateRes = await IMPL._runVoiceGate(env, {
         text: revBody, topic: String(row.title || ''), place: String(args.place || ''), excludeSlugs: usedSlugs, slug,
         rewrite: async (problems, spec) => {
-          const rSys = 'You are the senior staff editor for Markets of Tomorrow. Our voice QA flagged the revised article below. Rewrite it so a reader could not tell it from our published work — fix EVERY listed problem. Preserve every fact, number, name, date, and price exactly. Keep the earlier instruction applied: "' + instruction.slice(0, 200) + '". Avoid em dashes. Return ONLY the complete article as Markdown, no commentary.' + (spec ? '\n\nMEASURED HOUSE SPEC:\n' + spec : '');
+          const rSys = 'You are the senior staff editor for Markets of Tomorrow. Our voice QA flagged the revised article below. Rewrite it so a reader could not tell it from our published work — fix EVERY listed problem. Preserve every fact, number, name, date, and price exactly. Keep the earlier instruction applied: "' + instruction.slice(0, 200) + '". Em dashes sparingly. Return ONLY the complete article as Markdown, no commentary.' + (spec ? '\n\nMEASURED HOUSE SPEC:\n' + spec : '');
           const raw2 = await fableGenerate(env, { system: rSys, user: 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE:\n' + revBody, maxTokens: 3600, tier: args.finalize ? 'publish' : 'draft' });
           return raw2 && raw2.trim() ? raw2.trim() : null;
         },
