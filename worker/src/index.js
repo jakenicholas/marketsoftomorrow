@@ -936,16 +936,32 @@ export async function handlePeople(env, origin, url) {
     m.timestamps.push(row.ts);
   }
 
-  // Trialing members (Stripe, one list call) — lets the People view split active
-  // trials out of "paid" without touching per-event plan. Fails open (no trials).
-  const trialingEmails = new Set();
+  // Trialing members (Stripe) — lets the People view split active trials out of
+  // "paid" — and the full Stripe paid set, so COMPED members (a hand-attached
+  // Memberstack plan, no Stripe behind it) can be told apart from paying ones.
+  const trialingEmails = new Set(), stripePaidEmails = new Set();
   try {
     if (env.STRIPE_SECRET_KEY) {
-      const subs = await stripeGet(env, '/subscriptions?status=trialing&limit=100&expand[]=data.customer');
-      for (const s of (subs.data || [])) {
-        const em = s.customer && s.customer.email;
-        if (em) trialingEmails.add(String(em).trim().toLowerCase());
+      for (const st of ['trialing', 'active', 'past_due']) {
+        const subs = await stripeGet(env, '/subscriptions?status=' + st + '&limit=100&expand[]=data.customer');
+        for (const s of (subs.data || [])) {
+          const em = s.customer && s.customer.email;
+          if (!em) continue;
+          const low = String(em).trim().toLowerCase();
+          stripePaidEmails.add(low);
+          if (st === 'trialing') trialingEmails.add(low);
+        }
       }
+    }
+  } catch (_) {}
+  // Emails with a live Memberstack plan connection (the client's isPaid rule).
+  const msLiveEmails = new Set();
+  try {
+    for (const m of await msFetchAllMembers(env)) {
+      const em = String((m.auth && m.auth.email) || m.email || '').trim().toLowerCase();
+      if (!em) continue;
+      const pcs = m.planConnections || m.plan_connections || [];
+      if (pcs.some(pc => !!pc && (pc.active === true || /^(active|trialing|past_due)$/i.test(String(pc.status || ''))))) msLiveEmails.add(em);
     }
   } catch (_) {}
 
@@ -961,6 +977,7 @@ export async function handlePeople(env, origin, url) {
       // before Memberstack resolved them). Always classify anon ids as anon.
       plan: (String(m.member_id || '').indexOf('anon:') === 0) ? 'anon' : m.plan,
       trialing: !!(m.email && trialingEmails.has(String(m.email).trim().toLowerCase())),
+      comped: !!(m.email && msLiveEmails.has(String(m.email).trim().toLowerCase()) && !stripePaidEmails.has(String(m.email).trim().toLowerCase())),
       event_count: ts.length,
       last_seen_ts: ts[0],
       first_seen_ts: ts[ts.length - 1],
