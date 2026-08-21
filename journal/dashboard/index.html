@@ -414,25 +414,30 @@ main.wrap{padding-bottom:70px}
   padding:12px 20px;border-radius:999px;background:linear-gradient(135deg,#f0d68a,#caa84f);color:#12091f;
   box-shadow:0 0 18px rgba(230,197,116,.4);transition:transform .15s,box-shadow .15s}
 .gp-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(230,197,116,.65)}
-.gp-preview{position:relative;pointer-events:none;user-select:none;opacity:.62;margin-top:8px}
+.gp-preview{position:relative;pointer-events:none;user-select:none;opacity:.8;margin-top:8px}
 .gp-ribbon{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;font-weight:700;color:#E6C574;
   border:1px solid rgba(230,197,116,.4);border-radius:999px;padding:4px 10px;margin-bottom:14px}
-.gp-sec{font-family:var(--serif);font-size:19px;font-weight:600;color:#fff;margin:24px 0 12px}
-.gp-brief{border:1px solid rgba(185,166,255,.32);border-radius:15px;padding:16px 18px;
-  background:linear-gradient(180deg,rgba(185,166,255,.06),transparent)}
-.gp-brief .bh{font-family:var(--mono);font-size:10px;letter-spacing:.13em;color:#B9A6FF;font-weight:700;margin-bottom:10px}
-.gp-row{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13.5px;color:#d7ddd7}
-.gp-row:first-of-type{border-top:none}
-.gp-row b{color:#fff;font-weight:600}
-.gp-row .d{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--mute);white-space:nowrap}
-.gp-chips{display:flex;flex-wrap:wrap;gap:8px}
-.gp-chip{font-size:12.5px;font-weight:600;color:#fff;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.08);
-  border-radius:999px;padding:7px 13px}
-.gp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.gp-sec{font-family:var(--serif);font-size:22px;font-weight:600;color:#fff;margin:30px 0 14px}
+.gp-sechead{display:flex;align-items:baseline;justify-content:space-between}
+.gp-sechead .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.gp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .gp-tile{border:1px solid var(--hair);border-radius:15px;padding:16px 17px 15px;background:rgba(255,255,255,.028)}
 .gp-tile .v{font-family:var(--serif);font-size:30px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
 .gp-tile .n{font-size:13px;font-weight:600;color:#e8ece8;margin-top:9px}
 .gp-tile .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:4px}
+/* Your moves replica: 2-up cards, thumb + tag + title + because-chip */
+.gp-brf{display:flex;align-items:center;gap:12px;border:1px solid rgba(185,166,255,.4);border-radius:12px;padding:12px 15px;margin-bottom:14px;background:rgba(185,166,255,.05)}
+.gp-brf .t{font-size:13px;color:#ECEAE5}
+.gp-brf .t b{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:#B9A6FF;margin-bottom:4px}
+.gp-brf .go{margin-left:auto;font-size:12px;font-weight:600;color:#B9A6FF;white-space:nowrap}
+.gp-mvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.gp-mv{display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:12px 13px;background:rgba(255,255,255,.02)}
+.gp-mv .th{width:46px;height:46px;border-radius:9px;flex:0 0 auto;background:linear-gradient(135deg,#2b2f3a,#171a21)}
+.gp-mv .tg{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;color:#B9A6FF;font-weight:700}
+.gp-mv .tt{font-size:13.5px;font-weight:600;color:#fff;margin-top:3px;line-height:1.3}
+.gp-mv .mt{font-size:10.5px;color:var(--mute);margin-top:3px}
+.gp-mv .why{display:inline-block;font-size:9.5px;font-weight:600;color:#C4B5FD;border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.1);border-radius:999px;padding:3px 8px;margin-top:7px}
+.gp-watchwrap{display:flex;flex-direction:column;gap:18px}
 </style>
 </head>
 <body>
@@ -1665,23 +1670,139 @@ main.wrap{padding-bottom:70px}
       '<div class="gp-cta">'
       +  '<div class="gp-k">TMW PRO</div>'
       +  '<h3>This is your dashboard on Pro</h3>'
-      +  '<p>A weekly brief written from your watchlist, live moves on every market, firm and project you watch, and saved Atlas views that stay current on their own. Below is a preview with example data.</p>'
+      +  '<p>A weekly brief written from your watchlist, live moves on every market, firm and project you watch, your book of tracked projects, and saved Atlas views that stay current on their own. Below is a preview with example data.</p>'
       +  '<button class="gp-btn" id="gpGoBtn" type="button">Go Pro to unlock &rarr;</button>'
       + '</div>'
       + '<div class="gp-preview" aria-hidden="true">'
       +  '<div class="gp-ribbon">PRO PREVIEW &middot; EXAMPLE DATA</div>'
-      +  '<div class="gp-brief"><div class="bh">&#10022; YOUR WEEKLY BRIEF &middot; WEEK OF AUG 17</div>'
-      +   '<div class="gp-row"><b>Waldorf Astoria Residences Pompano Beach</b> topped out<span class="d">Aug 14</span></div>'
-      +   '<div class="gp-row"><b>Miami</b> supply pressure eased to Elevated<span class="d">Aug 13</span></div>'
-      +   '<div class="gp-row"><b>Related Group</b> filed plans for a new riverfront tower<span class="d">Aug 12</span></div>'
+
+      /* Your moves — brief strip + watchlist move cards */
+      +  '<div class="moves-panel">'
+      +   '<div class="mv-h"><span>Your moves</span><span class="mv-n">4</span></div>'
+      +   '<div class="gp-brf"><span class="t"><b>&#10022; YOUR WEEKLY BRIEF</b>The moves on your watchlist &mdash; week of Aug 17</span><span class="go">Read it &rarr;</span></div>'
+      +   '<div class="gp-mvgrid">'
+      +   '<div class="gp-mv"><span class="th"></span><div>'
+      +   '<div class="tg">FINANCING SECURED</div><div class="tt">343 Madison Ave</div><div class="mt">New York City &middot; Jul 28, 2026</div>'
+      +   '<span class="why">&#10022; Because you watch New York City</span>'
+      + '</div></div>'
+      + '<div class="gp-mv"><span class="th"></span><div>'
+      +   '<div class="tg">GOING VERTICAL</div><div class="tt">Four Seasons Private Residences Coconut Grove</div><div class="mt">Miami &middot; Jul 2026</div>'
+      +   '<span class="why">&#10022; Because you watch Miami</span>'
+      + '</div></div>'
+      + '<div class="gp-mv"><span class="th"></span><div>'
+      +   '<div class="tg">BOOKINGS OPEN</div><div class="tt">Palm Tree Residences Miami</div><div class="mt">Miami &middot; Jun 10, 2026</div>'
+      +   '<span class="why">&#10022; Because you watch Miami</span>'
+      + '</div></div>'
+      + '<div class="gp-mv"><span class="th"></span><div>'
+      +   '<div class="tg">FINANCING SECURED</div><div class="tt">MiRAi Design District</div><div class="mt">Miami &middot; Jun 2, 2026</div>'
+      +   '<span class="why">&#10022; Because you watch Miami</span>'
+      + '</div></div>'
+      +   '</div>'
       +  '</div>'
-      +  '<div class="gp-sec">Your watches</div>'
-      +  '<div class="gp-chips"><span class="gp-chip">Miami</span><span class="gp-chip">Palm Beach</span><span class="gp-chip">Related Group</span><span class="gp-chip">Waldorf Astoria Residences</span><span class="gp-chip">&ldquo;branded condos&rdquo;</span></div>'
-      +  '<div class="gp-sec">Your views</div>'
+
+      /* Your views — live saved-view tiles */
+      +  '<div class="gp-sechead"><div class="gp-sec">Your views</div><span class="lbl">3 saved</span></div>'
       +  '<div class="gp-tiles">'
-      +   '<div class="gp-tile"><div class="v">84</div><div class="n">Miami pipeline</div><div class="k">Projects</div></div>'
-      +   '<div class="gp-tile"><div class="v">132</div><div class="n">Opening by 2027</div><div class="k">Projects</div></div>'
-      +   '<div class="gp-tile"><div class="v">27</div><div class="n">Under construction &middot; Palm Beach</div><div class="k">Projects</div></div>'
+      +   '<div class="gp-tile"><div class="v">14</div><div class="n">Tampa &middot; Projects</div><div class="k">Projects</div></div>'
+      +   '<div class="gp-tile"><div class="v">364</div><div class="n">FL &middot; Supply</div><div class="k">Supply &middot; Projects</div></div>'
+      +   '<div class="gp-tile"><div class="v">4</div><div class="n">SC &middot; Golf</div><div class="k">Projects</div></div>'
+      +  '</div>'
+
+      /* This week — the full My Book portfolio app */
+      +  '<div class="gp-sechead"><div class="gp-sec">This week</div><span class="lbl">Week of August 17 &middot; the moves on your watchlist</span></div>'
+      +  '<div class="pf-app">'
+      +   '<div class="pf-appbar"><span class="u">Your portfolio</span><span class="pro">Pro</span></div>'
+      +   '<div class="pf-inner">'
+      +    '<div class="pf-head"><div><div class="pf-h1">My Book</div><div class="pf-h2">9 projects watched &middot; 7 markets</div></div>'
+      +     '<div class="pf-mchips"><span class="pf-mchip">West Palm Beach</span><span class="pf-mchip">Miami</span><span class="pf-mchip">Los Cabos</span><span class="pf-mchip">Spring Hill</span><span class="pf-mchip">Revelstoke</span><span class="pf-mchip">Greenville</span></div></div>'
+      +    '<div class="pf-kpis">'
+      +     '<div class="pf-kpi"><div class="v">9</div><div class="k">In your book</div><div class="pf-x">no moves this week</div></div>'
+      +     '<div class="pf-kpi"><div class="v r">89</div><div class="k">Supply pressure</div><div class="pf-x">West Palm Beach &middot; Saturated</div></div>'
+      +     '<div class="pf-kpi"><div class="v g">$465M</div><div class="k">Capital tracked</div><div class="pf-x">across 2 financed</div></div>'
+      +     '<div class="pf-kpi"><div class="v p">Q4 2026</div><div class="k">Next delivery</div><div class="pf-x">Firefly</div></div>'
+      +    '</div>'
+      +    '<div class="pf-thead"><span>Project</span><span>Progress</span><span>Delivery</span><span>Movement</span></div>'
+      +    '<div class="pf-book">'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Amanvari</div><div class="pf-lo">Los Cabos &middot; Hotel</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:100%"></i></div><span class="pf-st">NOW OPEN</span></div>'
+      +   '<div class="pf-when">Opened</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv up">&#9650; Delivery now Q3 2026</span><div class="pf-mvd">Jul 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Firefly</div><div class="pf-lo">Spring Hill &middot; Golf</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:80%"></i></div><span class="pf-st">OPENING SOON</span></div>'
+      +   '<div class="pf-when">Fall 2026</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv up">&#9650; Delivery now Q4 Fall</span><div class="pf-mvd">Aug 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Cabot Revelstoke</div><div class="pf-lo">Revelstoke &middot; Golf</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:78%"></i></div><span class="pf-st">OPENING SOON</span></div>'
+      +   '<div class="pf-when">Early 2027</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv new">Sales launched</span><div class="pf-mvd">May 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">262 Fifth Avenue</div><div class="pf-lo">New York &middot; Residences</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:78%"></i></div><span class="pf-st">OPENING SOON</span></div>'
+      +   '<div class="pf-when">Q4 2026</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv up">&#9650; Delivery now Q4 2026</span><div class="pf-mvd">Jul 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Mr. C Residences West Palm Beach</div><div class="pf-lo">West Palm Beach &middot; Mixed-Use</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:48%"></i></div><span class="pf-st">UNDER CONSTRUCTION</span></div>'
+      +   '<div class="pf-when">2027</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv up">&#9650; Halfway</span><div class="pf-mvd">Mid 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Kawonu Golf Club</div><div class="pf-lo">Greenville &middot; Golf</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:42%"></i></div><span class="pf-st">UNDER CONSTRUCTION</span></div>'
+      +   '<div class="pf-when">Spring 2027</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv up">&#9650; Going vertical</span><div class="pf-mvd">Spring 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Mandarin Oriental Residences, West Palm Beach</div><div class="pf-lo">West Palm Beach &middot; Residences</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:10%"></i></div><span class="pf-st">ANNOUNCED</span></div>'
+      +   '<div class="pf-when">2031</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv new">Sales launched</span><div class="pf-mvd">Feb 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Miami International Airport (Expansion)</div><div class="pf-lo">Miami &middot; Travel</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:9%"></i></div><span class="pf-st">ANNOUNCED</span></div>'
+      +   '<div class="pf-when">Summer 2030</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv dim">Delivery now 2030</span><div class="pf-mvd">Feb 2026</div></div></div>'
+      + '<div class="pf-row">'
+      +   '<div><div class="pf-nm">Sweetbird North</div><div class="pf-lo">Miami &middot; Mixed-Use</div></div>'
+      +   '<div class="pf-prog"><div class="pf-bar"><i style="width:8%"></i></div><span class="pf-st">ANNOUNCED</span></div>'
+      +   '<div class="pf-when">2028</div>'
+      +   '<div class="pf-mvw"><span class="pf-mv flat">No change</span></div></div>'
+      +    '</div>'
+      +    '<div class="pf-watches">'
+      +     '<div class="pf-wh"><h4>Your watches</h4><span class="pf-addbtn">Add more to watchlist &rarr;</span></div>'
+      +     '<div class="mktsearch"><input placeholder="Watch anything &mdash; a city, a firm, a project type&hellip;" disabled></div>'
+      +     '<div class="gp-watchwrap">'
+      +      '<div class="wgrp"><div class="wgrp-h">Markets</div><div class="mchips"><span class="mchip on gold"><span class="mchip-lbl">Miami</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Wellington</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Nashville</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">New York City</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Tokyo</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">West Palm Beach</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Bahamas</span><span class="mck-x">&times;</span></span></div></div>'
+      +      '<div class="wgrp"><div class="wgrp-h">Firms</div><div class="mchips"><span class="mchip on gold"><span class="mchip-lbl">Related Ross</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">NDT Development</span><span class="mck-x">&times;</span></span></div></div>'
+      +      '<div class="wgrp"><div class="wgrp-h">Projects</div><div class="mchips"><span class="mchip proj"><span class="wdot s-opening"></span><span class="mchip-lbl">Firefly</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-opening"></span><span class="mchip-lbl">Cabot Revelstoke</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-construction"></span><span class="mchip-lbl">Kawonu Golf Club</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-construction"></span><span class="mchip-lbl">Mr. C Residences West Palm Beach</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-announced"></span><span class="mchip-lbl">Sweetbird North</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-announced"></span><span class="mchip-lbl">Miami International Airport (Expansion)</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-announced"></span><span class="mchip-lbl">262 Fifth Avenue</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-open"></span><span class="mchip-lbl">Amanvari</span><span class="mck-x">&times;</span></span><span class="mchip proj"><span class="wdot s-announced"></span><span class="mchip-lbl">Mandarin Oriental Residences, West Palm Beach</span><span class="mck-x">&times;</span></span></div></div>'
+      +      '<div class="wgrp"><div class="wgrp-h">Intelligence searches</div><div class="mchips"><span class="mchip smart"><svg class="wonyx" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span class="mchip-lbl">new condos coming to Brickell</span><span class="mck-x">&times;</span></span><span class="mchip smart"><svg class="wonyx" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span class="mchip-lbl">New condos coming to West Palm Beach</span><span class="mck-x">&times;</span></span></div></div>'
+      +      '<div class="wlegend"><span><i class="wdot s-announced"></i>Announced</span><span><i class="wdot s-construction"></i>Building</span><span><i class="wdot s-open"></i>Open</span></div>'
+      +     '</div>'
+      +    '</div>'
+      +    '<div class="brief-hero">'
+      +     '<div class="bh-eye"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/><path d="M18.5 13.2c.16 1.8 1.04 2.7 2.85 2.9-1.81.15-2.69 1.05-2.85 2.9-.16-1.85-1.04-2.75-2.85-2.9 1.81-.2 2.69-1.1 2.85-2.9Z"/></svg>ONYX BRIEF <span class="bh-wk">WEEK OF AUG 17</span></div>'
+      +     '<div class="bh-stats">'
+      +      '<div class="bh-stat"><div class="v">10</div><div class="k">Moves</div></div>'
+      +      '<div class="bh-stat"><div class="v">9</div><div class="k">Projects</div></div>'
+      +      '<div class="bh-stat"><div class="v">5</div><div class="k">Markets</div></div>'
+      +     '</div>'
+      +     '<div class="bh-narr">Four Seasons Private Residences Coconut Grove crossed into vertical construction in July, marking the most material progression on the watchlist this period. Hibiya Crosspark in Tokyo and Mira Music Row in Nashville both entered active tracking phases within the past four days, signaling accelerated momentum across the international and domestic portfolios. The Miami cluster&mdash;anchored by Four Seasons moving vertical&mdash;now comprises four assets in tangible construction or pre-sales phases, concentrated risk worth monitoring for absorption signals.</div>'
+      +     '<div class="bh-foot">Generated by Onyx 5 &middot; grounded in your watchlist &middot; updates live as it moves</div>'
+      +    '</div>'
+      +    '<div class="pf-two">'
+      +     '<div class="pf-card"><h4>What moved in your book</h4><div class="pf-feed">'
+      +     '<div class="pf-frow"><span class="pf-fdot"></span><div><b>Mira Music Row</b> tracking in Nashville.</div><span class="pf-fwhen">Aug 15, 2026</span></div>'
+      + '<div class="pf-frow"><span class="pf-fdot"></span><div><b>Hibiya Crosspark</b> tracking in Tokyo.</div><span class="pf-fwhen">Aug 14, 2026</span></div>'
+      + '<div class="pf-frow"><span class="pf-fdot p"></span><div><b>Palm Beach Towers</b> coming soon in Dubai.</div><span class="pf-fwhen">Jun 11, 2026</span></div>'
+      + '<div class="pf-frow"><span class="pf-fdot p"></span><div><b>Palm Beach Towers</b> bookings open in Dubai.</div><span class="pf-fwhen">May 19, 2026</span></div>'
+      +     '</div></div>'
+      +     '<div class="pf-card"><h4>Capital in your book</h4>'
+      +      '<div class="pf-cap"><span><b style="color:#fff">Mr. C Residences West Palm Beach</b><div class="who">Construction loan</div></span><span class="amt">$285M</span></div>'
+      +      '<div class="pf-cap"><span><b style="color:#fff">262 Fifth Avenue</b><div class="who">Madison Realty Capital</div></span><span class="amt">$180M</span></div>'
+      +     '</div>'
+      +    '</div>'
+      +   '</div>'
       +  '</div>'
       + '</div>';
     panel.appendChild(w);
