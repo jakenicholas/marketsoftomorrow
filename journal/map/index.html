@@ -14022,8 +14022,10 @@
           ".tmw-il-toggle b{font-size:12.5px;font-weight:700;display:block}.tmw-il-toggle i{font-size:10.5px;color:rgba(255,255,255,.5);font-style:normal}" +
           ".tmw-il-legend{margin-top:11px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:rgba(255,255,255,.62)}" +
           ".tmw-il-legend>div{display:flex;align-items:center;gap:8px}" +
-          ".grid-recent{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#C4B5FD;margin:0 0 5px}" +
-          ".grid-recent i{width:7px;height:7px;border-radius:50%;background:#A78BFA;animation:tmwIlGlow 2.4s infinite}" +
+          ".grid-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:0 0 4px}" +
+          ".grid-title-row h3{flex:1;min-width:0}" +
+          ".grid-recent{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#C4B5FD;padding:3px 8px;margin-top:2px;white-space:nowrap;border-radius:999px;border:1px solid rgba(167,139,250,.45);background:rgba(123,79,232,.14);box-shadow:0 0 10px rgba(139,92,246,.28);backdrop-filter:blur(4px)}" +
+          ".grid-recent i{width:6px;height:6px;border-radius:50%;background:#A78BFA;animation:tmwIlGlow 2.4s infinite}" +
           ".tmw-il-legend .d{width:10px;height:10px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1px rgba(255,255,255,.18)}" +
           ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:2;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 14px 10px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff;transition:opacity .15s}" +
           ".tmw-il-scrub.tmw-il-hidden{opacity:0;pointer-events:none}" +
@@ -14672,6 +14674,9 @@
             const loop = () => {
               if (!skyOn || !skySpinOn) { skySpinOn = false; return; }
               if (map.isMoving()) { skySpinT = setTimeout(loop, 1500); return; }   // let the fly-in land
+              // A popup tile is open: hold the camera still so the card and
+              // its pin stay put. Re-check quickly to resume soon after close.
+              if (typeof activePopup !== 'undefined' && activePopup) { skySpinT = setTimeout(loop, 2000); return; }
               if (document.visibilityState === 'visible' && map.getZoom() >= 13) {
                 try { map.easeTo({ bearing: map.getBearing() + 5, duration: 10000, easing: x => x }); } catch(e){}
               }
@@ -14720,9 +14725,13 @@
             const uid = e.features && e.features[0] && e.features[0].properties.uid;
             if (!uid) return;
             const f = (window.allProjectFeatures||[]).find(x => x.properties && x.properties.uid === uid);
-            if (f && window.openProjectModal) window.openProjectModal(f, 'skyline');
+            if (!f) return;
+            // Same path as a pin click: camera centering + the map popup tile
+            // (stack-aware). The full modal stays behind the popup's button.
+            if (typeof window._handlePinClick === 'function') window._handlePinClick({ features: [f] });
+            else if (typeof showPopup === 'function') showPopup(f);
           }
-          ['tmw-sky-future','tmw-sky-aura1','tmw-sky-names'].forEach(id => {
+          ['tmw-sky-future','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-names'].forEach(id => {
             map.on('click', id, skyClick);
             map.on('mouseenter', id, ()=>{ map.getCanvas().style.cursor='pointer'; });
             map.on('mouseleave', id, ()=>{ map.getCanvas().style.cursor=''; });
@@ -18186,8 +18195,7 @@
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <div class="grid-item-content">
-              ${(window._isMoverFeature && window._isMoverFeature(f)) ? '<span class="grid-recent"><i></i>Recent update</span>' : ''}
-              <h3 style="color:#fff!important;margin:0 0 4px;">${f.properties.title}</h3>
+              <div class="grid-title-row"><h3 style="color:#fff!important;margin:0;">${f.properties.title}</h3>${(window._isMoverFeature && window._isMoverFeature(f)) ? '<span class="grid-recent"><i></i>Recent update</span>' : ''}</div>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;">${f.properties.borough || f.properties.city}${_type ? ' · ' + _type : ''}</p>
               ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
@@ -20815,6 +20823,9 @@
           }
           map.on('click','unclustered-point',           handlePinClick);
           map.on('click','unclustered-point-completed', handlePinClick);
+          // Skyline towers reuse the exact pin-click path (synthetic event
+          // carrying the full feature) so 3D clicks behave like pin clicks.
+          window._handlePinClick = handlePinClick;
           // Pointer cursor on hover for both pin layers + both cluster layers.
           ['unclustered-point','unclustered-point-completed','clusters','clusters-completed'].forEach(id => {
             map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
