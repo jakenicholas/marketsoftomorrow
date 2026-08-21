@@ -14392,6 +14392,58 @@
           function skyScaleRing(r, f){ const c = skyRingCentroid(r); return r.map(pt => [c[0] + (pt[0]-c[0])*f, c[1] + (pt[1]-c[1])*f]); }
           // 'within' silently no-ops on CW rings — normalize to CCW (shoelace).
           function skyCCW(r){ let s = 0; for (let i = 0; i < r.length - 1; i++) s += (r[i+1][0]-r[i][0]) * (r[i+1][1]+r[i][1]); return s > 0 ? r.slice().reverse() : r; }
+          // ── BEACON ────────────────────────────────────────────────────
+          // Every roof emits a shaft of light. It is CIRCULAR (a scaled
+          // footprint keeps its corners, and corners read as a box sitting on
+          // the building, not as a beam), each shell holds a CONSTANT radius
+          // (a per-segment flare leaves a visible step at every seam), and it
+          // climbs far past the roofline before dissolving into the night —
+          // fill-extrusion opacity is per LAYER, so the vertical fade has to
+          // live in a per-segment colour ramp.
+          const SKY_VOID = '#191030', BEAM_SIDES = 16;
+          const BEAM_TIERS = [[1, 1.00, 6, '#F3EEFF'], [2, 1.80, 4, '#D2BEFF'], [3, 2.95, 3, '#AC90FF']];
+          function skyMix(a, b, t){
+            t = Math.max(0, Math.min(1, t));
+            const p = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+            const A = p(a), B = p(b);
+            return '#' + [0,1,2].map(i => Math.round(A[i] + (B[i]-A[i])*t).toString(16).padStart(2,'0')).join('');
+          }
+          // A straight lerp from a near-white core to the void runs through
+          // GREY — the shaft has to stay violet the whole way up, so the ramp
+          // routes through a saturated mid-violet before it fades out.
+          function skyBeamCol(hot, t){
+            return t < 0.42 ? skyMix(hot, '#7C4DFF', t / 0.42)
+                            : skyMix('#7C4DFF', SKY_VOID, (t - 0.42) / 0.58);
+          }
+          // Radius of the circle with the footprint's own area: a slim tower
+          // gets a slim beam, a block-wide podium a wider one.
+          function skyPlateR(ring){
+            const c = skyRingCentroid(ring), latM = 111320, lngM = 111320 * Math.cos(c[1] * Math.PI/180);
+            let a = 0;
+            for (let i = 0; i < ring.length - 1; i++){
+              a += ((ring[i][0]-c[0])*lngM) * ((ring[i+1][1]-c[1])*latM)
+                 - ((ring[i+1][0]-c[0])*lngM) * ((ring[i][1]-c[1])*latM);
+            }
+            return Math.sqrt(Math.abs(a/2) / Math.PI);
+          }
+          function skyCircle(c, rM){
+            const latM = 111320, lngM = 111320 * Math.cos(c[1] * Math.PI/180), out = [];
+            for (let i = 0; i < BEAM_SIDES; i++){
+              const a = i / BEAM_SIDES * 2 * Math.PI;
+              out.push([c[0] + (rM*Math.cos(a))/lngM, c[1] + (rM*Math.sin(a))/latM]);
+            }
+            out.push(out[0].slice());
+            return out;
+          }
+          // A low mass shows mostly ROOF, and the vertical gradient paints the
+          // roof at full brightness — a 5-storey hotel washes out to a pale
+          // ghost beside a solid tower. Deepen the violet as height drops so
+          // every volume reads equally solid.
+          function skyBodyCol(h, mover){
+            const base = mover ? '#B9A0FF' : '#7B4FE8';
+            const k = Math.max(0, Math.min(1, ((+h || 0) - 14) / 46));
+            return skyMix(skyMix(base, '#3E2494', 0.55), base, k);
+          }
           function skySetData(){
             try {
               const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC());
@@ -14433,14 +14485,14 @@
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
-                const col0 = isMover(f) ? '#B9A0FF' : '#7B4FE8';
+                const mv0 = isMover(f);
                 ms.forEach(pc => {
                   if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4) return;
                   const r2 = pc.ring.slice();
                   const a0 = r2[0], z0 = r2[r2.length-1];
                   if (a0[0] !== z0[0] || a0[1] !== z0[1]) r2.push(a0);
                   feats.push({ type:'Feature',
-                    properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:+pc.top||10, base:+pc.base||0, color:col0, yr: yM0 ? +yM0[0] : 0 },
+                    properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:+pc.top||10, base:+pc.base||0, color: skyBodyCol((+pc.top||10) - (+pc.base||0), mv0), yr: yM0 ? +yM0[0] : 0 },
                     geometry:{ type:'Polygon', coordinates:[r2] } });
                 });
                 return;
@@ -14489,7 +14541,7 @@
               // purple), everything else keeps its status color.
               const mover = isMover(f);
               feats.push({ type:'Feature',
-                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: mover ? '#B9A0FF' : '#7B4FE8', yr: yM ? +yM[0] : 0 },
+                properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: skyBodyCol(hM, mover), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
@@ -14500,17 +14552,30 @@
               if (!pp.uid) return;
               if (!best[pp.uid] || pp.height > best[pp.uid].height) best[pp.uid] = { uid:pp.uid, title:pp.title, height:pp.height, yr:pp.yr, ring:ft.geometry.coordinates[0] };
             });
-            // Aura: three nested translucent columns per project rising from
-            // the roofline — widening and fading outward, so the beacon reads
-            // as a soft blurred glow instead of a hard-edged box.
+            // Beacon: a shaft of light per project, fired from the tallest
+            // roof — three nested shells (bright core, glow, wide halo) that
+            // climb ~2x the tower's own height and dissolve into the sky, plus
+            // a bloom pooling over the roof so the light reads as emitted by
+            // the building instead of parked on top of it.
             const auraFeats = [];
             Object.values(best).forEach(b => {
-              const a = Math.max(28, Math.round(b.height * 0.4));
-              [[1, 1.05, 0.9], [2, 1.28, 1.05], [3, 1.55, 1.2]].forEach(([tier, sc, hf]) => {
-                auraFeats.push({ type:'Feature',
-                  properties:{ uid:b.uid, tier, base:Math.max(0, b.height - 2), height:b.height + Math.round(a * hf), yr:b.yr },
-                  geometry:{ type:'Polygon', coordinates:[ skyScaleRing(b.ring, sc) ] } });
+              const c = skyRingCentroid(b.ring);
+              const r0 = Math.max(4.5, Math.min(11, skyPlateR(b.ring) * 0.38));
+              const rise = Math.max(300, Math.round(b.height * 1.9));
+              const push = (tier, rM, base, top, col) => auraFeats.push({ type:'Feature',
+                properties:{ uid:b.uid, tier, base:Math.round(base), height:Math.round(top), col, yr:b.yr },
+                geometry:{ type:'Polygon', coordinates:[ skyCircle(c, rM) ] } });
+              BEAM_TIERS.forEach(([tier, rx, segs, hot]) => {
+                for (let sg = 0; sg < segs; sg++){
+                  // Segments lengthen as they climb: a fine colour gradient
+                  // low down where the shaft is brightest, long faint reaches
+                  // up top where it turns into sky.
+                  const e0 = Math.pow(sg / segs, 1.7), e1 = Math.pow((sg + 1) / segs, 1.7);
+                  push(tier, r0 * rx, sg === 0 ? b.height - 2 : b.height + rise * e0,
+                    b.height + rise * e1, skyBeamCol(hot, Math.min(1, Math.pow(e1, 0.7) * 1.1)));
+                }
               });
+              push(3, r0 * 4.6, b.height - 11, b.height + 16, '#C7B0FF');
             });
             _skyShell = { type:'FeatureCollection', features: auraFeats };
             // Demolition mask: existing basemap buildings standing fully inside
@@ -14587,10 +14652,10 @@
             map.addSource(SKY_LBL, { type:'geojson', data:_skyLabels });
             map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13,
               paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
-            [[1, 0.12], [2, 0.055], [3, 0.028]].forEach(([tier, op]) => {
+            [[1, 0.34], [2, 0.12], [3, 0.045]].forEach(([tier, op]) => {
               map.addLayer({ id:'tmw-sky-aura'+tier, type:'fill-extrusion', source:SKY_SHL, minzoom:13,
                 filter:['==',['get','tier'],tier],
-                paint:{ 'fill-extrusion-color':'#A78BFA','fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':op,'fill-extrusion-emissive-strength':1 } });
+                paint:{ 'fill-extrusion-color':['get','col'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':op,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':false } });
             });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
               paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.55,'fill-extrusion-vertical-gradient':true } });
@@ -14734,9 +14799,9 @@
               if (document.visibilityState === 'visible') {
                 const pz = 0.5 + 0.5 * Math.sin(performance.now() / 1000 * 1.4);
                 try {
-                  if (map.getLayer('tmw-sky-aura1')) map.setPaintProperty('tmw-sky-aura1','fill-extrusion-opacity', 0.085 + 0.07 * pz);
-                  if (map.getLayer('tmw-sky-aura2')) map.setPaintProperty('tmw-sky-aura2','fill-extrusion-opacity', 0.04 + 0.035 * pz);
-                  if (map.getLayer('tmw-sky-aura3')) map.setPaintProperty('tmw-sky-aura3','fill-extrusion-opacity', 0.02 + 0.018 * pz);
+                  if (map.getLayer('tmw-sky-aura1')) map.setPaintProperty('tmw-sky-aura1','fill-extrusion-opacity', 0.27 + 0.13 * pz);
+                  if (map.getLayer('tmw-sky-aura2')) map.setPaintProperty('tmw-sky-aura2','fill-extrusion-opacity', 0.09 + 0.055 * pz);
+                  if (map.getLayer('tmw-sky-aura3')) map.setPaintProperty('tmw-sky-aura3','fill-extrusion-opacity', 0.032 + 0.022 * pz);
                   if (map.getLayer('tmw-sky-halo')) map.setPaintProperty('tmw-sky-halo','fill-opacity', 0.06 + 0.07 * pz);
                 } catch(e){}
               }
