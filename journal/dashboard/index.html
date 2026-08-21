@@ -415,8 +415,15 @@ main.wrap{padding-bottom:70px}
   box-shadow:0 0 18px rgba(230,197,116,.4);transition:transform .15s,box-shadow .15s}
 .gp-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(230,197,116,.65)}
 .gp-preview{position:relative;pointer-events:none;user-select:none;opacity:.8;margin-top:8px}
-.gp-ribbon{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;font-weight:700;color:#E6C574;
-  border:1px solid rgba(230,197,116,.4);border-radius:999px;padding:4px 10px;margin-bottom:14px}
+/* Diagonal EXAMPLE DATA watermark tiled across the whole preview so no
+   screenshot or scroll position can read as the member's real data. */
+.gp-preview::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='440' height='320'%3E%3Ctext x='30' y='170' font-family='SF Mono,Menlo,monospace' font-size='21' font-weight='700' letter-spacing='7' fill='rgba(230,197,116,0.09)' transform='rotate(-18 220 160)'%3EEXAMPLE DATA%3C/text%3E%3C/svg%3E")}
+.gp-ribbon{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;font-weight:700;color:#E6C574;
+  border:1px solid rgba(230,197,116,.55);border-radius:12px;padding:13px 17px;margin-bottom:16px;
+  background:linear-gradient(90deg,rgba(230,197,116,.12),rgba(230,197,116,.03));box-shadow:0 0 22px rgba(230,197,116,.12)}
+.gp-ribbon i{width:8px;height:8px;border-radius:50%;background:#E6C574;flex:0 0 auto;box-shadow:0 0 10px rgba(230,197,116,.8)}
+.gp-ribbon .r2{margin-left:auto;font-size:10px;letter-spacing:.12em;color:rgba(230,197,116,.75);font-weight:600}
 .gp-sec{font-family:var(--serif);font-size:22px;font-weight:600;color:#fff;margin:30px 0 14px}
 .gp-sechead{display:flex;align-items:baseline;justify-content:space-between}
 .gp-sechead .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
@@ -479,7 +486,7 @@ main.wrap{padding-bottom:70px}
     <div data-sub-panel="study">
     <div class="stats" id="stats"></div>
     <div class="sechead"><h2 id="ownHead">Your watches</h2><span class="lbl" id="ownSub">Markets, firms, projects &amp; searches &mdash; one live feed</span></div>
-    <div class="mktsearch"><input id="mktSearch" placeholder="Watch anything &mdash; a city, a firm, a project type&hellip;" autocomplete="off"><div class="mktresults" id="mktResults" hidden></div></div>
+    <div class="mktsearch"><input id="mktSearch" placeholder="Watch anything: a city, a firm, a project type&hellip;" autocomplete="off"><div class="mktresults" id="mktResults" hidden></div></div>
     <div class="watchwrap" id="mktChips"></div>
     <div class="sechead"><h2>Daily streak <span class="qhelp" tabindex="0" aria-label="What is a streak?">?<span class="qtip">Your streak counts every day you visit <b>oftmw.com</b>. Each day earns <b>10 XP</b>, plus a <b>+50 bonus</b> for every full week you keep it alive. Miss a day and it resets to zero.</span></span></h2><span class="streak-ttl" id="streakLbl">&nbsp;</span></div>
     <div class="streak" id="streakStrip"></div>
@@ -1655,7 +1662,7 @@ main.wrap{padding-bottom:70px}
 <script>
 /* ── Free tier gate: the Dashboard tab shows an inert Pro preview ─────────
    Pro members keep the real tab untouched. For a resolved FREE member the
-   panel's real sections are hidden (never removed — their renderers keep
+   panel's real sections are hidden (never removed, so their renderers keep
    running against live DOM nodes) and an example-data preview + Go Pro CTA
    is appended. Anonymous visitors resolve as free here too. */
 (function(){
@@ -1674,12 +1681,12 @@ main.wrap{padding-bottom:70px}
       +  '<button class="gp-btn" id="gpGoBtn" type="button">Go Pro to unlock &rarr;</button>'
       + '</div>'
       + '<div class="gp-preview" aria-hidden="true">'
-      +  '<div class="gp-ribbon">PRO PREVIEW &middot; EXAMPLE DATA</div>'
+      +  '<div class="gp-ribbon"><i></i>PRO PREVIEW &middot; EXAMPLE DATA<span class="r2">NOT YOUR WATCHLIST &middot; GO PRO TO MAKE IT YOURS</span></div>'
 
-      /* Your moves — brief strip + watchlist move cards */
+      /* Your moves: brief strip + watchlist move cards */
       +  '<div class="moves-panel">'
       +   '<div class="mv-h"><span>Your moves</span><span class="mv-n">4</span></div>'
-      +   '<div class="gp-brf"><span class="t"><b>&#10022; YOUR WEEKLY BRIEF</b>The moves on your watchlist &mdash; week of Aug 17</span><span class="go">Read it &rarr;</span></div>'
+      +   '<div class="gp-brf"><span class="t"><b>&#10022; YOUR WEEKLY BRIEF</b>The moves on your watchlist &middot; week of Aug 17</span><span class="go">Read it &rarr;</span></div>'
       +   '<div class="gp-mvgrid">'
       +   '<div class="gp-mv"><span class="th"></span><div>'
       +   '<div class="tg">FINANCING SECURED</div><div class="tt">343 Madison Ave</div><div class="mt">New York City &middot; Jul 28, 2026</div>'
@@ -1700,7 +1707,7 @@ main.wrap{padding-bottom:70px}
       +   '</div>'
       +  '</div>'
 
-      /* Your views — live saved-view tiles */
+      /* Your views: live saved-view tiles */
       +  '<div class="gp-sechead"><div class="gp-sec">Your views</div><span class="lbl">3 saved</span></div>'
       +  '<div class="gp-tiles">'
       +   '<div class="gp-tile"><div class="v">14</div><div class="n">Tampa &middot; Projects</div><div class="k">Projects</div></div>'
@@ -1708,7 +1715,7 @@ main.wrap{padding-bottom:70px}
       +   '<div class="gp-tile"><div class="v">4</div><div class="n">SC &middot; Golf</div><div class="k">Projects</div></div>'
       +  '</div>'
 
-      /* This week — the full My Book portfolio app */
+      /* This week: the full My Book portfolio app */
       +  '<div class="gp-sechead"><div class="gp-sec">This week</div><span class="lbl">Week of August 17 &middot; the moves on your watchlist</span></div>'
       +  '<div class="pf-app">'
       +   '<div class="pf-appbar"><span class="u">Your portfolio</span><span class="pro">Pro</span></div>'
@@ -1771,7 +1778,7 @@ main.wrap{padding-bottom:70px}
       +    '</div>'
       +    '<div class="pf-watches">'
       +     '<div class="pf-wh"><h4>Your watches</h4><span class="pf-addbtn">Add more to watchlist &rarr;</span></div>'
-      +     '<div class="mktsearch"><input placeholder="Watch anything &mdash; a city, a firm, a project type&hellip;" disabled></div>'
+      +     '<div class="mktsearch"><input placeholder="Watch anything: a city, a firm, a project type&hellip;" disabled></div>'
       +     '<div class="gp-watchwrap">'
       +      '<div class="wgrp"><div class="wgrp-h">Markets</div><div class="mchips"><span class="mchip on gold"><span class="mchip-lbl">Miami</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Wellington</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Nashville</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">New York City</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Tokyo</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">West Palm Beach</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">Bahamas</span><span class="mck-x">&times;</span></span></div></div>'
       +      '<div class="wgrp"><div class="wgrp-h">Firms</div><div class="mchips"><span class="mchip on gold"><span class="mchip-lbl">Related Ross</span><span class="mck-x">&times;</span></span><span class="mchip on gold"><span class="mchip-lbl">NDT Development</span><span class="mck-x">&times;</span></span></div></div>'
@@ -1787,7 +1794,7 @@ main.wrap{padding-bottom:70px}
       +      '<div class="bh-stat"><div class="v">9</div><div class="k">Projects</div></div>'
       +      '<div class="bh-stat"><div class="v">5</div><div class="k">Markets</div></div>'
       +     '</div>'
-      +     '<div class="bh-narr">Four Seasons Private Residences Coconut Grove crossed into vertical construction in July, marking the most material progression on the watchlist this period. Hibiya Crosspark in Tokyo and Mira Music Row in Nashville both entered active tracking phases within the past four days, signaling accelerated momentum across the international and domestic portfolios. The Miami cluster&mdash;anchored by Four Seasons moving vertical&mdash;now comprises four assets in tangible construction or pre-sales phases, concentrated risk worth monitoring for absorption signals.</div>'
+      +     '<div class="bh-narr">Four Seasons Private Residences Coconut Grove crossed into vertical construction in July, marking the most material progression on the watchlist this period. Hibiya Crosspark in Tokyo and Mira Music Row in Nashville both entered active tracking phases within the past four days, signaling accelerated momentum across the international and domestic portfolios. The Miami cluster, anchored by Four Seasons moving vertical, now comprises four assets in tangible construction or pre-sales phases, concentrated risk worth monitoring for absorption signals.</div>'
       +     '<div class="bh-foot">Generated by Onyx 5 &middot; grounded in your watchlist &middot; updates live as it moves</div>'
       +    '</div>'
       +    '<div class="pf-two">'
