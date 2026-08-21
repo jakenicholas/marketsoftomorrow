@@ -12143,7 +12143,7 @@
 
       <!-- Completed Projects: openings > 6 months ago graduate here. Off by default.
            Data stays in the source so TMW Intelligence can still query it. -->
-      <div class="layers-checkbox-row" id="completedToggleRow">
+      <div class="layers-checkbox-row" id="completedToggleRow" style="display:none">
         <div class="layers-checkbox" id="completedCheckbox">
           <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
         </div>
@@ -14077,7 +14077,7 @@
           '<div class="tmw-il-ph"><h4>Interactive Layers</h4><button class="tmw-il-x" aria-label="Close layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
           '<div class="tmw-il-toggle"><span class="tmw-il-sw"></span><span><b>What’s Moving</b><i>Pulse Recent Milestones</i></span></div>' +
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="view"><button data-v="default" class="on">Default</button><button data-v="satellite">Satellite</button></div></div>' +
-          '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
+
           '<div class="tmw-il-toggle tmw-il-sky" style="margin-top:2px"><span class="tmw-il-sw"></span><span><b>Future Skyline</b><i>3D up close, pins from afar</i></span></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
@@ -15365,7 +15365,7 @@
       // load time so Mapbox layer filters can use the `completed` property.
       // Keeps the pipeline view focused on what's actually in motion while
       // retaining the data for TMW Intelligence comps + historical queries.
-      const COMPLETED_AGE_MS = 180 * 24 * 60 * 60 * 1000;  // 6 months
+      const COMPLETED_AGE_MS = 270 * 24 * 60 * 60 * 1000;  // 9-month victory lap, then the project graduates off the map
       // Statuses that mean "delivered, the building is open/operating." Both
       // "Now Open" (the newly-opened state we expect most ribbon-cuts to use)
       // and "Completed" (a literal manual label some older records carry —

@@ -771,7 +771,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
       <div class="firm-tabs" role="tablist">
         <button class="firm-tab active" data-filter="all" type="button">All</button>
         <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
-        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+        <button class="firm-tab" data-filter="completed" type="button">Delivered</button>
       </div>
       <script>
       (function(){
