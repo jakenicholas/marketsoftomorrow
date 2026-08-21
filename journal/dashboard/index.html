@@ -402,6 +402,37 @@ main.wrap{padding-bottom:70px}
 .pp-more{display:block;margin:18px auto 0;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:11px 24px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer;transition:all .16s}
 .pp-more:hover{border-color:#7bd88f;color:#7bd88f}
 @media(max-width:820px){.pp-places{grid-template-columns:repeat(2,1fr)}.pp-tri{gap:22px}.pp-big b{font-size:54px}}
+/* ── Free tier: the dashboard tab becomes a Pro pitch + inert preview ── */
+[data-tab-panel="dashboard"].gp-locked > :not(#gpWrap){display:none}
+.gp-cta{border:1px solid rgba(230,197,116,.45);border-radius:16px;padding:26px 28px;margin-bottom:26px;
+  background:linear-gradient(180deg,rgba(230,197,116,.08),rgba(230,197,116,.015) 70%,transparent);
+  box-shadow:0 0 30px rgba(230,197,116,.08)}
+.gp-cta .gp-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:#E6C574;font-weight:700;margin-bottom:10px}
+.gp-cta h3{font-family:var(--serif);font-size:26px;font-weight:600;color:#fff;letter-spacing:-.01em;margin:0 0 10px}
+.gp-cta p{font-size:14px;line-height:1.6;color:var(--mute);max-width:60ch;margin:0 0 16px}
+.gp-btn{display:inline-block;border:none;cursor:pointer;font:700 13px/1 var(--sans,'Inter',sans-serif);letter-spacing:.04em;
+  padding:12px 20px;border-radius:999px;background:linear-gradient(135deg,#f0d68a,#caa84f);color:#12091f;
+  box-shadow:0 0 18px rgba(230,197,116,.4);transition:transform .15s,box-shadow .15s}
+.gp-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(230,197,116,.65)}
+.gp-preview{position:relative;pointer-events:none;user-select:none;opacity:.62;margin-top:8px}
+.gp-ribbon{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;font-weight:700;color:#E6C574;
+  border:1px solid rgba(230,197,116,.4);border-radius:999px;padding:4px 10px;margin-bottom:14px}
+.gp-sec{font-family:var(--serif);font-size:19px;font-weight:600;color:#fff;margin:24px 0 12px}
+.gp-brief{border:1px solid rgba(185,166,255,.32);border-radius:15px;padding:16px 18px;
+  background:linear-gradient(180deg,rgba(185,166,255,.06),transparent)}
+.gp-brief .bh{font-family:var(--mono);font-size:10px;letter-spacing:.13em;color:#B9A6FF;font-weight:700;margin-bottom:10px}
+.gp-row{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13.5px;color:#d7ddd7}
+.gp-row:first-of-type{border-top:none}
+.gp-row b{color:#fff;font-weight:600}
+.gp-row .d{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--mute);white-space:nowrap}
+.gp-chips{display:flex;flex-wrap:wrap;gap:8px}
+.gp-chip{font-size:12.5px;font-weight:600;color:#fff;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.08);
+  border-radius:999px;padding:7px 13px}
+.gp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.gp-tile{border:1px solid var(--hair);border-radius:15px;padding:16px 17px 15px;background:rgba(255,255,255,.028)}
+.gp-tile .v{font-family:var(--serif);font-size:30px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
+.gp-tile .n{font-size:13px;font-weight:600;color:#e8ece8;margin-top:9px}
+.gp-tile .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:4px}
 </style>
 </head>
 <body>
@@ -1023,20 +1054,11 @@ main.wrap{padding-bottom:70px}
       var views=o[0]||[], rows=o[1]||[];
       if(lbl) lbl.textContent = views.length ? (views.length+' saved') : '';
       if(!views.length){
-        // An empty grid is the worst first screen a composable dashboard can
-        // show, so offer three ready-made starting points instead. Applying one
-        // just creates saved views — there is no preset "mode" to leave.
-        var presets=(window.tmwViews.PRESETS||[]).map(function(p){
-          return '<button class="svp" type="button" data-preset="'+svwEsc(p.id)+'">'
-            + '<div class="svp-n">'+svwEsc(p.name)+'</div>'
-            + '<div class="svp-b">'+svwEsc(p.blurb)+'</div>'
-            + '<div class="svp-l">'+p.views.map(function(v){return svwEsc(v.name);}).join(' &middot; ')+'</div>'
-            + '<span class="svp-go">Use this &rarr;</span></button>';
-        }).join('');
-        body.innerHTML='<div class="empty">Start from one of these, or filter the Atlas to something you '
-          + 'care about and hit <b>Save view</b>. Either way it becomes a live tile here, and you can '
-          + 'change it after.</div>'
-          + '<div class="svp-grid">'+presets+'</div>';
+        // Preset starter cards (Developer / Broker / Investor personas) are
+        // PARKED for now per Jake, 2026-08-20 — tmwViews.PRESETS still holds
+        // them for when that idea gets its real pass.
+        body.innerHTML='<div class="empty">Filter the Atlas to something you care about and hit '
+          + '<b>Save view</b> — it becomes a live tile here, and you can change it after.</div>';
         return;
       }
       body.innerHTML='<div class="svw-grid">'+views.map(function(v,i){
@@ -1622,6 +1644,59 @@ main.wrap{padding-bottom:70px}
       e.preventDefault(); inp.value=it.getAttribute('data-pn')||it.textContent; hide();
     });
     inp.addEventListener('blur',function(){ clearTimeout(hideT); hideT=setTimeout(hide,160); });
+  })();
+})();
+</script>
+<script>
+/* ── Free tier gate: the Dashboard tab shows an inert Pro preview ─────────
+   Pro members keep the real tab untouched. For a resolved FREE member the
+   panel's real sections are hidden (never removed — their renderers keep
+   running against live DOM nodes) and an example-data preview + Go Pro CTA
+   is appended. Anonymous visitors resolve as free here too. */
+(function(){
+  function gpIsPro(){ try{ return window._isPaidMember===true || (window.__tmwMember&&window.__tmwMember.plan==='paid'); }catch(e){ return false; } }
+  function resolved(){ return (typeof window._isPaidMember==='boolean') || !!(window.__tmwMember&&window.__tmwMember.id); }
+  function build(){
+    if(gpIsPro()) return;
+    var panel=document.querySelector('[data-tab-panel="dashboard"]');
+    if(!panel||document.getElementById('gpWrap')) return;
+    var w=document.createElement('div'); w.id='gpWrap';
+    w.innerHTML=
+      '<div class="gp-cta">'
+      +  '<div class="gp-k">TMW PRO</div>'
+      +  '<h3>This is your dashboard on Pro</h3>'
+      +  '<p>A weekly brief written from your watchlist, live moves on every market, firm and project you watch, and saved Atlas views that stay current on their own. Below is a preview with example data.</p>'
+      +  '<button class="gp-btn" id="gpGoBtn" type="button">Go Pro to unlock &rarr;</button>'
+      + '</div>'
+      + '<div class="gp-preview" aria-hidden="true">'
+      +  '<div class="gp-ribbon">PRO PREVIEW &middot; EXAMPLE DATA</div>'
+      +  '<div class="gp-brief"><div class="bh">&#10022; YOUR WEEKLY BRIEF &middot; WEEK OF AUG 17</div>'
+      +   '<div class="gp-row"><b>Waldorf Astoria Residences Pompano Beach</b> topped out<span class="d">Aug 14</span></div>'
+      +   '<div class="gp-row"><b>Miami</b> supply pressure eased to Elevated<span class="d">Aug 13</span></div>'
+      +   '<div class="gp-row"><b>Related Group</b> filed plans for a new riverfront tower<span class="d">Aug 12</span></div>'
+      +  '</div>'
+      +  '<div class="gp-sec">Your watches</div>'
+      +  '<div class="gp-chips"><span class="gp-chip">Miami</span><span class="gp-chip">Palm Beach</span><span class="gp-chip">Related Group</span><span class="gp-chip">Waldorf Astoria Residences</span><span class="gp-chip">&ldquo;branded condos&rdquo;</span></div>'
+      +  '<div class="gp-sec">Your views</div>'
+      +  '<div class="gp-tiles">'
+      +   '<div class="gp-tile"><div class="v">84</div><div class="n">Miami pipeline</div><div class="k">Projects</div></div>'
+      +   '<div class="gp-tile"><div class="v">132</div><div class="n">Opening by 2027</div><div class="k">Projects</div></div>'
+      +   '<div class="gp-tile"><div class="v">27</div><div class="n">Under construction &middot; Palm Beach</div><div class="k">Projects</div></div>'
+      +  '</div>'
+      + '</div>';
+    panel.appendChild(w);
+    panel.classList.add('gp-locked');
+    var btn=document.getElementById('gpGoBtn');
+    if(btn) btn.addEventListener('click', function(){
+      if(window.tmwWelcome && window.tmwWelcome.pro && window.tmwWelcome.pro({ source:'dashboard_gate' })) return;
+      window.location.href='/map/?upgrade=1';
+    });
+  }
+  var tries=0;
+  (function poll(){
+    if(resolved()){ build(); return; }
+    if(++tries<50){ setTimeout(poll, 400); return; }
+    build();   // never resolved (anon / blocked Memberstack) -> free view
   })();
 })();
 </script>
