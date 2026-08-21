@@ -1948,3 +1948,42 @@ function initSuggestMode(post) {
     }
   });
 })();
+
+/* ── Pull-quote opener ────────────────────────────────────────────────────
+   The blockquote design (Option B) hangs an oversized gold quotation mark in
+   the left margin, so a curly opener typed at the start of the quote would
+   read as two opening marks stacked. Strip only that FIRST character.
+
+   Deliberately not touching anything else: the common house pattern is
+   `"...," Vichinsky said. "..."`, where the remaining marks are doing real
+   work (they close the first clause and open the second). Stripping the
+   trailing mark too would orphan those inner ones, which looks worse than
+   leaving a single unmatched closer at the very end — and that closer sits
+   under the hanging opener, which is exactly how print sets a pull quote.
+   Idempotent, so it is safe on both the pre-rendered and the injected path. */
+(function () {
+  var OPENERS = '“‟«"';
+  function dequote(root) {
+    if (!root) return;
+    root.querySelectorAll('blockquote').forEach(function (bq) {
+      if (bq.hasAttribute('data-dequoted')) return;
+      bq.setAttribute('data-dequoted', '1');
+      // First non-empty text node in document order — skips wrapper <p>/<em>.
+      var walker = document.createTreeWalker(bq, NodeFilter.SHOW_TEXT, null);
+      var n;
+      while ((n = walker.nextNode())) {
+        if (!n.nodeValue || !n.nodeValue.trim()) continue;
+        var s = n.nodeValue, i = 0;
+        while (i < s.length && /\s/.test(s[i])) i++;
+        if (i < s.length && OPENERS.indexOf(s[i]) >= 0) {
+          n.nodeValue = s.slice(0, i) + s.slice(i + 1);
+        }
+        break;
+      }
+    });
+  }
+  function run() { dequote(document.getElementById('article-body-content')); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  document.addEventListener('tmw:article-ready', run);   // dynamic render path
+})();

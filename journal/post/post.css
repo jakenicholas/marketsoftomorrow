@@ -204,8 +204,20 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .article-body-content h2{font-size:clamp(26px,3.4vw,38px)}
 .article-body-content h3{font-size:clamp(22px,2.6vw,28px)}
 .article-body-content h4{font-size:20px}
-.article-body-content blockquote{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(22px,2.4vw,28px); line-height:1.4; color:var(--gold-soft); border-left:3px solid var(--gold); padding:6px 0 6px 26px; margin:2em 0 !important}
-.article-body-content blockquote p{font-size:inherit; color:inherit; line-height:inherit; font-weight:inherit; font-family:inherit; max-width:none}
+/* PULL QUOTE (Option B, 60ch). An oversized gold Fraunces quotation mark hangs
+   in the left margin and carries all the ornament, so the words stay plain
+   white serif instead of gold italic. 60ch sits just inside the 64ch body
+   measure, so a quote still reads as a held breath. The typed curly quotes are
+   stripped by post.js so the hanging mark isn't doubled. */
+.article-body-content blockquote{position:relative; max-width:60ch; padding:2px 0 2px 52px; border:none; margin:2em 0 !important}
+.article-body-content blockquote::before{content:'\201C'; position:absolute; left:0; top:-16px; font-family:var(--serif); font-weight:600; font-size:76px; line-height:1; color:var(--gold); opacity:.45; pointer-events:none}
+.article-body-content blockquote p{font-family:var(--serif); font-style:normal; font-weight:500; font-size:26px; line-height:1.3; letter-spacing:-.014em; color:var(--white); text-wrap:pretty; max-width:none}
+.article-body-content blockquote p + p{margin-top:.5em}
+@media(max-width:700px){
+  .article-body-content blockquote{padding-left:38px}
+  .article-body-content blockquote::before{font-size:58px; top:-11px}
+  .article-body-content blockquote p{font-size:22px}
+}
 .article-body-content ul,
 .article-body-content ol{padding-left:26px; color:var(--cream); font-weight:300}
 .article-body-content li{margin:.4em 0}
