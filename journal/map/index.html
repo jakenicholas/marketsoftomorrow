@@ -14574,23 +14574,28 @@
               if (ps) (kidsBy[ps] = kidsBy[ps] || []).push(f);
             });
             const distSlugs = new Set(Object.keys(kidsBy).filter(k => kidsBy[k].length >= 2));
+            // Hand-flagged in Studio, with or without children.
+            src.forEach(f => { const pp = (f && f.properties) || {};
+              if (pp.isDistrict && !pp.completed) distSlugs.add(_py(pp.title || ''));
+            });
             const distMeta = {};     // slug -> { uid, title, rings, top, yr }
             // Called from BOTH build paths. A child with a hand-authored
             // massing returns early, so accumulating only on the footprint
             // path silently lost whole districts — all three Nora buildings
             // have Studio massings, which is why Nora had no parcel.
-            const noteDistrictChild = (pp, ring, h) => {
-              const ps = String(pp.parentSlug || '').trim();
-              if (!ps || !distSlugs.has(ps)) return;
-              const d = distMeta[ps] = distMeta[ps] || { uid:'', title:'', rings:[], top:0, yr:0 };
-              if (!d.uid) d.uid = ps;
+            const noteDistrictGeom = (key, ring, h, pp) => {
+              if (!key || !distSlugs.has(key)) return;
+              const d = distMeta[key] = distMeta[key] || { uid:'', title:'', rings:[], top:0, yr:0 };
+              if (!d.uid) d.uid = key;
               d.rings.push(ring);
               if (h > d.top) d.top = h;
-              const m = String(pp.deliveryDate || '').match(/20\d{2}/);
+              const m = String((pp && pp.deliveryDate) || '').match(/20\d{2}/);
               const cy = m ? +m[0] : 0;
               if (cy && (!d.yr || cy < d.yr)) d.yr = cy;
               d.child = true;
             };
+            const noteDistrictChild = (pp, ring, h) =>
+              noteDistrictGeom(String(pp.parentSlug || '').trim(), ring, h, pp);
             src.forEach((f, i) => {
               const p = (f && f.properties) || {};
               if (p.completed) return;                       // the future, not the past
@@ -14599,16 +14604,7 @@
               const c = f.geometry && f.geometry.coordinates; if (!c) return;
               const lng = +c[0], lat = +c[1];
               if (!isFinite(lng) || !isFinite(lat)) return;
-              // The district itself is a parcel, not a building. Left alone it
-              // extrudes as a stray 10m slab (they carry no floors) in the
-              // middle of its own site.
-              const _selfSlug = _py(p.title || '');
-              if (distSlugs.has(_selfSlug)) {
-                const dm = distMeta[_selfSlug] = distMeta[_selfSlug] ||
-                  { uid:'', title:'', rings:[], top:0, yr:0 };
-                dm.uid = p.uid || dm.uid; dm.title = p.title || dm.title;
-                return;
-              }
+
               // EVERY pipeline pin converts to a 3D form. Towers rise by their
               // floors; civic projects without floors data get a massing height
               // by what they are — a stadium bowl, a bridge deck, a museum hall,
@@ -14627,6 +14623,26 @@
               // from our own project descriptions — a twin-tower project shows
               // two towers at their real heights, not one averaged slab.
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
+              const _selfSlug = _py(p.title || '');
+              const _isDist = distSlugs.has(_selfSlug);
+              const _hasKids = _isDist && (kidsBy[_selfSlug] || []).length > 0;
+              // A bare umbrella (no floors, no massing) is a parcel, not a
+              // building — left alone it extrudes as a stray 10m slab on its own
+              // site. But a district that IS a tower keeps its form: Mori JP
+              // Tower is flagged a district and is also a 64-storey building.
+              const _selfForm = (Array.isArray(ms) && ms.length) || fl >= 3;
+              if (_isDist) {
+                const dm = distMeta[_selfSlug] = distMeta[_selfSlug] ||
+                  { uid:'', title:'', rings:[], top:0, yr:0 };
+                dm.uid = p.uid || dm.uid; dm.title = p.title || dm.title;
+                if (!_hasKids) {
+                  // No children to outline, so size the parcel from its own
+                  // GFA until someone lays out its massing or adds components.
+                  const gm2 = (parseFloat(p.gfa) || 0) * 0.0929;
+                  dm.minRad = gm2 ? Math.max(70, Math.min(320, Math.sqrt(gm2 / 6 / Math.PI))) : 110;
+                }
+                if (_hasKids && !_selfForm) return;   // its children are the buildings
+              }
               if (Array.isArray(ms) && ms.length) {
                 const yM0 = String(p.deliveryDate || '').match(/20\d{2}/);
                 const mv0 = isMover(f);
@@ -14639,6 +14655,7 @@
                     properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:+pc.top||10, base:+pc.base||0, color: skyBodyCol((+pc.top||10) - (+pc.base||0), mv0), yr: yM0 ? +yM0[0] : 0 },
                     geometry:{ type:'Polygon', coordinates:[r2] } });
                   noteDistrictChild(p, r2, +pc.top || 10);
+                  if (_isDist) noteDistrictGeom(_selfSlug, r2, +pc.top || 10, p);
                 });
                 return;
               }
@@ -14689,6 +14706,7 @@
                 properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: skyBodyCol(hM, mover), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
               noteDistrictChild(p, ring, hM);
+              if (_isDist) noteDistrictGeom(_selfSlug, ring, hM, p);
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
             // per project — labels ride ABOVE the extrusions (symbol-z-elevate)
@@ -14697,6 +14715,12 @@
             Object.keys(distMeta).forEach(k => (kidsBy[k] || []).forEach(f => {
               const u = f && f.properties && f.properties.uid; if (u) _kidUids.add(u);
             }));
+            // A flagged district that is ALSO a building (Miami Worldcenter,
+            // Mori JP Tower) would otherwise fire its own beacon on top of the
+            // district's — two shafts from one point.
+            Object.keys(distMeta).forEach(k => {
+              const d = distMeta[k]; if (d && d.child && d.uid) _kidUids.add(d.uid);
+            });
             const best = {};
             feats.forEach(ft => { const pp = ft.properties;
               if (!pp.uid || _kidUids.has(pp.uid)) return;   // the district beams for them
@@ -14746,8 +14770,9 @@
               let rad = 0;
               if (ring) ring.forEach(pt => { rad = Math.max(rad,
                 Math.hypot((pt[0]-cen[0])*lngM, (pt[1]-cen[1])*latM)); });
-              if (!ring || rad < 55) {
-                const R = Math.max(70, rad + 45), o = [];
+              const floorRad = Math.max(d.minRad || 0, 55);
+              if (!ring || rad < floorRad) {
+                const R = Math.max(d.minRad || 70, rad + 45), o = [];
                 for (let i = 0; i < 28; i++){ const a = i/28 * 2*Math.PI;
                   o.push([cen[0] + R*Math.cos(a)/lngM, cen[1] + R*Math.sin(a)/latM]); }
                 ring = o; rad = R;
@@ -21014,7 +21039,11 @@
                 // is the umbrella's slug. Empty for standalone projects.
                 // Drives the "Part of [district]" chip on cards + the
                 // future phased-timeline view on the district modal.
-                parentSlug: p.ParentSlug || ''
+                parentSlug: p.ParentSlug || '',
+                // Studio's is_district toggle. A district does NOT need
+                // children: Miami Worldcenter and Hudson Yards West are single
+                // records covering many blocks.
+                isDistrict: ['1','true','yes'].indexOf(String(p.IsDistrict || '').trim().toLowerCase()) >= 0
               },
               // Attach types array directly on feature (accessible in JS, not Mapbox)
               _projectTypes: types,
