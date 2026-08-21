@@ -182,11 +182,20 @@
     { ic: 'dining', t: 'Restaurants', act: go('/restaurants/#list'), on: MATCH.restaurants },
     { ic: 'passport', t: 'Passport', act: go('/passport/'), on: MATCH.passport }
   ];
+  // Pulse bell — the header bell moved here (journal-dock hides its copy under
+  // the dock but keeps it alive as the count source, and exposes the toggle).
+  function openPulse(ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();   // the pop's outside-click closer must not see this click
+    closeNow();
+    if (window.tmwPulseToggle && window.tmwPulseToggle(true)) return;
+    nav('/dashboard/');   // pop not built (yet) → the dashboard carries the feed
+  }
   var PILL = [
     { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
     { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
     { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map },
     { ic: 'search', t: 'Search', act: function () { openSearch(''); } },
+    { ic: 'watch', t: 'Pulse', act: openPulse, cls: 'bell' },
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
   ];
 
@@ -210,6 +219,9 @@
     'transition:opacity .22s ease, transform .3s cubic-bezier(.34,1.45,.5,1)}',
     'html.tmwx-open .tmwx-pill{position:absolute;right:62px;bottom:0;opacity:0;transform:translateX(-18px) scale(.92);pointer-events:none}',
     '.tmwx-pbtn{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#ECEAE5;border:none;background:transparent;cursor:pointer;transition:background .18s}',
+    '.tmwx-pbtn.bell{position:relative}',
+    '.tmwx-nbadge{position:absolute;top:3px;right:1px;min-width:16px;height:16px;border-radius:999px;background:linear-gradient(135deg,#f0d68a,#caa84f);color:#12091f;font:800 9px/16px "Inter",-apple-system,sans-serif;padding:0 4px;text-align:center;box-shadow:0 0 0 1.5px rgba(9,11,9,.9),0 0 10px rgba(230,197,116,.5);pointer-events:none}',
+    '.tmwx-nbadge[hidden]{display:none}',
     '.tmwx-pbtn.on{background:rgba(255,255,255,.16)}',
     '.tmwx-pbtn:active{background:rgba(255,255,255,.2)}',
     '.tmwx-pbtn svg{width:20px;height:20px}',
@@ -315,15 +327,36 @@
   tray.appendChild(inner);
 
   var pill = document.createElement('div'); pill.className = 'tmwx-pill';
+  var bellBtn = null;
   PILL.forEach(function (t) {
     var b = document.createElement('button');
-    b.className = 'tmwx-pbtn' + (t.on ? ' on' : '');
+    b.className = 'tmwx-pbtn' + (t.cls ? ' ' + t.cls : '') + (t.on ? ' on' : '');
     b.setAttribute('aria-label', t.t);
     b.setAttribute('data-tip', t.t);
     b.innerHTML = svg(I[t.ic]);
+    if (t.cls === 'bell') { b.innerHTML += '<span class="tmwx-nbadge" hidden></span>'; bellBtn = b; }
     b.addEventListener('click', t.act);
     pill.appendChild(b);
   });
+  // Badge count mirrors the (hidden) header bell — journal-dock repaints it on
+  // every feed change, so clearing tiles in the pop updates this live.
+  if (bellBtn) (function () {
+    var badge = bellBtn.querySelector('.tmwx-nbadge'), src = null, tries = 0;
+    function syncBadge() {
+      var c = parseInt(String((src && src.textContent) || '').replace(/[^\d]/g, ''), 10) || 0;
+      if (c > 0) { badge.textContent = c > 99 ? '99+' : String(c); badge.hidden = false; }
+      else badge.hidden = true;
+    }
+    (function find() {
+      src = document.getElementById('tmw-pulse-bell');
+      if (src) {
+        syncBadge();
+        if (window.MutationObserver) new MutationObserver(syncBadge).observe(src, { childList: true, characterData: true, subtree: true });
+        return;
+      }
+      if (++tries < 40) setTimeout(find, 700);
+    })();
+  })();
   if (SMART) {
     var sb = document.createElement('button');
     sb.className = 'tmwx-pbtn smart';

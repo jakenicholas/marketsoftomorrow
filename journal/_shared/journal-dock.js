@@ -1088,7 +1088,7 @@
       // BUMP DOCK_V whenever tmw-mobile-dock.js changes — same reason as
       // SEARCH_V: aggressive mobile caches (and any zone-level Browser Cache
       // TTL) hold the old file for hours otherwise.
-      var DOCK_V = '20260811a';
+      var DOCK_V = '20260820a';
       var d = document.createElement('script');
       d.src = '/_shared/tmw-mobile-dock.js?v=' + DOCK_V;
       d.defer = true;
@@ -2173,6 +2173,9 @@
     if (document.getElementById('tmw-pulse-css')) return;
     var st = document.createElement('style'); st.id = 'tmw-pulse-css';
     st.textContent = [
+      /* The dock (tmwx) owns the bell now — the header copy stays in the DOM as
+         the live count source but never paints. */
+      'html.tmwx-on .tmw-pulse-bell{display:none !important}',
       '.tmw-pulse-bell{position:relative;box-sizing:border-box;min-width:24px;height:24px;padding:0 9px 0 7px;border-radius:999px;background:rgba(167,139,250,.10);color:#fff;border:1px solid rgba(167,139,250,.6);cursor:pointer;display:inline-flex;align-items:center;gap:5px;justify-content:center;font:800 11px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;flex:0 0 auto;box-shadow:0 0 10px rgba(167,139,250,.4);transition:transform .12s,box-shadow .15s,width .15s,opacity .15s}',
       '.tmw-pulse-bell:hover{transform:scale(1.08);box-shadow:0 0 18px rgba(167,139,250,.8)}',
       '.tmw-pulse-bell.is-zero{padding:0 7px;opacity:.72;box-shadow:0 0 8px rgba(167,139,250,.35)}',
@@ -2269,7 +2272,11 @@
       '.tmw-pulse-foot{flex:0 0 auto;border-top:1px solid rgba(255,255,255,.07)}',
       '.tmw-pulse-foot a{display:block;text-align:center;padding:12px;font:700 10.5px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#C4B5FD;text-decoration:none;transition:background .12s}',
       '.tmw-pulse-foot a:hover{background:rgba(167,139,250,.09)}',
-      '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
+      '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}',
+      /* Opened from the anchored dock bell: rise from the dock line instead of
+         dropping from the header. Placed last so it wins the mobile override. */
+      '.tmw-pulse-pop.from-dock{position:fixed!important;top:auto!important;bottom:84px!important;left:50%!important;right:auto!important;transform:translateX(-50%);width:372px!important;max-width:92vw!important;max-height:64vh!important;z-index:9005}',
+      '@media(max-width:980px){.tmw-pulse-pop.from-dock{left:12px!important;right:12px!important;transform:none!important;width:auto!important;max-width:none!important}}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -2302,9 +2309,24 @@
     repaint();
     circleEl.addEventListener('click', function(ev){
       ev.stopPropagation();
+      popEl.classList.remove('from-dock');
+      if (popEl.parentElement !== box) box.appendChild(popEl);
       popEl.hidden = !popEl.hidden;                 // opening does NOT clear the count — only the × on each tile does
 
     });
+    // The anchored dock's bell drives the same pop through this. from-dock pins
+    // the pop above the dock line instead of under the header.
+    window.tmwPulseToggle = function (fromDock) {
+      if (!popEl) return false;
+      popEl.classList.toggle('from-dock', !!fromDock);
+      // position:fixed resolves against the header's transformed box while the
+      // pop lives inside .tmw-auth — reparent to <body> for the dock, back to
+      // the header box for the bell, so both anchors are viewport-true.
+      var home = fromDock ? document.body : box;
+      if (popEl.parentElement !== home) home.appendChild(popEl);
+      popEl.hidden = !popEl.hidden;
+      return true;
+    };
     feedEl.addEventListener('click', function(ev){
       var t = ev.target;
       // recommendation: accept (+ Follow / + Watch)

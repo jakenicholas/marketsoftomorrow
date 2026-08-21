@@ -82,16 +82,6 @@
       'background:linear-gradient(135deg,#B9A6FF,#6d4fd6);color:#12091f;font:800 10px/1 "Inter",-apple-system,sans-serif;letter-spacing:.02em}',
     '.tmw-dashbtn .db-lbl{font:700 10.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.13em;text-transform:uppercase;',
       'color:#D8DCD9;white-space:nowrap}',
-    /* Pulse chip: bell + number (translucent lavender, count in purple), replacing
-       the old solid-purple number chip. Zero state drops the number and dims. */
-    '.tmw-dashbtn .db-n{display:inline-flex;align-items:center;justify-content:center;gap:4px;',
-      'font:800 10px/1.5 "Inter",-apple-system,sans-serif;color:#B9A6FF;background:rgba(185,166,255,.16);',
-      'padding:2px 8px;border-radius:999px;min-width:19px;text-align:center;',
-      'cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}',
-    '.tmw-dashbtn .db-n:hover{transform:scale(1.08);background:rgba(185,166,255,.26);box-shadow:0 0 14px rgba(185,166,255,.5)}',
-    '.tmw-dashbtn .db-n svg{width:11px;height:11px;display:block;stroke:#B9A6FF;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
-    '.tmw-dashbtn .db-n.db-zero{opacity:.75;padding:2px 6px}',
-    '.tmw-dashbtn .db-n[hidden]{display:none}',
     /* Tier: gold = membership (purple stays the activity color). Pro warms the
        pill border, turns the avatar gold with a gold ring, and states PRO;
        free states FREE in a quiet outline tag that opens the Go Pro screen. */
@@ -130,29 +120,14 @@
     } catch (e) { return (CACHED && CACHED.initials) || 'ME'; }
   }
 
-  // The count is the Pulse number — the same signal that used to sit in the bell.
-  function pulseCount(bell) {
-    var t = String((bell && bell.textContent) || '').replace(/[^\d]/g, '');
-    return t ? parseInt(t, 10) : 0;
-  }
-
-  function build(auth, bell, profile) {
+  function build(auth, profile) {
     var a = document.createElement('a');
     a.className = 'tmw-dashbtn';
     a.href = '/dashboard/';
     a.setAttribute('aria-label', 'Open your dashboard');
     a.innerHTML = '<span class="db-face">' + initials() + '</span>'
       + '<span class="db-lbl">Dashboard</span>'
-      + '<span class="db-tier" hidden></span>'
-      + '<span class="db-n"></span>';
-    var n = a.querySelector('.db-n');
-    var BELL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
-    function paint(c) {
-      // Bell + number, always; at zero the number drops and the chip dims.
-      if (c > 0) { n.innerHTML = BELL_SVG + '<b>' + (c > 99 ? '99+' : String(c)) + '</b>'; n.classList.remove('db-zero'); }
-      else { n.innerHTML = BELL_SVG; n.classList.add('db-zero'); }
-      n.hidden = false;
-    }
+      + '<span class="db-tier" hidden></span>';
     // Tier read: journal-auth's durable signal ('pro' | 'in' | 'out'). The button
     // only exists signed-in, so anything that isn't 'pro' paints as FREE.
     var tierEl = a.querySelector('.db-tier');
@@ -165,24 +140,6 @@
       tierEl.hidden = false;
     }
     paintTier();
-    // ── The split pill (2026-07-30, mobile flip 2026-08-05) ──
-    // Desktop: the label/avatar navigate to /dashboard/; the COUNT is its own
-    // button that opens the Pulse dropdown (journal-dock.js still builds it —
-    // it just became unreachable when this button hid the bell). Mobile: the
-    // truncated pill made "which part did I hit" a guess, so the WHOLE pill —
-    // avatar, count, everything — navigates to /dashboard/, where the Pulse
-    // feed lives in "Your moves".
-    a.addEventListener('click', function (ev) {
-      var mobile = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
-      if (mobile) return;   // whole pill is the dashboard link
-      var pop = document.getElementById('tmw-pulse-pop');
-      if (!pop) return;   // dropdown not built (yet) → navigate as before
-      var onBadge = ev.target.closest && ev.target.closest('.db-n');
-      if (onBadge) {
-        ev.preventDefault(); ev.stopPropagation();
-        pop.hidden = !pop.hidden;
-      }
-    });
     // FREE tag → the Go Pro screen (all viewports; a free member tapping the
     // tier wants the upgrade, not the dashboard).
     a.addEventListener('click', function (ev) {
@@ -193,38 +150,20 @@
       window.location.href = '/map/?upgrade=1';
     });
     function sync() {
-      // The bell is the live source. Until it exists, hold the cached count so
-      // the badge does not appear-then-jump on every refresh.
-      var c = bell ? pulseCount(bell) : ((CACHED && CACHED.count) || 0);
-      paint(c);
-      writeCache({ signedIn: true, initials: a.querySelector('.db-face').textContent, count: c });
+      writeCache({ signedIn: true, initials: a.querySelector('.db-face').textContent });
     }
-    paint((CACHED && CACHED.count) || 0);
     sync();
-    // The bell's count arrives async and updates later; mirror it.
-    if (bell && window.MutationObserver) {
-      new MutationObserver(sync).observe(bell, { childList: true, characterData: true, subtree: true });
-    }
-    if (bell) bell.classList.add('tmw-db-hidden');
     if (profile) profile.classList.add('tmw-db-hidden');
     auth.appendChild(a);
 
-    // Both the member record and the Pulse bell arrive AFTER this button can be
-    // built, so keep resolving them for a few seconds rather than freezing the
-    // first (empty) state: initials would stay "ME" and the count blank.
-    var live = bell, tries = 0;
+    // The member record arrives AFTER this button can be built, so keep
+    // resolving initials + tier for a few seconds rather than freezing the
+    // first (cached) state. The Pulse count lives on the dock bell now.
+    var tries = 0;
     (function refresh() {
       var f = a.querySelector('.db-face');
-      if (f) { var ini = initials(); if (ini && ini !== f.textContent) f.textContent = ini; }
+      if (f) { var ini = initials(); if (ini && ini !== f.textContent) { f.textContent = ini; sync(); } }
       paintTier();
-      if (!live) {
-        live = document.querySelector('.tmw-pulse-bell');
-        if (live) {
-          live.classList.add('tmw-db-hidden');
-          bell = live; sync();
-          if (window.MutationObserver) new MutationObserver(sync).observe(live, { childList: true, characterData: true, subtree: true });
-        }
-      } else { sync(); }
       if (++tries < 40) setTimeout(refresh, 400);
     })();
     return a;
@@ -238,7 +177,7 @@
     var signedIn = profile && profile.classList.contains('signed-in');
     if (auth && signedIn && !auth.querySelector('.tmw-dashbtn')) {
       injectCss();
-      build(auth, auth.querySelector('.tmw-pulse-bell'), profile);
+      build(auth, profile);
       return;
     }
     if ((tries || 0) < 60) { setTimeout(function () { tick((tries || 0) + 1); }, 400); return; }
