@@ -220,7 +220,7 @@
     'html.tmwx-open .tmwx-pill{position:absolute;right:62px;bottom:0;opacity:0;transform:translateX(-18px) scale(.92);pointer-events:none}',
     '.tmwx-pbtn{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#ECEAE5;border:none;background:transparent;cursor:pointer;transition:background .18s}',
     '.tmwx-pbtn.bell{position:relative}',
-    '.tmwx-nbadge{position:absolute;top:3px;right:1px;min-width:16px;height:16px;border-radius:999px;background:linear-gradient(135deg,#f0d68a,#caa84f);color:#12091f;font:800 9px/16px "Inter",-apple-system,sans-serif;padding:0 4px;text-align:center;box-shadow:0 0 0 1.5px rgba(9,11,9,.9),0 0 10px rgba(230,197,116,.5);pointer-events:none}',
+    '.tmwx-nbadge{position:absolute;top:3px;right:1px;min-width:16px;height:16px;border-radius:999px;background:linear-gradient(135deg,#f0d68a,#caa84f);color:#12091f;font:800 9px/16px "Inter",-apple-system,sans-serif;padding:0 4px;text-align:center;box-shadow:0 0 10px rgba(230,197,116,.5);pointer-events:none}',
     '.tmwx-nbadge[hidden]{display:none}',
     '.tmwx-pbtn.on{background:rgba(255,255,255,.16)}',
     '.tmwx-pbtn:active{background:rgba(255,255,255,.2)}',
