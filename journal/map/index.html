@@ -14385,13 +14385,39 @@
           let skyOn = false, skyPrev = null;
           const SKY_SRC = 'tmw-sky', SKY_SHL = 'tmw-sky-shell-src', SKY_LBL = 'tmw-sky-names-src';
           const SKY_CITY = 'tmw-sky-city-src', SKY_CITY_FULL = 'tmw-sky-city-full-src';
+          const SKY_DIST = 'tmw-sky-district-src';
           // NEON VIOLET: the skyline glows as one monochrome purple signature.
           // Movers (What's Moving) read brighter; selection isn't needed — the
           // click opens the modal. Derived shells + roof labels rebuilt by skyFC.
           let _skyShell = { type:'FeatureCollection', features:[] }, _skyLabels = { type:'FeatureCollection', features:[] }, _skyClip = null;
+          let _skyDist = { type:'FeatureCollection', features:[] };
           function skyRingCentroid(r){ const n = r.length - 1; let x = 0, y = 0; for (let i = 0; i < n; i++){ x += r[i][0]; y += r[i][1]; } return [x/n, y/n]; }
           function skyScaleRing(r, f){ const c = skyRingCentroid(r); return r.map(pt => [c[0] + (pt[0]-c[0])*f, c[1] + (pt[1]-c[1])*f]); }
           // 'within' silently no-ops on CW rings — normalize to CCW (shoelace).
+          // Convex hull (Andrew monotone chain) of a district's child
+          // footprints — the parcel we pour light onto. No new data needed.
+          function skyHull(pts){
+            if (pts.length < 3) return null;
+            const p = pts.slice().sort((a,b)=> a[0]-b[0] || a[1]-b[1]);
+            const cr = (o,a,b) => (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]);
+            const lo = [], up = [];
+            for (const q of p){ while (lo.length > 1 && cr(lo[lo.length-2], lo[lo.length-1], q) <= 0) lo.pop(); lo.push(q); }
+            for (let i = p.length-1; i >= 0; i--){ const q = p[i];
+              while (up.length > 1 && cr(up[up.length-2], up[up.length-1], q) <= 0) up.pop(); up.push(q); }
+            lo.pop(); up.pop();
+            const h = lo.concat(up);
+            return h.length >= 3 ? h : null;
+          }
+          // Push every vertex out from the centre so the pool clears the
+          // buildings instead of clipping their walls.
+          function skyPadRing(ring, metres){
+            const c = skyRingCentroid(ring.concat([ring[0]])), latM = 111320,
+                  lngM = 111320 * Math.cos(c[1] * Math.PI/180);
+            return ring.map(pt => {
+              const dx = (pt[0]-c[0])*lngM, dy = (pt[1]-c[1])*latM, d = Math.hypot(dx,dy) || 1;
+              return [c[0] + (dx + dx/d*metres)/lngM, c[1] + (dy + dy/d*metres)/latM];
+            });
+          }
           function skyCCW(r){ let s = 0; for (let i = 0; i < r.length - 1; i++) s += (r[i+1][0]-r[i][0]) * (r[i+1][1]+r[i][1]); return s > 0 ? r.slice().reverse() : r; }
           // ── BEACON ────────────────────────────────────────────────────
           // Every roof emits a shaft of light. It is CIRCULAR (a scaled
@@ -14526,6 +14552,7 @@
               const sh = map.getSource(SKY_SHL); if (sh) sh.setData(_skyShell);
               const ls = map.getSource(SKY_LBL); if (ls) ls.setData(_skyLabels);
               const cs = map.getSource(SKY_CITY); if (cs) cs.setData(skyCityFC());
+              const ds = map.getSource(SKY_DIST); if (ds) ds.setData(_skyDist);
               if (_skyClip && map.getLayer('tmw-sky-existing')) {
                 map.setFilter('tmw-sky-existing', ['all', ['==',['get','extrude'],'true'], ['!', ['within', _skyClip]]]);
               }
@@ -14534,6 +14561,20 @@
           function skyFC(){
             const src = window.allProjectFeatures || [];
             const feats = [];
+            // DISTRICTS. A parent with TWO OR MORE live children is a district
+            // (Nora District, East Bank, Diriyah Gate). A parent with exactly
+            // one child is a tower with a branded residence inside it — Mori JP
+            // Tower, Torch Tower — and must NOT get a parcel treatment.
+            const _py = window.projectSlugify ||
+              (t => String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+            const kidsBy = {};
+            src.forEach(f => { const pp = (f && f.properties) || {};
+              if (pp.completed) return;
+              const ps = String(pp.parentSlug || '').trim();
+              if (ps) (kidsBy[ps] = kidsBy[ps] || []).push(f);
+            });
+            const distSlugs = new Set(Object.keys(kidsBy).filter(k => kidsBy[k].length >= 2));
+            const distMeta = {};     // slug -> { uid, title, rings, top, yr }
             src.forEach((f, i) => {
               const p = (f && f.properties) || {};
               if (p.completed) return;                       // the future, not the past
@@ -14542,6 +14583,14 @@
               const c = f.geometry && f.geometry.coordinates; if (!c) return;
               const lng = +c[0], lat = +c[1];
               if (!isFinite(lng) || !isFinite(lat)) return;
+              // The district itself is a parcel, not a building. Left alone it
+              // extrudes as a stray 10m slab (they carry no floors) in the
+              // middle of its own site.
+              const _selfSlug = _py(p.title || '');
+              if (distSlugs.has(_selfSlug)) {
+                distMeta[_selfSlug] = { uid:p.uid||'', title:p.title||'', rings:[], top:0, yr:0 };
+                return;
+              }
               // EVERY pipeline pin converts to a 3D form. Towers rise by their
               // floors; civic projects without floors data get a massing height
               // by what they are — a stadium bowl, a bridge deck, a museum hall,
@@ -14620,13 +14669,26 @@
               feats.push({ type:'Feature',
                 properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: skyBodyCol(hM, mover), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
+              const _ps = String(p.parentSlug || '').trim();
+              if (_ps && distSlugs.has(_ps)) {
+                const d = distMeta[_ps] = distMeta[_ps] || { uid:'', title:'', rings:[], top:0, yr:0 };
+                d.rings.push(ring);
+                if (hM > d.top) d.top = hM;
+                const cy = yM ? +yM[0] : 0;
+                if (cy && (!d.yr || cy < d.yr)) d.yr = cy;
+                d.child = true;
+              }
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
             // per project — labels ride ABOVE the extrusions (symbol-z-elevate)
             // so every tower stays discoverable even when its glass is occluded.
+            const _kidUids = new Set();
+            Object.keys(distMeta).forEach(k => (kidsBy[k] || []).forEach(f => {
+              const u = f && f.properties && f.properties.uid; if (u) _kidUids.add(u);
+            }));
             const best = {};
             feats.forEach(ft => { const pp = ft.properties;
-              if (!pp.uid) return;
+              if (!pp.uid || _kidUids.has(pp.uid)) return;   // the district beams for them
               if (!best[pp.uid] || pp.height > best[pp.uid].height) best[pp.uid] = { uid:pp.uid, title:pp.title, height:pp.height, yr:pp.yr, ring:ft.geometry.coordinates[0] };
             });
             // Beacon: a shaft of light per project, fired from the tallest
@@ -14654,6 +14716,58 @@
               });
               push(3, r0 * 2.2, b.height - 5, b.height + 9, '#C7B0FF');
             });
+            // ── DISTRICT: a pool of light on the parcel, and ONE shaft for
+            // the whole site. Children keep their towers but lose their own
+            // beacons — five projects on one campus would otherwise fire five
+            // shafts and read as five unrelated things.
+            const distFeats = [];
+            Object.keys(distMeta).forEach(slug => {
+              const d = distMeta[slug];
+              if (!d.child || !d.rings.length) return;
+              const pts = [];
+              d.rings.forEach(r => r.slice(0, -1).forEach(pt => pts.push(pt)));
+              let ring = skyHull(pts);
+              const cen = ring ? skyRingCentroid(ring.concat([ring[0]])) : skyRingCentroid(pts.concat([pts[0]]));
+              const latM = 111320, lngM = 111320 * Math.cos(cen[1] * Math.PI/180);
+              // Costa Palmas stacks all five children on one point, so the hull
+              // degenerates — fall back to a disc, and hold a floor size so a
+              // tight campus still reads as a parcel.
+              let rad = 0;
+              if (ring) ring.forEach(pt => { rad = Math.max(rad,
+                Math.hypot((pt[0]-cen[0])*lngM, (pt[1]-cen[1])*latM)); });
+              if (!ring || rad < 55) {
+                const R = Math.max(70, rad + 45), o = [];
+                for (let i = 0; i < 28; i++){ const a = i/28 * 2*Math.PI;
+                  o.push([cen[0] + R*Math.cos(a)/lngM, cen[1] + R*Math.sin(a)/latM]); }
+                ring = o; rad = R;
+              } else {
+                ring = skyPadRing(ring, 28); rad += 28;
+              }
+              const closed = ring.concat([ring[0].slice()]);
+              [[1, 1.00], [2, 0.80], [3, 0.58]].forEach(([tier, f]) => {
+                distFeats.push({ type:'Feature',
+                  properties:{ kind:'pool', tier, uid:d.uid, yr:d.yr },
+                  geometry:{ type:'Polygon', coordinates:[ skyScaleRing(closed, f) ] } });
+              });
+              distFeats.push({ type:'Feature',
+                properties:{ kind:'edge', uid:d.uid, yr:d.yr },
+                geometry:{ type:'LineString', coordinates: closed } });
+              // one shaft, scaled to the whole parcel rather than one roof
+              const r0 = Math.max(16, Math.min(46, rad * 0.30));
+              const rise = Math.max(430, Math.round((d.top || 40) * 2.2));
+              const push = (tier, rM, base, top, col) => auraFeats.push({ type:'Feature',
+                properties:{ uid:d.uid, tier, base:Math.round(base), height:Math.round(top), col, yr:d.yr },
+                geometry:{ type:'Polygon', coordinates:[ skyCircle(cen, rM) ] } });
+              BEAM_TIERS.forEach(([tier, rx, segs, hot]) => {
+                for (let sg = 0; sg < segs; sg++){
+                  const e0 = Math.pow(sg / segs, 1.7), e1 = Math.pow((sg + 1) / segs, 1.7);
+                  push(tier, r0 * rx, sg === 0 ? 0 : rise * e0, rise * e1,
+                    skyBeamCol(hot, Math.pow((sg + 1) / segs, 0.85)));
+                }
+              });
+              push(3, r0 * 2.2, 0, 14, '#C7B0FF');
+            });
+            _skyDist = { type:'FeatureCollection', features: distFeats };
             _skyShell = { type:'FeatureCollection', features: auraFeats };
             // Demolition mask: existing basemap buildings standing fully inside
             // a pipeline parcel are assumed cleared for construction — the
@@ -14678,9 +14792,9 @@
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
-            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-city-full','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-dedge','tmw-sky-dpool1','tmw-sky-dpool2','tmw-sky-dpool3','tmw-sky-city-full','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
             _cityShown = '';
-            [SKY_SRC, SKY_SHL, SKY_LBL, SKY_CITY, SKY_CITY_FULL].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
+            [SKY_SRC, SKY_SHL, SKY_LBL, SKY_CITY, SKY_CITY_FULL, SKY_DIST].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
           function skyAdd(){
             skyRemove();
@@ -14733,6 +14847,18 @@
             // Both sit at 10.5, riding on our own harvested city (tmw-sky-city)
             // rather than the basemap's, which carries no usable geometry below
             // z15 no matter what minzoom we ask for.
+            // District parcels sit UNDER every extrusion so the buildings
+            // stand in the light rather than behind it.
+            map.addSource(SKY_DIST, { type:'geojson', data:_skyDist });
+            [[1, 0.055], [2, 0.05], [3, 0.055]].forEach(([tier, op]) => {
+              map.addLayer({ id:'tmw-sky-dpool'+tier, type:'fill', source:SKY_DIST, minzoom:11.5,
+                filter:['all', ['==',['get','kind'],'pool'], ['==',['get','tier'],tier]],
+                paint:{ 'fill-color':'#A78BFA', 'fill-opacity':op, 'fill-emissive-strength':1 } });
+            });
+            map.addLayer({ id:'tmw-sky-dedge', type:'line', source:SKY_DIST, minzoom:11.5,
+              filter:['==',['get','kind'],'edge'],
+              paint:{ 'line-color':'#C4B5FD', 'line-width':['interpolate',['linear'],['zoom'],11.5,1.2,15,2.6],
+                'line-dasharray':[2.6,2], 'line-opacity':0.85, 'line-emissive-strength':1 } });
             // Hands off to the real building layer at 15 — same source data,
             // so nothing pops.
             map.addSource(SKY_CITY, { type:'geojson', data:skyCityFC() });
@@ -14827,6 +14953,10 @@
               ['tmw-sky-future','tmw-sky-halo','tmw-sky-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
               [1,2,3].forEach(t=>{ const tf = ['==',['get','tier'],t];
                 try{ if(map.getLayer('tmw-sky-aura'+t)) map.setFilter('tmw-sky-aura'+t, flt ? ['all', tf, flt] : tf); }catch(e){} });
+              [1,2,3].forEach(t=>{ const pf = ['all', ['==',['get','kind'],'pool'], ['==',['get','tier'],t]];
+                try{ if(map.getLayer('tmw-sky-dpool'+t)) map.setFilter('tmw-sky-dpool'+t, flt ? ['all', pf, flt] : pf); }catch(e){} });
+              try{ const ef = ['==',['get','kind'],'edge'];
+                if(map.getLayer('tmw-sky-dedge')) map.setFilter('tmw-sky-dedge', flt ? ['all', ef, flt] : ef); }catch(e){}
             };
             lastYr = undefined; apply();
             if (!scrubWatch) scrubWatch = setInterval(()=>{ if (skyOn) apply(); }, 350);
