@@ -96,7 +96,7 @@
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
     map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
-    mapsearch: '<g transform="scale(0.02)" fill="currentColor" stroke="none"><path d="M207.09,525.18l.02-51.6c7.55-122.53,58.6-227.04,159.37-300.78,72.58-53.11,161.82-87.12,252.12-82.8l16.21.78c61.85,4.63,119.51,26.49,170.74,60.8,116.27,77.88,170.76,201.29,171.94,339.61.38,33.8-2.14,65.67-7.58,99.27l-59.14-42.16c3.66-40.28,3.59-78.83-2.42-118.2-13.47-85.78-50.75-158.07-119.93-211.05-47.96-36.73-104.77-61.38-165.66-64.5-91.27-4.67-177.67,32.2-245.23,92.65-53.37,47.75-87.51,111.41-100.15,181.95-27.79,155.15,41.41,320,138.62,439.74,53.73,66.19,116.5,123.44,187.53,170.74,46.88-31.05,88.99-66.28,126.67-107.23,34.96-38.58,65.48-79.09,91.97-124.15l52.9,38.09c-23.1,37.66-47.89,72.63-76.31,105.96-50.56,59.92-109.54,110.09-175.8,151.5-11.98,7.49-24.28,9.64-36.89,1.64-199.32-126.43-364-339.84-379-580.25Z"/><path d="M993.08,708.8v1.37s-54.29,81.2-54.29,81.2l-160.23-115.4c-71.82,78.62-184.55,102.25-282.42,56.74-92.55-43.04-149.82-141.19-138.32-246.63,10.67-97.9,81.84-182.57,181.16-208.14,85.68-22.06,178.14,5.59,237.87,70.53,60.37,65.62,80.18,159.17,51.01,243.54l165.22,116.8ZM789.94,513.06c0-105.49-85.51-191-190.99-191s-190.99,85.51-190.99,191,85.51,191,190.99,191,190.99-85.51,190.99-191Z"/></g>',
+    mapsearch: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',   /* the intelligence-search magnifier, inherited from the tray search bar */
     atlassearch: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><circle cx="16.8" cy="16.8" r="4"/><path d="m19.7 19.7 2.5 2.5"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/>',
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
@@ -288,7 +288,14 @@
     'animation:tmwxSmartGlow 2.6s ease-in-out infinite}',
     '.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
-    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}.tmwx-pbtn.smart{animation:none}}'
+    '.tmwx-search .si svg{width:100%;height:100%;display:block;overflow:visible}',
+    '.tmwx-hxs-spin{transform-origin:50% 50%;animation:tmwxHxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}',
+    '.tmwx-hxs-core{transform-origin:50% 50%;animation:tmwxHxsPulse 4.2s ease-in-out infinite}',
+    '.tmwx-hxs-ring{transform-origin:50% 50%;animation:tmwxHxsRing 4.2s ease-out infinite}',
+    '@keyframes tmwxHxsSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}',
+    '@keyframes tmwxHxsPulse{0%,45%{stroke:#A78BFA}70%{stroke:#E9DEFF}100%{stroke:#A78BFA}}',
+    '@keyframes tmwxHxsRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}',
+    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}.tmwx-pbtn.smart{animation:none}.tmwx-hxs-spin,.tmwx-hxs-core,.tmwx-hxs-ring{animation:none}.tmwx-hxs-ring{opacity:0}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -308,7 +315,15 @@
   var inner = document.createElement('div'); inner.className = 'tmwx-in';
 
   var sw = document.createElement('div'); sw.className = 'tmwx-search';
-  sw.innerHTML = '<span class="si">' + svg(I.search) + '</span>' +
+  /* The signature TMW Intelligence spinning hexagon (same choreography as the
+     overlay's .tmw-ov-hxs-* lockup) is the search bar's mark - the dock's one
+     animated logo. */
+  var HEX_SI =
+    '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+      '<g class="tmwx-hxs-spin"><polygon class="tmwx-hxs-core" points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="#A78BFA" stroke-width="8" stroke-linejoin="round"/></g>' +
+      '<circle class="tmwx-hxs-ring" cx="50" cy="50" r="28" fill="none" stroke="#A78BFA" stroke-width="2" opacity="0"/>' +
+    '</svg>';
+  sw.innerHTML = '<span class="si">' + HEX_SI + '</span>' +
     '<input type="search" autocomplete="off" placeholder="Search projects, firms, places…" aria-label="Search projects, firms, places, brands, and more">';
   var sInput = sw.querySelector('input');
   sInput.addEventListener('focus', function () { sInput.blur(); openSearch(''); });
