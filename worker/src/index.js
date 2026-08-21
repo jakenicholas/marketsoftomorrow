@@ -10557,8 +10557,88 @@ const ANALYST_TOOLS = [
   { name: 'get_placements', description: 'First-party placement/ad tracking: impressions and interactions by surface and placement (site, newsletter, media kit).', input_schema: { type: 'object', properties: {} } },
   { name: 'get_funnel_stats', description: 'Conversion funnel counts (gate hits, signups, upgrades) from first-party events.', input_schema: { type: 'object', properties: {} } },
   { name: 'get_journal_active', description: 'People on the site right now (5-minute heartbeat sessions).', input_schema: { type: 'object', properties: {} } },
+  { name: 'find_member', description: 'Find a member by (partial) name or email. Returns candidates with member_id, name, email, event count, first/last seen. Use this FIRST for any question about a specific person, then member_activity with the member_id.', input_schema: { type: 'object', properties: { query: { type: 'string', description: 'Name or email fragment, case-insensitive.' } }, required: ['query'] } },
+  { name: 'member_activity', description: "A member's full visit history, grouped into sessions (30-min gap = new session): per session the start time, duration, minutes spent per surface (Map, Atlas, Articles, Journal, Lists, Onyx…), pages viewed, and notable actions (comments, favorites, intel searches). Answers 'what has this person been doing on the site'.", input_schema: { type: 'object', properties: { member_id: { type: 'string', description: 'The member_id from find_member.' }, email: { type: 'string', description: 'Alternative: resolve by exact email.' } } } },
   { name: 'ga4_run_report', description: "Run a GA4 Data API runReport for traffic questions (pageviews, sources, referrers, geography, per-page traffic). Pass a standard GA4 report body: dateRanges, dimensions, metrics, dimensionFilter, orderBys, limit. Property covers www.oftmw.com (site), map.oftmw.com (legacy map). Common dims: pagePath, sessionSource, country, date. Common metrics: screenPageViews, activeUsers, sessions.", input_schema: { type: 'object', properties: { report: { type: 'object', description: 'The GA4 runReport request body.' } }, required: ['report'] } },
 ];
+
+// ── Analyst member tools: who is this person, and what have they done here ──
+async function analystFindMember(env, query) {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return { error: 'query required' };
+  if (!env.DB) return { candidates: [] };
+  const like = '%' + q.replace(/[%_]/g, '') + '%';
+  const rs = await env.DB.prepare(
+    `SELECT member_id, MAX(member_name) AS name, MAX(email) AS email, COUNT(*) AS events,
+            MIN(ts) AS first_ts, MAX(ts) AS last_ts
+       FROM events
+      WHERE member_id IS NOT NULL AND member_id != ''
+        AND (LOWER(COALESCE(member_name,'')) LIKE ? OR LOWER(COALESCE(email,'')) LIKE ?)
+      GROUP BY member_id ORDER BY last_ts DESC LIMIT 12`
+  ).bind(like, like).all();
+  const iso = (t) => t ? new Date(t * 1000).toISOString() : null;
+  return { candidates: (rs.results || []).map(r => ({
+    member_id: r.member_id, name: r.name || null, email: r.email || null,
+    events: r.events, first_seen: iso(r.first_ts), last_seen: iso(r.last_ts) })) };
+}
+// Surface bucket for a path — coarse enough to narrate ("5 minutes on the Map").
+function tvSurfaceOf(path) {
+  const p = String(path || '');
+  if (p.startsWith('/map')) return 'Map';
+  if (p.startsWith('/atlas') || p.startsWith('/dashboard')) return 'Atlas';
+  if (p.startsWith('/post')) return 'Articles';
+  if (p.startsWith('/intelligence') || p.startsWith('/onyx')) return 'Onyx';
+  if (p.startsWith('/golf') || p.startsWith('/hotels') || p.startsWith('/restaurants') || p.startsWith('/lists')) return 'Lists';
+  if (p.startsWith('/travel')) return 'Travel';
+  if (p.startsWith('/pro')) return 'Pro page';
+  if (p.startsWith('/account')) return 'Account';
+  return 'Journal';
+}
+async function analystMemberActivity(env, memberId, email) {
+  if (!env.DB) return { error: 'no db' };
+  let id = String(memberId || '').trim();
+  if (!id && email) {
+    const r = await env.DB.prepare(`SELECT member_id FROM events WHERE LOWER(email) = ? AND member_id IS NOT NULL LIMIT 1`)
+      .bind(String(email).trim().toLowerCase()).first();
+    id = (r && r.member_id) || '';
+  }
+  if (!id) return { error: 'member not found — pass member_id from find_member, or an exact email' };
+  const rs = await env.DB.prepare(
+    `SELECT ts, event_name, path, member_name, email FROM events WHERE member_id = ? ORDER BY ts ASC LIMIT 5000`
+  ).bind(id).all();
+  const rows = rs.results || [];
+  if (!rows.length) return { member: { member_id: id }, sessions: [] };
+  let name = null, em = null;
+  for (const r of rows) { if (r.member_name && !name) name = r.member_name; if (r.email && !em) em = r.email; }
+  // Sessions: a 30-minute silence starts a new one. Dwell per surface = the gap
+  // to the next event attributed to the current page, capped at 10 minutes.
+  const GAP = 1800, CAP = 600, sessions = [];
+  let cur = null;
+  const flush = () => { if (cur) { sessions.push(cur); cur = null; } };
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i], next = rows[i + 1];
+    if (!cur || r.ts - cur.end > GAP) { flush(); cur = { start: r.ts, end: r.ts, events: 0, dwell: {}, pages: {}, actions: {} }; }
+    cur.end = r.ts; cur.events++;
+    const surf = tvSurfaceOf(r.path);
+    const dt = next ? Math.min(Math.max(next.ts - r.ts, 5), CAP) : 60;
+    cur.dwell[surf] = (cur.dwell[surf] || 0) + dt;
+    if (r.path) cur.pages[r.path] = (cur.pages[r.path] || 0) + 1;
+    const ev = String(r.event_name || '');
+    if (!/^(page_view|heartbeat|session)/.test(ev)) cur.actions[ev] = (cur.actions[ev] || 0) + 1;
+  }
+  flush();
+  const iso = (t) => new Date(t * 1000).toISOString();
+  const mins = (s) => Math.max(1, Math.round(s / 60));
+  const out = sessions.map(s => ({
+    start: iso(s.start),
+    duration_min: mins(Math.max(s.end - s.start, 60)),
+    events: s.events,
+    minutes_by_surface: Object.fromEntries(Object.entries(s.dwell).map(([k, v]) => [k, mins(v)]).sort((a, b) => b[1] - a[1])),
+    top_pages: Object.entries(s.pages).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([p, n]) => p + ' ×' + n),
+    actions: s.actions,
+  })).reverse();   // newest session first
+  return { member: { member_id: id, name, email: em, first_seen: iso(rows[0].ts), last_seen: iso(rows[rows.length - 1].ts), total_events: rows.length, total_sessions: out.length }, sessions: out.slice(0, 40) };
+}
 
 // Dispatch one tool call through the same handlers the dashboard hits. Internal
 // requests carry the real ADMIN_TOKEN so gated handlers pass their own auth.
@@ -10593,6 +10673,8 @@ async function analystTool(env, origin, name, args) {
     case 'get_placements':    return grab(await handlePlacementStats(iReq('/placements'), env, origin));
     case 'get_funnel_stats':  return grab(await handleFunnelStats(env, origin, iURL('/funnel-stats')));
     case 'get_journal_active': return grab(await handleJournalActive(env, origin));
+    case 'find_member':       return await analystFindMember(env, String(a.query || ''));
+    case 'member_activity':   return await analystMemberActivity(env, String(a.member_id || ''), String(a.email || ''));
     case 'ga4_run_report':    return grab(await handleGAProxy(iReq('/', { endpoint: ':runReport', body: a.report || {} }), env, origin));
     default: return { error: 'unknown tool: ' + name };
   }
