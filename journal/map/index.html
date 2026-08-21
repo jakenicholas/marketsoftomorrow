@@ -5392,7 +5392,7 @@
   .popup-content .popup-intel {
     margin-top: 6px;
     margin-bottom: 8px;
-    padding: 8px 10px 9px;
+    padding: 8px 10px 6px;
     background: rgba(167,139,250,0.14);
     border: 1px solid rgba(167,139,250,0.35);
     border-radius: 9px;
@@ -5414,7 +5414,7 @@
   .pa-go:hover { color: #C4B5FD; }
   /* popup variant: sits inside the purple TMW Intelligence block, replacing
      the "TMW estimates…" caption — same inset-box footprint */
-  .popup-intel .pa-box { background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); box-shadow: none; margin-top: 7px; padding: 2px 10px; }
+  .popup-intel .pa-box { background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); box-shadow: none; margin-top: 7px; margin-bottom: 0; padding: 2px 10px; }
   .popup-intel .pa-row { font-size: 11px; padding: 6px 0; }
   .popup-content .popup-intel-eyebrow {
     display: flex;
@@ -5473,7 +5473,7 @@
     .popup-content .popup-intel {
       margin-top: 5px;
       margin-bottom: 6px;
-      padding: 7px 9px 8px;
+      padding: 7px 9px 5px;
     }
     .popup-content .popup-intel-eyebrow { margin-bottom: 5px; }
     .popup-content .popup-intel-value { font-size: 15px; line-height: 1.1; margin-bottom: 6px; }
@@ -14634,30 +14634,36 @@
             // filter hides it so old and new never stack).
             try {
               if (map.getSource('composite')) {
-                map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:13,
+                map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:12.2,
                   paint:{ 'line-color':'#6B4BD6','line-opacity':0.24,'line-emissive-strength':1,
                     'line-width':['interpolate',['exponential',1.5],['zoom'],13,0.5,16,1.7] } });
                 const exFilter = _skyClip
                   ? ['all', ['==',['get','extrude'],'true'], ['!', ['within', _skyClip]]]
                   : ['==',['get','extrude'],'true'];
                 map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
-                  minzoom:13, filter:exFilter,
-                  paint:{ 'fill-extrusion-color':'#171830','fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true,'fill-extrusion-emissive-strength':0.12 } });
+                  minzoom:12.2, filter:exFilter,
+                  paint:{ 'fill-extrusion-color':['interpolate',['linear'],['zoom'],12.2,'#252848',14.6,'#171830'],
+                    'fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true,
+                    'fill-extrusion-emissive-strength':['interpolate',['linear'],['zoom'],12.2,0.38,14.6,0.12] } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
             // fades in exactly where the 3D city does instead of far-view spikes.
+            // Both sit at 12.2: the streets-v8 tiles carry buildings that far
+            // out (the BASE STYLE stops drawing them at 15, the data does not
+            // stop), so 3D mode holds through the pull-back with a real city
+            // under it rather than our towers alone on a flat map.
             map.addSource(SKY_SRC, { type:'geojson', data:skyFC() });
             map.addSource(SKY_SHL, { type:'geojson', data:_skyShell });
             map.addSource(SKY_LBL, { type:'geojson', data:_skyLabels });
-            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:13,
+            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:12.2,
               paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
             [[1, 0.13], [2, 0.055], [3, 0.022]].forEach(([tier, op]) => {
-              map.addLayer({ id:'tmw-sky-aura'+tier, type:'fill-extrusion', source:SKY_SHL, minzoom:13,
+              map.addLayer({ id:'tmw-sky-aura'+tier, type:'fill-extrusion', source:SKY_SHL, minzoom:12.2,
                 filter:['==',['get','tier'],tier],
                 paint:{ 'fill-extrusion-color':['get','col'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':op,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':false } });
             });
-            map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:13,
+            map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:12.2,
               paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.55,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
@@ -14686,7 +14692,7 @@
           let pinsShown = null, skyPitchWant = null;
           function skyZoomSync(force){
             if (!skyOn) return;
-            const three = map.getZoom() >= 12.9;
+            const three = map.getZoom() >= 12.15;
             document.body.classList.toggle('tmw-sky-on', three);   // mover pulses return with the pins
             const showPins = !three;
             if (!force && showPins === pinsShown) return;
@@ -17013,7 +17019,7 @@
                       const cur2 = document.getElementById('pmAtlasChips');
                       const p2 = cur2 && cur2.querySelector('.pa-proj .pa-val');
                       if (!p2) return;
-                      p2.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
+                      p2.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf';
                       p2.classList.add('pa-on');   // lift the blur (was never applied → Pro saw the value blurred)
                     }).catch(() => {});
                 });
@@ -17912,7 +17918,7 @@
                       const p2 = el2 && el2.querySelector('.popup-atlas .pa-proj');
                       if (!p2) return;
                       const v = p2.querySelector('.pa-val');
-                      v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
+                      v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf';
                       v.classList.add('pa-on');   // lift the blur (was never applied → Pro saw the value blurred)
                       const lk = p2.querySelector('.pa-lock'); if (lk) lk.remove();
                     }).catch(() => {});
