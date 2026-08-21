@@ -265,7 +265,7 @@ const TOOLS = [
   },
   {
     name: 'generate_article_draft',
-    description: 'WRITE a full journal article DRAFT with Fable 5, grounded in the SHARED TMW brain — the house voice (brand brain), the intelligence engine\'s learned editorial rules, banked evergreen knowledge, and the real projects/articles closest to the topic. Use this to author a new on-brand article from a topic/brief without hand-writing the body: it generates the title, body (Markdown), and excerpt in TMW\'s voice, pulls photos from a media folder if given, links a Map project if given, and saves a DRAFT (source=ai, in the studio AI tab). Never publishes. Returns the slug + Studio edit URL. Follow with revise_article_draft to refine, or create_design_draft / write_article_and_post to build the carousel.',
+    description: 'WRITE a full journal article DRAFT (fast triage model; the premium voice pass happens at promote time via revise_article_draft finalize:true or the Polish chat), grounded in the SHARED TMW brain — the house voice (brand brain), the intelligence engine\'s learned editorial rules, banked evergreen knowledge, and the real projects/articles closest to the topic. Use this to author a new on-brand article from a topic/brief without hand-writing the body: it generates the title, body (Markdown), and excerpt in TMW\'s voice, pulls photos from a media folder if given, links a Map project if given, and saves a DRAFT (source=ai, in the studio AI tab). Never publishes. Returns the slug + Studio edit URL. Follow with revise_article_draft to refine, or create_design_draft / write_article_and_post to build the carousel.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -291,6 +291,7 @@ const TOOLS = [
         slug:        { type: 'string', description: 'Slug of the draft to revise.' },
         instruction: { type: 'string', description: 'Plain-English editing instruction for how to rewrite the article.' },
         place:       { type: 'string', description: 'Optional city/region to sharpen shared-brain grounding.' },
+        finalize:    { type: 'boolean', description: 'True = this is the PROMOTE-TIME pass on a piece about to publish: the premium voice model (Fable) rewrites it. Default false = triage revision on the fast model. ALWAYS pass true for the final pass on a draft that is about to be published.' },
       },
       required: ['slug', 'instruction'],
     },
@@ -2926,20 +2927,20 @@ const IMPL = {
     // with a generic "no usable article". You only pay for tokens produced.
     const GEN_TOKENS = 9000;
     const rawDraws = await Promise.all(TAKE_HINTS.map((h) =>
-      fableGenerate(env, { system: sys, user: usr + h, maxTokens: GEN_TOKENS }).catch(() => '')
+      fableGenerate(env, { system: sys, user: usr + h, maxTokens: GEN_TOKENS, tier: 'draft' }).catch(() => '')
     ));
     let draws = rawDraws.map(parseGen).filter(Boolean);
     const spoke = rawDraws.filter((r) => r && r.trim()).length;   // did the API answer at all?
     // The simultaneous burst can rate-limit siblings (observed: 1 of 3 landing).
     // One sequential top-up after the burst clears keeps the pick meaningful.
     if (draws.length === 1) {
-      const extra = parseGen(await fableGenerate(env, { system: sys, user: usr + TAKE_HINTS[1], maxTokens: GEN_TOKENS }).catch(() => ''));
+      const extra = parseGen(await fableGenerate(env, { system: sys, user: usr + TAKE_HINTS[1], maxTokens: GEN_TOKENS, tier: 'draft' }).catch(() => ''));
       if (extra) draws.push(extra);
     }
     // Nothing landed. Before giving up, try ONCE sequentially: the usual cause is
     // transient overload on the parallel burst, which a lone retry clears.
     if (!draws.length) {
-      const solo = parseGen(await fableGenerate(env, { system: sys, user: usr, maxTokens: GEN_TOKENS }).catch(() => ''));
+      const solo = parseGen(await fableGenerate(env, { system: sys, user: usr, maxTokens: GEN_TOKENS, tier: 'draft' }).catch(() => ''));
       if (solo) draws = [solo];
     }
     if (!draws.length) {
@@ -2965,7 +2966,7 @@ const IMPL = {
           + (fp0 ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp0) : '')
           + (gold ? '\n\nREAL PUBLISHED REFERENCE:\n' + gold.body.slice(0, 1800) : '');
         const pickUsr = draws.map((g, i) => `CANDIDATE ${i}: ${g.title}\n${String(g.body_markdown).slice(0, 2400)}`).join('\n\n════════\n\n');
-        const v = parseLLMJson(await fableGenerate(env, { system: pickSys, user: pickUsr, maxTokens: 250 }));
+        const v = parseLLMJson(await fableGenerate(env, { system: pickSys, user: pickUsr, maxTokens: 250, tier: 'draft' }));
         if (v && typeof v.pick === 'number' && draws[v.pick]) { gen = draws[v.pick]; bestOf = { candidates: draws.length, picked: v.pick, why: String(v.why || '').slice(0, 200) }; }
       } catch (_) { /* keep draws[0] */ }
     }
@@ -2998,7 +2999,7 @@ const IMPL = {
         const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Our QA flagged the draft below (style violations, measured-spec misses, and/or a forensic judge identified it as AI-written). Rewrite so a reader could not tell it from our published work — fix EVERY listed problem, change nothing else. Preserve every fact, number, name, date, and price exactly. Avoid em dashes. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.'
           + (fp ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp) : '');
         const fixUsr = 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
-        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: GEN_TOKENS });
+        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: GEN_TOKENS, tier: 'draft' });
         let fixed = null;
         const fm = fixedRaw && fixedRaw.match(/\{[\s\S]*\}/);
         if (fm) { try { fixed = JSON.parse(fm[0]); } catch (_) {} }
@@ -3020,7 +3021,7 @@ const IMPL = {
           if (still2.length) {
             const fixUsr3 = 'STILL BROKEN AFTER ONE REVISION, fix exactly these and nothing else:\n- ' + still2.join('\n- ')
               + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
-            const raw3 = await fableGenerate(env, { system: fixSys, user: fixUsr3, maxTokens: GEN_TOKENS }).catch(() => '');
+            const raw3 = await fableGenerate(env, { system: fixSys, user: fixUsr3, maxTokens: GEN_TOKENS, tier: 'draft' }).catch(() => '');
             let fixed3 = null;
             const m3 = raw3 && raw3.match(/\{[\s\S]*\}/);
             if (m3) { try { fixed3 = JSON.parse(m3[0]); } catch (_) {} }
@@ -3089,7 +3090,7 @@ const IMPL = {
         const fixUsr2 = (bad.length ? 'ERRORS (with the verified correction):\n- ' + bad.map((v) => `"${v.claim}" is WRONG → ${v.note}${v.source ? ' (source: ' + v.source + ')' : ''}`).join('\n- ') + '\n\n' : '')
           + (unsup.length ? 'UNVERIFIABLE (searched, could not confirm — remove from the draft):\n- ' + unsup.map((v) => `"${v.claim}"${v.note ? ' (' + v.note + ')' : ''}`).join('\n- ') + '\n\n' : '')
           + 'DRAFT JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
-        const fRaw = await fableGenerate(env, { system: fixSys2, user: fixUsr2, maxTokens: GEN_TOKENS });
+        const fRaw = await fableGenerate(env, { system: fixSys2, user: fixUsr2, maxTokens: GEN_TOKENS, tier: 'draft' });
         const g3 = parseGen(fRaw);
         if (g3) { g3.claims = gen.claims; gen = g3; removedSet = new Set(unsup.map((v) => v.claim)); }
       }
@@ -3212,7 +3213,7 @@ const IMPL = {
       brain.voice ? 'THE HOUSE RULES BELOW ARE BINDING and outrank every other instruction here. Before you output, check the opening line, the structure, and the ending against them one by one:\n' + brain.voice : '',
     ].filter(Boolean).join('\n\n');
     const usr = 'INSTRUCTION: ' + instruction + '\n\nCURRENT ARTICLE:\n' + current;
-    const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500 });
+    const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500, tier: args.finalize ? 'publish' : 'draft' });
     if (!revised || !revised.trim()) throw new Error('revision failed — the editor model returned nothing. Try again or edit manually.');
     let revBody = revised.trim();
     // ── THE VOICE GATE (same as generate): fingerprint + Turing judge → one fix.
@@ -3223,7 +3224,7 @@ const IMPL = {
         text: revBody, topic: String(row.title || ''), place: String(args.place || ''), excludeSlugs: usedSlugs, slug,
         rewrite: async (problems, spec) => {
           const rSys = 'You are the senior staff editor for Markets of Tomorrow. Our voice QA flagged the revised article below. Rewrite it so a reader could not tell it from our published work — fix EVERY listed problem. Preserve every fact, number, name, date, and price exactly. Keep the earlier instruction applied: "' + instruction.slice(0, 200) + '". Avoid em dashes. Return ONLY the complete article as Markdown, no commentary.' + (spec ? '\n\nMEASURED HOUSE SPEC:\n' + spec : '');
-          const raw2 = await fableGenerate(env, { system: rSys, user: 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE:\n' + revBody, maxTokens: 3600 });
+          const raw2 = await fableGenerate(env, { system: rSys, user: 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE:\n' + revBody, maxTokens: 3600, tier: args.finalize ? 'publish' : 'draft' });
           return raw2 && raw2.trim() ? raw2.trim() : null;
         },
       });

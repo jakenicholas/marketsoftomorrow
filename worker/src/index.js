@@ -16437,6 +16437,10 @@ const DEEP_PACKS = {
 // does NOT — so authoring never hard-fails, worst case it runs on Opus).
 const WRITE_MODEL = 'claude-fable-5';
 const WRITE_FALLBACK_MODEL = 'claude-opus-4-8';
+// Triage tier: candidate drafts exist so Jake can pick a story — most die
+// unread, so they run on Sonnet at ~1/3 the rate. Everything that SHIPS
+// (promote-time revise, Polish, carousels) stays on Fable.
+const DRAFT_MODEL = 'claude-sonnet-4-6';
 
 // One-shot generation with the strong author + graceful fallback. Reads the TEXT
 // block (Fable thinking is always on, so content[0] may be a thinking block).
@@ -16448,10 +16452,11 @@ const WRITE_FALLBACK_MODEL = 'claude-opus-4-8';
 let _fableLast = null;
 export function fableLastError() { return _fableLast; }
 const _napMs = (ms) => new Promise((r) => setTimeout(r, ms));
-export async function fableGenerate(env, { system, user, maxTokens = 2500, retries = 2 } = {}) {
+export async function fableGenerate(env, { system, user, maxTokens = 2500, retries = 2, tier = 'publish' } = {}) {
   if (!env || !env.ANTHROPIC_API_KEY || !user) { _fableLast = 'no API key, or an empty prompt'; return ''; }
   _fableLast = null;
-  for (const model of [WRITE_MODEL, WRITE_FALLBACK_MODEL]) {
+  const lineup = tier === 'draft' ? [DRAFT_MODEL, WRITE_FALLBACK_MODEL] : [WRITE_MODEL, WRITE_FALLBACK_MODEL];
+  for (const model of lineup) {
    for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
