@@ -292,21 +292,13 @@
     /* The intelligence mark reads a touch larger than the other glyphs. */
     '.tmwx-pbtn svg.txs-mark{width:24px;height:24px}',
     '.tmwx-search .si:has(.txs-mark){width:24px;height:24px}',
-    /* Search icon <-> hexagon morph: keyframes cloned 1:1 from the old bar's
-       ds-* choreography (journal-dock.js), renamed txs-*. */
-    '.txs-hex-spinner{transform-origin:50% 50%;animation:txsHardSpin 8s ease-in-out infinite}',
-    '.txs-hex-core{animation:txsHexFade 8s linear infinite}',
-    '.txs-search-icon{stroke:#9AA39C;animation:txsIconColor 8s linear infinite}',
-    '.txs-search-circle{animation:txsCircleShow 8s linear infinite}',
-    '.txs-search-wand{stroke-dasharray:6;stroke-dashoffset:0;animation:txsWandShow 8s linear infinite}',
-    '@keyframes txsHardSpin{0%{transform:rotate(1440deg)}25%{transform:rotate(1440deg)}42.5%{transform:rotate(720deg)}87.5%{transform:rotate(720deg)}100%{transform:rotate(1440deg)}}',
-    '@keyframes txsHexFade{0%,33%{opacity:0}40%{opacity:1}87.5%{opacity:1}94%{opacity:0}100%{opacity:0}}',
-    '@keyframes txsIconColor{0%,18%{stroke:#9AA39C}24%{stroke:#A78BFA}96%{stroke:#A78BFA}100%{stroke:#9AA39C}}',
-    '@keyframes txsCircleShow{0%,33%{opacity:1}40%{opacity:0}87.5%{opacity:0}94%{opacity:1}100%{opacity:1}}',
-    '@keyframes txsWandShow{0%{opacity:1;stroke-dashoffset:0}25%{opacity:1;stroke-dashoffset:0}30%{opacity:1;stroke-dashoffset:6}31%{opacity:0;stroke-dashoffset:6}93%{opacity:0;stroke-dashoffset:6}94%{opacity:1;stroke-dashoffset:6}99%{opacity:1;stroke-dashoffset:0}100%{opacity:1;stroke-dashoffset:0}}',
-    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}.tmwx-pbtn.smart{animation:none}',
-    '.txs-hex-spinner,.txs-hex-core,.txs-search-icon,.txs-search-circle,.txs-search-wand{animation:none}',
-    '.txs-hex-core{opacity:0}.txs-search-circle,.txs-search-wand{opacity:1}.txs-hex-spinner{transform:rotate(0)}}'
+    /* The intelligence mark rests in Onyx purple so the AI bar reads as a
+       different tool from the map/Atlas magnifiers (static; the spinning
+       hexagon morph was reverted 2026-08-21). */
+    '.tmwx-pbtn:has(.txs-mark){color:#C4B5FD}',
+    '.tmwx-pbtn:has(.txs-mark):hover{background:rgba(167,139,250,.14)}',
+    '.tmwx-search .si:has(.txs-mark){color:#C4B5FD}',
+    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}.tmwx-pbtn.smart{animation:none}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -326,20 +318,12 @@
   var inner = document.createElement('div'); inner.className = 'tmwx-in';
 
   var sw = document.createElement('div'); sw.className = 'tmwx-search';
-  /* The signature TMW Intelligence mark: the TRUE old-search-bar animation.
-     Every 8s the search icon hard-spins into the purple hexagon and back
-     (same markup + choreography as journal-dock.js's ICON_SEARCH, cloned as
-     txs-* so the dock doesn't depend on the old pill's scoped CSS). The
-     dock's one animated logo. */
+  /* The TMW Intelligence mark: the Onyx sparkle (Option A from the icon
+     mockups), static, resting purple. It replaces the spinning-hexagon morph;
+     the map and Atlas searches keep their magnifiers. */
   var HEX_SI =
-    '<svg class="txs-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true" overflow="visible">' +
-      '<g class="txs-hex-spinner">' +
-        '<polygon class="txs-hex-core" points="12,4 18.93,8 18.93,16 12,20 5.07,16 5.07,8" fill="none" stroke="#A78BFA" stroke-width="1.7" stroke-linejoin="round"/>' +
-      '</g>' +
-      '<g class="txs-search-icon" stroke-linecap="round" stroke-linejoin="round">' +
-        '<circle class="txs-search-circle" cx="11" cy="11" r="6.5" fill="none" stroke-width="1.7"/>' +
-        '<line class="txs-search-wand" x1="16" y1="16" x2="20" y2="20" stroke-width="1.7"/>' +
-      '</g>' +
+    '<svg class="txs-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+      '<path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/>' +
     '</svg>';
   sw.innerHTML = '<span class="si">' + HEX_SI + '</span>' +
     '<input type="search" autocomplete="off" placeholder="Search projects, firms, places…" aria-label="Search projects, firms, places, brands, and more">';
@@ -366,8 +350,8 @@
     b.className = 'tmwx-pbtn' + (t.cls ? ' ' + t.cls : '') + (t.on ? ' on' : '');
     b.setAttribute('aria-label', t.t);
     b.setAttribute('data-tip', t.t);
-    /* The Search pill wears the signature spinning hexagon, same as the
-       tray's search bar - intelligence search is the hexagon everywhere. */
+    /* The Search pill wears the Onyx sparkle, same as the tray's search
+       bar - intelligence search is the sparkle everywhere in this dock. */
     b.innerHTML = (t.ic === 'search') ? HEX_SI : svg(I[t.ic]);
     if (t.cls === 'bell') { b.innerHTML += '<span class="tmwx-nbadge" hidden></span>'; bellBtn = b; }
     b.addEventListener('click', t.act);
