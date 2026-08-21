@@ -340,6 +340,8 @@ const ALLOWED_TAGS = new Set([
   'p','h1','h2','h3','h4','h5','h6','blockquote','figure','figcaption',
   'a','img','video','iframe','source','picture',
   'ul','ol','li','strong','em','b','i','u','span','br','hr',
+  // pull-quote attribution line (<footer data-cite>) written by the editor
+  'footer','cite',
   'pre','code','small','sub','sup','table','thead','tbody','tr','td','th',
   'div','section','article',
   // gallery controls (prev/next arrows render as button>svg>path)
