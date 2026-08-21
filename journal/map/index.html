@@ -14384,6 +14384,7 @@
           if (!skyT) return;
           let skyOn = false, skyPrev = null;
           const SKY_SRC = 'tmw-sky', SKY_SHL = 'tmw-sky-shell-src', SKY_LBL = 'tmw-sky-names-src';
+          const SKY_CITY = 'tmw-sky-city-src';
           // NEON VIOLET: the skyline glows as one monochrome purple signature.
           // Movers (What's Moving) read brighter; selection isn't needed — the
           // click opens the modal. Derived shells + roof labels rebuilt by skyFC.
@@ -14444,11 +14445,36 @@
             const k = Math.max(0, Math.min(1, ((+h || 0) - 14) / 46));
             return skyMix(skyMix(base, '#3E2494', 0.55), base, k);
           }
+          // FAR-ZOOM CITY. mapbox-streets-v8 has almost no building geometry
+          // below z15 (measured per Manhattan tile: z13 -> 9 buildings,
+          // z14 -> 50, z15 -> 1376) and GL cannot underzoom to borrow the z15
+          // tiles, so pulling back used to strand our towers on an empty grid.
+          // city-skyline.json is our own harvest of every building over 60m
+          // across our markets, taken FROM THOSE SAME z15 TILES so the
+          // silhouettes line up when the real building layer takes over.
+          // Rows are [lng, lat, w, l, bearing, height] — an oriented box, which
+          // at these zooms is indistinguishable from the true footprint.
+          function skyCityFC(){
+            const rows = window._skyCity || [];
+            return { type:'FeatureCollection', features: rows.map(r => {
+              const [lng, lat, w, l, brg, h] = r;
+              const [mlat, mlng] = [111320, 111320 * Math.cos(lat * Math.PI/180)];
+              const rot = brg * Math.PI/180, ux = Math.sin(rot), uy = Math.cos(rot);
+              const ring = [[-1,-1],[1,-1],[1,1],[-1,1]].map(([su,sv]) => {
+                const ex = su*(l/2)*ux + sv*(w/2)*(-uy), ey = su*(l/2)*uy + sv*(w/2)*ux;
+                return [lng + ex/mlng, lat + ey/mlat];
+              });
+              ring.push(ring[0].slice());
+              return { type:'Feature', properties:{ h },
+                geometry:{ type:'Polygon', coordinates:[ring] } };
+            }) };
+          }
           function skySetData(){
             try {
               const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC());
               const sh = map.getSource(SKY_SHL); if (sh) sh.setData(_skyShell);
               const ls = map.getSource(SKY_LBL); if (ls) ls.setData(_skyLabels);
+              const cs = map.getSource(SKY_CITY); if (cs) cs.setData(skyCityFC());
               if (_skyClip && map.getLayer('tmw-sky-existing')) {
                 map.setFilter('tmw-sky-existing', ['all', ['==',['get','extrude'],'true'], ['!', ['within', _skyClip]]]);
               }
@@ -14601,8 +14627,8 @@
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
-            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
-            [SKY_SRC, SKY_SHL, SKY_LBL].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
+            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            [SKY_SRC, SKY_SHL, SKY_LBL, SKY_CITY].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
           function skyAdd(){
             skyRemove();
@@ -14613,12 +14639,14 @@
               Promise.all([
                 fetch('/map/skyline-footprints.json').then(r => r.ok ? r.json() : null).catch(()=>null),
                 fetch('/map/skyline-massings.json').then(r => r.ok ? r.json() : null).catch(()=>null),
-                fetch('https://tmw.jake-ab7.workers.dev/massings-overrides').then(r => r.ok ? r.json() : null).catch(()=>null)
-              ]).then(([fj, mj, oj]) => {
+                fetch('https://tmw.jake-ab7.workers.dev/massings-overrides').then(r => r.ok ? r.json() : null).catch(()=>null),
+                fetch('/map/city-skyline.json').then(r => r.ok ? r.json() : null).catch(()=>null)
+              ]).then(([fj, mj, oj, cj]) => {
                 if (fj) window._skyFoot = fj;
                 if (mj) window._skyMass = mj;
                 if (oj) window._skyOver = oj;   // Studio editor hand-fixes: top priority
-                if (!fj && !mj && !oj) return;
+                if (cj) window._skyCity = cj;   // far-zoom city
+                if (!fj && !mj && !oj && !cj) return;
                 if (skyOn) skySetData();
               });
             }
@@ -14634,36 +14662,46 @@
             // filter hides it so old and new never stack).
             try {
               if (map.getSource('composite')) {
-                map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:12.2,
+                map.addLayer({ id:'tmw-sky-grid', type:'line', source:'composite', 'source-layer':'road', minzoom:10.5,
                   paint:{ 'line-color':'#6B4BD6','line-opacity':0.24,'line-emissive-strength':1,
                     'line-width':['interpolate',['exponential',1.5],['zoom'],13,0.5,16,1.7] } });
                 const exFilter = _skyClip
                   ? ['all', ['==',['get','extrude'],'true'], ['!', ['within', _skyClip]]]
                   : ['==',['get','extrude'],'true'];
                 map.addLayer({ id:'tmw-sky-existing', type:'fill-extrusion', source:'composite', 'source-layer':'building',
-                  minzoom:12.2, filter:exFilter,
-                  paint:{ 'fill-extrusion-color':['interpolate',['linear'],['zoom'],12.2,'#252848',14.6,'#171830'],
-                    'fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],'fill-extrusion-opacity':0.9,'fill-extrusion-vertical-gradient':true,
-                    'fill-extrusion-emissive-strength':['interpolate',['linear'],['zoom'],12.2,0.38,14.6,0.12] } });
+                  minzoom:14.9, filter:exFilter,
+                  paint:{ 'fill-extrusion-color':'#171830',
+                    'fill-extrusion-height':['get','height'],'fill-extrusion-base':['get','min_height'],
+                    'fill-extrusion-opacity':['interpolate',['linear'],['zoom'],14.9,0,15.25,0.9],'fill-extrusion-vertical-gradient':true,
+                    'fill-extrusion-emissive-strength':0.12 } });
               }
             } catch(e){}
             // minzoom matches the existing-building extrusions, so the skyline
             // fades in exactly where the 3D city does instead of far-view spikes.
-            // Both sit at 12.2: the streets-v8 tiles carry buildings that far
-            // out (the BASE STYLE stops drawing them at 15, the data does not
-            // stop), so 3D mode holds through the pull-back with a real city
-            // under it rather than our towers alone on a flat map.
+            // Both sit at 10.5, riding on our own harvested city (tmw-sky-city)
+            // rather than the basemap's, which carries no usable geometry below
+            // z15 no matter what minzoom we ask for.
+            // Hands off to the real building layer at 15 — same source data,
+            // so nothing pops.
+            map.addSource(SKY_CITY, { type:'geojson', data:skyCityFC() });
+            map.addLayer({ id:'tmw-sky-city', type:'fill-extrusion', source:SKY_CITY,
+              minzoom:10.5, maxzoom:15.4,
+              paint:{ 'fill-extrusion-color':['interpolate',['linear'],['zoom'],10.5,'#2B2E58',14.4,'#171830'],
+                'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,
+                'fill-extrusion-opacity':['interpolate',['linear'],['zoom'],10.5,0.85,14.9,0.9,15.25,0],
+                'fill-extrusion-vertical-gradient':true,
+                'fill-extrusion-emissive-strength':['interpolate',['linear'],['zoom'],10.5,0.4,14.4,0.12] } });
             map.addSource(SKY_SRC, { type:'geojson', data:skyFC() });
             map.addSource(SKY_SHL, { type:'geojson', data:_skyShell });
             map.addSource(SKY_LBL, { type:'geojson', data:_skyLabels });
-            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:12.2,
+            map.addLayer({ id:'tmw-sky-halo', type:'fill', source:SKY_SRC, minzoom:10.5,
               paint:{ 'fill-color':'#7C5CFA', 'fill-opacity':0.10, 'fill-emissive-strength':1 } });
             [[1, 0.13], [2, 0.055], [3, 0.022]].forEach(([tier, op]) => {
-              map.addLayer({ id:'tmw-sky-aura'+tier, type:'fill-extrusion', source:SKY_SHL, minzoom:12.2,
+              map.addLayer({ id:'tmw-sky-aura'+tier, type:'fill-extrusion', source:SKY_SHL, minzoom:10.5,
                 filter:['==',['get','tier'],tier],
                 paint:{ 'fill-extrusion-color':['get','col'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':op,'fill-extrusion-emissive-strength':1,'fill-extrusion-vertical-gradient':false } });
             });
-            map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:12.2,
+            map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:10.5,
               paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.55,'fill-extrusion-vertical-gradient':true } });
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
@@ -14692,7 +14730,7 @@
           let pinsShown = null, skyPitchWant = null;
           function skyZoomSync(force){
             if (!skyOn) return;
-            const three = map.getZoom() >= 12.15;
+            const three = map.getZoom() >= 10.45;
             document.body.classList.toggle('tmw-sky-on', three);   // mover pulses return with the pins
             const showPins = !three;
             if (!force && showPins === pinsShown) return;
