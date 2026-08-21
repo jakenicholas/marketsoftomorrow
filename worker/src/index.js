@@ -12737,23 +12737,31 @@ export async function gardenBrain(env, { maxClusters = 10, maxProposals = 20 } =
   if (!env || !env.DB || !retrievalReady(env) || !env.ANTHROPIC_API_KEY) return summary;
   const pool = (await env.DB.prepare("SELECT id, kind, note FROM brand_notes WHERE active=1 AND tier='pool' AND scope='voice' ORDER BY created_at ASC").all()).results || [];
   const canon = (await env.DB.prepare("SELECT id, kind, note FROM brand_notes WHERE active=1 AND tier='canon' ORDER BY id ASC").all()).results || [];
-  summary.pool = pool.length;
-  if (pool.length < 2) return summary;
+  // The learned bands (editor + format) get the same canon-absorption sweep —
+  // auto-applied lessons that merely restate the constitution are duplicates
+  // too, and this tier is exactly where the learn loop writes.
+  const band = (await env.DB.prepare("SELECT id, kind, note FROM brand_notes WHERE active=1 AND tier IN ('editor','format') ORDER BY created_at ASC").all()).results || [];
+  summary.pool = pool.length; summary.band = band.length;
+  if (pool.length + band.length < 2) return summary;
   const skip = await pendingGardenIds(env);
 
-  // one embedding space for pool + canon
-  const texts = pool.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200)).concat(canon.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200)));
+  // one embedding space for pool + canon + the learned bands
+  const texts = pool.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200))
+    .concat(canon.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200)))
+    .concat(band.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200)));
   let vecs; try { vecs = await embedTexts(env, texts); } catch (_) { summary.errors++; return summary; }
-  const pv = vecs.slice(0, pool.length), cv = vecs.slice(pool.length);
+  const pv = vecs.slice(0, pool.length), cv = vecs.slice(pool.length, pool.length + canon.length), bv = vecs.slice(pool.length + canon.length);
 
-  // (a) canon absorption — pool notes the constitution already covers
+  // (a) canon absorption — pool AND band notes the constitution already covers
   const pairs = [];
-  for (let i = 0; i < pool.length; i++) {
-    if (skip.has(pool[i].id)) continue;
+  const consider = (row, vec) => {
+    if (skip.has(row.id)) return;
     let best = -1, bs = 0;
-    for (let j = 0; j < canon.length; j++) { const s = cosineSim(pv[i], cv[j]); if (s > bs) { bs = s; best = j; } }
-    if (best >= 0 && bs >= 0.80) pairs.push({ note: pool[i], canon: canon[best], sim: bs });
-  }
+    for (let j = 0; j < canon.length; j++) { const s = cosineSim(vec, cv[j]); if (s > bs) { bs = s; best = j; } }
+    if (best >= 0 && bs >= 0.80) pairs.push({ note: row, canon: canon[best], sim: bs });
+  };
+  for (let i = 0; i < pool.length; i++) consider(pool[i], pv[i]);
+  for (let i = 0; i < band.length; i++) consider(band[i], bv[i]);
   pairs.sort((a, b) => b.sim - a.sim);
   const batch = pairs.slice(0, 30);
   summary.absorb_checked = batch.length;
@@ -12770,7 +12778,7 @@ export async function gardenBrain(env, { maxClusters = 10, maxProposals = 20 } =
         const chunk = covered.slice(i, i + 8);
         const r = await brainWrite(env, {
           type: 'retire', kind: 'rule',
-          note: 'GARDENER — retire ' + chunk.length + ' pool note(s) fully covered by the canon: ' + chunk.map((c) => `"${c.note.note.slice(0, 70)}…" (≈${c.canon.id})`).join(' · '),
+          note: 'GARDENER — retire ' + chunk.length + ' note(s) fully covered by the canon: ' + chunk.map((c) => `"${c.note.note.slice(0, 70)}…" (≈${c.canon.id})`).join(' · '),
           retire_ids: chunk.map((c) => c.note.id),
           source: 'gardener', evidence: chunk.map((c) => `${c.note.id} covered by ${c.canon.id} (sim ${c.sim.toFixed(2)})`).join('\n'),
         });
