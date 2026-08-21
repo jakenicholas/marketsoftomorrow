@@ -22,7 +22,9 @@ import argparse, json, math, os, pathlib, re, subprocess, sys, time
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FLAT = ROOT / "journal/map/projects-flat.json"
-OUT  = ROOT / "journal/map/city-skyline.json"
+OUT  = ROOT / "journal/map/city-skyline.json"     # tall only, global, far zooms
+OUTDIR = ROOT / "journal/map/city"                # per-market, EVERY building
+TALL_M = 60                                       # what the global file keeps
 
 CLUSTER_DEG = 0.10        # ~11 km: group projects into markets
 PAD_DEG     = 0.008       # ~900 m of context around a market's projects
@@ -93,7 +95,7 @@ def box_of(ring_ll):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true")
-    ap.add_argument("--min-height", type=float, default=60.0)
+    ap.add_argument("--min-height", type=float, default=4.0)
     ap.add_argument("--markets", type=int, default=0, help="limit to the N biggest")
     ap.add_argument("--force-shrink", action="store_true",
                     help="write even if the harvest is far smaller than the file on disk")
@@ -150,20 +152,65 @@ def main():
             out[key] = [round(cx, 5), round(cy, 5), round(w), round(l),
                         round(brg), round(h)]
     rows = sorted(out.values(), key=lambda r: -r[5])
-    # A refresh runs unattended on a schedule. If a bad token, an API outage or
-    # a network fault starves the harvest, writing the result would quietly
-    # replace a good city with an empty one — so refuse to shrink sharply.
-    if OUT.exists():
+
+    # GUARD FIRST, before a single file is touched. This runs unattended on a
+    # schedule: a bad token, an API outage or a network fault would otherwise
+    # clear 300-odd market files and only then refuse to write, leaving the map
+    # with no city at all.
+    idx_prev = OUTDIR / "index.json"
+    if idx_prev.exists():
         try:
-            prev = len(json.loads(OUT.read_text()))
+            prev = sum(r[5] for r in json.loads(idx_prev.read_text()))
         except Exception:
             prev = 0
         if prev and len(rows) < prev * 0.6:
-            print(f"ABORT: harvested {len(rows)} buildings vs {prev} on file "
-                  f"({len(rows)/prev:.0%}). Refusing to overwrite — rerun or "
+            print(f"ABORT: harvested {len(rows):,} buildings vs {prev:,} on file "
+                  f"({len(rows)/prev:.0%}). Refusing to overwrite — rerun, or "
                   f"pass --force-shrink if the drop is real.", file=sys.stderr)
             if not a.force_shrink:
                 sys.exit(1)
+
+    # PER-MARKET FILES. A height cut-off cannot work: 68% of downtown West Palm
+    # Beach is under 10m, so any threshold deletes exactly the fabric that makes
+    # a city read as a city. All 1.1M buildings will not fit in one payload
+    # either, so split by market and let the client fetch only what it is
+    # looking at. The global tall file stays for the far zooms, where anything
+    # under 60m is a couple of pixels high anyway.
+    def mkey(m):
+        s_, w_, n_, e_ = m["bbox"]
+        return f"{(s_+n_)/2:.2f}_{(w_+e_)/2:.2f}"
+    index, wrote = [], 0
+    if OUTDIR.exists():
+        for f in OUTDIR.glob("*.json"): f.unlink()
+    OUTDIR.mkdir(parents=True, exist_ok=True)
+    # Market bboxes overlap, so a building can fall in two of them. Assign each
+    # to exactly one file or the client draws it twice (wasted geometry and
+    # z-fighting between two identical boxes).
+    claimed = set()
+    for m in markets:
+        s_, w_, n_, e_ = m["bbox"]
+        inside = []
+        for r in rows:
+            if not (s_ <= r[1] <= n_ and w_ <= r[0] <= e_): continue
+            k2 = (r[0], r[1])
+            if k2 in claimed: continue
+            claimed.add(k2); inside.append(r)
+        if not inside: continue
+        k = mkey(m)
+        (OUTDIR / f"{k}.json").write_text(json.dumps(inside, separators=(",", ":")))
+        index.append([k, round(s_, 4), round(w_, 4), round(n_, 4), round(e_, 4), len(inside)])
+        wrote += len(inside)
+    (OUTDIR / "index.json").write_text(json.dumps(index, separators=(",", ":")))
+    tot_kb = sum(f.stat().st_size for f in OUTDIR.glob("*.json")) // 1024
+    biggest = sorted(OUTDIR.glob("*.json"), key=lambda f: -f.stat().st_size)[:3]
+    print(f"{len(index)} market files · {wrote:,} buildings placed · {tot_kb:,} KB total")
+    for f in biggest:
+        print(f"   biggest: {f.name} {f.stat().st_size//1024} KB")
+
+    rows = [r for r in rows if r[5] >= TALL_M]          # global file: tall only
+    # A refresh runs unattended on a schedule. If a bad token, an API outage or
+    # a network fault starves the harvest, writing the result would quietly
+    # replace a good city with an empty one — so refuse to shrink sharply.
     OUT.write_text(json.dumps(rows, separators=(",", ":")))
     print(f"\n{len(rows)} tall buildings -> {OUT} ({OUT.stat().st_size//1024} KB)")
 

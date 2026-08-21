@@ -14384,7 +14384,7 @@
           if (!skyT) return;
           let skyOn = false, skyPrev = null;
           const SKY_SRC = 'tmw-sky', SKY_SHL = 'tmw-sky-shell-src', SKY_LBL = 'tmw-sky-names-src';
-          const SKY_CITY = 'tmw-sky-city-src';
+          const SKY_CITY = 'tmw-sky-city-src', SKY_CITY_FULL = 'tmw-sky-city-full-src';
           // NEON VIOLET: the skyline glows as one monochrome purple signature.
           // Movers (What's Moving) read brighter; selection isn't needed — the
           // click opens the modal. Derived shells + roof labels rebuilt by skyFC.
@@ -14454,20 +14454,71 @@
           // silhouettes line up when the real building layer takes over.
           // Rows are [lng, lat, w, l, bearing, height] — an oriented box, which
           // at these zooms is indistinguishable from the true footprint.
+          function skyBoxFeature(r){
+            const [lng, lat, w, l, brg, h] = r;
+            const [mlat, mlng] = [111320, 111320 * Math.cos(lat * Math.PI/180)];
+            const rot = brg * Math.PI/180, ux = Math.sin(rot), uy = Math.cos(rot);
+            const ring = [[-1,-1],[1,-1],[1,1],[-1,1]].map(([su,sv]) => {
+              const ex = su*(l/2)*ux + sv*(w/2)*(-uy), ey = su*(l/2)*uy + sv*(w/2)*ux;
+              return [lng + ex/mlng, lat + ey/mlat];
+            });
+            ring.push(ring[0].slice());
+            return { type:'Feature', properties:{ h },
+              geometry:{ type:'Polygon', coordinates:[ring] } };
+          }
           function skyCityFC(){
-            const rows = window._skyCity || [];
-            return { type:'FeatureCollection', features: rows.map(r => {
-              const [lng, lat, w, l, brg, h] = r;
-              const [mlat, mlng] = [111320, 111320 * Math.cos(lat * Math.PI/180)];
-              const rot = brg * Math.PI/180, ux = Math.sin(rot), uy = Math.cos(rot);
-              const ring = [[-1,-1],[1,-1],[1,1],[-1,1]].map(([su,sv]) => {
-                const ex = su*(l/2)*ux + sv*(w/2)*(-uy), ey = su*(l/2)*uy + sv*(w/2)*ux;
-                return [lng + ex/mlng, lat + ey/mlat];
-              });
-              ring.push(ring[0].slice());
-              return { type:'Feature', properties:{ h },
-                geometry:{ type:'Polygon', coordinates:[ring] } };
-            }) };
+            return { type:'FeatureCollection',
+              features: (window._skyCity || []).map(skyBoxFeature) };
+          }
+          // FULL CITY, fetched per market as you look at it. A height cut-off
+          // cannot stand in for the real thing — 68% of downtown West Palm
+          // Beach is under 10m — and all 1.1M buildings will not ship in one
+          // payload. So the tall file carries the far zooms, where anything
+          // short is a pixel or two high anyway, and from z13 up we swap to
+          // per-market files holding EVERY building, loading only the markets
+          // actually on screen.
+          let _cityIdx = null, _cityIdxReq = 0;
+          const _cityCache = new Map();
+          let _cityShown = '';
+          function skyCityFullSync(){
+            const src = map.getSource(SKY_CITY_FULL);
+            if (!skyOn || !src) return;
+            if (map.getZoom() < 12.8){
+              if (_cityShown){ _cityShown = ''; src.setData({type:'FeatureCollection',features:[]}); }
+              return;
+            }
+            if (!_cityIdx){
+              if (_cityIdxReq) return;
+              _cityIdxReq = 1;
+              fetch('/map/city/index.json').then(r => r.ok ? r.json() : null)
+                .then(j => { if (j){ _cityIdx = j; skyCityFullSync(); } })
+                .catch(()=>{});
+              return;
+            }
+            const b = map.getBounds(), c = map.getCenter();
+            const vis = _cityIdx
+              .filter(([k, s0, w0, n0, e0]) => !(e0 < b.getWest() || w0 > b.getEast()
+                                              || n0 < b.getSouth() || s0 > b.getNorth()))
+              .sort((p, q) => (Math.abs((p[1]+p[3])/2 - c.lat) + Math.abs((p[2]+p[4])/2 - c.lng))
+                            - (Math.abs((q[1]+q[3])/2 - c.lat) + Math.abs((q[2]+q[4])/2 - c.lng)))
+              .slice(0, 10)                       // bound the worst case
+              .map(r => r[0]);
+            const sig = vis.join(',');
+            if (sig === _cityShown) return;       // only re-tile when the SET changes
+            Promise.all(vis.map(k => _cityCache.has(k)
+              ? Promise.resolve(_cityCache.get(k))
+              : fetch('/map/city/' + k + '.json').then(r => r.ok ? r.json() : [])
+                  .then(rows => { const f = rows.map(skyBoxFeature);
+                    if (_cityCache.size > 18) _cityCache.delete(_cityCache.keys().next().value);
+                    _cityCache.set(k, f); return f; })
+                  .catch(() => [])
+            )).then(parts => {
+              if (!skyOn || vis.join(',') !== sig) return;   // the view moved on
+              _cityShown = sig;
+              const s2 = map.getSource(SKY_CITY_FULL);
+              if (s2) s2.setData({ type:'FeatureCollection',
+                features: [].concat.apply([], parts) });
+            }).catch(()=>{});
           }
           function skySetData(){
             try {
@@ -14627,8 +14678,9 @@
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
-            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
-            [SKY_SRC, SKY_SHL, SKY_LBL, SKY_CITY].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
+            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-city-full','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            _cityShown = '';
+            [SKY_SRC, SKY_SHL, SKY_LBL, SKY_CITY, SKY_CITY_FULL].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
           function skyAdd(){
             skyRemove();
@@ -14685,12 +14737,20 @@
             // so nothing pops.
             map.addSource(SKY_CITY, { type:'geojson', data:skyCityFC() });
             map.addLayer({ id:'tmw-sky-city', type:'fill-extrusion', source:SKY_CITY,
-              minzoom:10.5, maxzoom:15.4,
-              paint:{ 'fill-extrusion-color':['interpolate',['linear'],['zoom'],10.5,'#2B2E58',14.4,'#171830'],
+              minzoom:10.5, maxzoom:13.5,
+              paint:{ 'fill-extrusion-color':['interpolate',['linear'],['zoom'],10.5,'#2B2E58',13.4,'#1D1F3C'],
                 'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,
-                'fill-extrusion-opacity':['interpolate',['linear'],['zoom'],10.5,0.85,14.9,0.9,15.25,0],
+                'fill-extrusion-opacity':['interpolate',['linear'],['zoom'],10.5,0.85,13.0,0.85,13.4,0],
                 'fill-extrusion-vertical-gradient':true,
-                'fill-extrusion-emissive-strength':['interpolate',['linear'],['zoom'],10.5,0.4,14.4,0.12] } });
+                'fill-extrusion-emissive-strength':['interpolate',['linear'],['zoom'],10.5,0.4,13.4,0.2] } });
+            map.addSource(SKY_CITY_FULL, { type:'geojson', data:{type:'FeatureCollection',features:[]} });
+            map.addLayer({ id:'tmw-sky-city-full', type:'fill-extrusion', source:SKY_CITY_FULL,
+              minzoom:12.9, maxzoom:15.4,
+              paint:{ 'fill-extrusion-color':['interpolate',['linear'],['zoom'],12.9,'#1D1F3C',14.6,'#171830'],
+                'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,
+                'fill-extrusion-opacity':['interpolate',['linear'],['zoom'],12.9,0,13.4,0.9,14.9,0.9,15.25,0],
+                'fill-extrusion-vertical-gradient':true,
+                'fill-extrusion-emissive-strength':['interpolate',['linear'],['zoom'],12.9,0.2,14.6,0.12] } });
             map.addSource(SKY_SRC, { type:'geojson', data:skyFC() });
             map.addSource(SKY_SHL, { type:'geojson', data:_skyShell });
             map.addSource(SKY_LBL, { type:'geojson', data:_skyLabels });
@@ -14714,6 +14774,9 @@
             } catch(e){}
             skyBreathe();
             skyScrub();
+            skyCityFullSync();
+            if (!window._skyCityHook){ window._skyCityHook = 1;
+              try { map.on('moveend', skyCityFullSync); } catch(e){} }
             // The towers ARE the pins up close; from afar the pins return.
             skyZoomSync(true);
           }
