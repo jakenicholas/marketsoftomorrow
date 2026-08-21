@@ -112,8 +112,7 @@ export const TRAVEL_STOPS = {
     logi:[['Transit','Ferry from Mykonos to Santorini, <b>11:30 AM → 1:40 PM</b>.']],
     imgs:[
       'https://media.cntraveler.com/photos/6638fe33e2d99e8ecd3db913/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Pacman%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg',
-      'https://cdn.sanity.io/images/nxpteyfv/goguides/9ca4581e7f31535984243dfa9c08c12c8a30ffeb-1600x1066.jpg',
-      'https://media.cntraveler.com/photos/6638fe274f34977b03728a03/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Main%2520Pool%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg'] },
+      'https://cdn.sanity.io/images/nxpteyfv/goguides/9ca4581e7f31535984243dfa9c08c12c8a30ffeb-1600x1066.jpg'] },
 
   // ── Part 2: Switzerland, the Lakes & Slovenia ──
   { loc:'Zürich, Switzerland', nights:'1 Night · Sept 18 → 19', stay:'Private Stay', confirmed:true, noClient:true,

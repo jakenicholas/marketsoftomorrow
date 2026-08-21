@@ -82,7 +82,11 @@
   .tmw-chrome-head .v2-profile-btn svg, .tmw-chrome-head .v2-profile-btn svg *{color:#B0603A !important; stroke:#B0603A !important; fill:none !important}
   /* Pro premium star → filled black (overrides the outlined-icon rule above) */
   .tmw-chrome-head .v2-premium-star svg, .tmw-chrome-head .v2-premium-star svg *{fill:#000 !important; stroke:none !important}
-  .tmw-dock,.tmw-ov-root{display:none !important}
+  /* Hide the retired dock PILL only. .tmw-ov-root was swept in here too,
+     which killed the Intelligence search overlay on this page: it opened
+     (class 'open', opacity 1) but stayed display:none. The overlay renders
+     outside .tvl-page so it keeps its own dark palette. */
+  .tmw-dock{display:none !important}
   /* mobile drawer: the dropdown triggers (div.tmw-fm) miss the divider the > a items get */
   @media(max-width:980px){ .tmw-chrome-head .nav-links > .tmw-fm{border-bottom:1px solid var(--hair) !important} }
   /* Beige Mediterranean palette — travel page content only. */
@@ -268,7 +272,7 @@ var TRIPS = [
     partners:['Streamsong Resort'] },
   { title:'Riviera Nayarit', place:'Riviera Nayarit, Mexico', date:'November 2026', upcoming:true, planning:true, openCTA:true, start:'2026-11-12', end:'2026-11-15',
     img:'https://media.oftmw.com/riviera-nayarit/siari-a-ritz-carlton-reserve-2.jpeg',
-    partners:['C&R','Nauka','Quinn','Mayakoba'] },
+    partners:['C&R','Nauka','Quinn','Mandarina'] },
   { title:'Nashville', place:'Nashville, Tennessee', date:'October 2026', upcoming:true, planning:true, openCTA:true, start:'2026-10-15', end:'2026-10-18',
     img:'https://media.oftmw.com/2026/08/607a5ecd823a-Image-86564-gigapixel-standard-v2-2x.jpeg',
     partners:['C&R','Firefly','Darcy Jusich','Noko Hospitality'] },
