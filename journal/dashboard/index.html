@@ -415,10 +415,6 @@ main.wrap{padding-bottom:70px}
   box-shadow:0 0 18px rgba(230,197,116,.4);transition:transform .15s,box-shadow .15s}
 .gp-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(230,197,116,.65)}
 .gp-preview{position:relative;pointer-events:none;user-select:none;opacity:.8;margin-top:8px}
-/* Diagonal EXAMPLE DATA watermark tiled across the whole preview so no
-   screenshot or scroll position can read as the member's real data. */
-.gp-preview::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='440' height='320'%3E%3Ctext x='30' y='170' font-family='SF Mono,Menlo,monospace' font-size='21' font-weight='700' letter-spacing='7' fill='rgba(230,197,116,0.09)' transform='rotate(-18 220 160)'%3EEXAMPLE DATA%3C/text%3E%3C/svg%3E")}
 .gp-ribbon{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;font-weight:700;color:#E6C574;
   border:1px solid rgba(230,197,116,.55);border-radius:12px;padding:13px 17px;margin-bottom:16px;
   background:linear-gradient(90deg,rgba(230,197,116,.12),rgba(230,197,116,.03));box-shadow:0 0 22px rgba(230,197,116,.12)}
@@ -433,7 +429,10 @@ main.wrap{padding-bottom:70px}
 .gp-tile .n{font-size:13px;font-weight:600;color:#e8ece8;margin-top:9px}
 .gp-tile .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:4px}
 /* Your moves replica: 2-up cards, thumb + tag + title + because-chip */
-.gp-brf{display:flex;align-items:center;gap:12px;border:1px solid rgba(185,166,255,.4);border-radius:12px;padding:12px 15px;margin-bottom:14px;background:rgba(185,166,255,.05)}
+.gp-brf{display:flex;align-items:center;gap:12px;border:1px solid rgba(167,139,250,.42);border-radius:12px;padding:12px 15px;margin-bottom:14px;
+  background:linear-gradient(135deg,rgba(167,139,250,.09),rgba(167,139,250,.02) 55%),radial-gradient(600px 220px at 85% -20%,rgba(167,139,250,.16),transparent 60%);
+  animation:bhGlow 2.6s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.gp-brf{animation:none}}
 .gp-brf .t{font-size:13px;color:#ECEAE5}
 .gp-brf .t b{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:#B9A6FF;margin-bottom:4px}
 .gp-brf .go{margin-left:auto;font-size:12px;font-weight:600;color:#B9A6FF;white-space:nowrap}
