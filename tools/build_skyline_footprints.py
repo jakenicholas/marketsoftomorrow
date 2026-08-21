@@ -35,10 +35,40 @@ MAX_RING_PTS = 32
 # Known-bad OSM matches (wrong building): never store a ring for these; the
 # Studio massing editor owns their geometry.
 BLOCKLIST = {'10-cityplace'}
+DISTRICTS = set()          # filled by load_projects(); umbrellas get no ring
+
+def district_slugs(recs):
+    """Umbrellas must never claim a building's ring. East Bank's pin sits beside
+    Nissan Stadium, so it was handed the stadium bowl — which then became the
+    'automatic' massing the Studio editor kept restoring after every delete."""
+    kids = {}
+    for p in recs:
+        if p.get("ParentSlug"):
+            kids.setdefault(p["ParentSlug"], []).append(p)
+    out = set()
+    for p in recs:
+        slug = p.get("Slug")
+        if not slug:
+            continue
+        flagged = str(p.get("IsDistrict") or "").strip().lower() in ("1", "true", "yes")
+        if not (len(kids.get(slug, [])) >= 2 or (flagged and kids.get(slug))):
+            continue
+        # A district that is ALSO a building keeps its ring: Mori JP Tower and
+        # One Beverly Hills are flagged districts and real towers. Only a bare
+        # umbrella — no floors of its own — is barred from claiming one.
+        try:
+            fl = int("".join(c for c in str(p.get("Floors", "")) if c.isdigit()) or 0)
+        except ValueError:
+            fl = 0
+        if fl < 3:
+            out.add(slug)
+    return out
 
 def load_projects():
     data = json.loads(FLAT.read_text())
     recs = data if isinstance(data, list) else data.get("projects", data)
+    global DISTRICTS
+    DISTRICTS = district_slugs(recs)
     out = []
     for p in recs:
         # Every pipeline pin gets a 3D form now (stadiums, bridges, museums,
@@ -59,7 +89,8 @@ def load_projects():
                         "gfa": gfa, "fl": fl})
         except (TypeError, ValueError):
             continue
-    return [p for p in out if p["slug"] and p["slug"] not in BLOCKLIST]
+    return [p for p in out if p["slug"] and p["slug"] not in BLOCKLIST
+            and p["slug"] not in DISTRICTS]
 
 def overpass(points):
     # buildings + the civic forms that aren't tagged building: stadium bowls,
@@ -158,6 +189,9 @@ def main():
         dropped = 0
         for slug, v in list(result.items()):
             if slug.endswith("#demo"):
+                continue
+            if slug in DISTRICTS or slug in BLOCKLIST:
+                del result[slug]          # drop rings umbrellas claimed earlier
                 continue
             pr = byslug.get(slug)
             if is_ring(v) and pr and not plausible(area_m2([tuple(x) for x in v]), pr["gfa"], pr["fl"]):

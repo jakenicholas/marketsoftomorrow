@@ -14742,6 +14742,16 @@ async function handleMassingSave(request, env, origin) {
   if (!slug || slug.length > 200) return json({ error: 'slug required' }, { status: 400 }, env, origin);
   await ensureMassingTable(env);
   if (!body.pieces || (Array.isArray(body.pieces) && !body.pieces.length)) {
+    // Deleting the row means "fall back to automatic", and automatic derives a
+    // piece from the footprint — so on anything with a footprint, a delete
+    // looks like it did not save: the shape comes straight back. `suppress`
+    // stores an empty override instead, which the editor and the map both read
+    // as "this project has no massing at all".
+    if (body.suppress) {
+      await env.DB.prepare('INSERT INTO massing_overrides (slug, pieces, updated_at) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET pieces = excluded.pieces, updated_at = excluded.updated_at')
+        .bind(slug, '[]', new Date().toISOString()).run();
+      return json({ ok: true, slug, suppressed: true }, {}, env, origin);
+    }
     await env.DB.prepare('DELETE FROM massing_overrides WHERE slug = ?').bind(slug).run();
     return json({ ok: true, slug, reverted: true }, {}, env, origin);
   }
