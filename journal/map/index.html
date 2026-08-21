@@ -14759,9 +14759,26 @@
             Object.keys(distMeta).forEach(slug => {
               const d = distMeta[slug];
               if (!d.child || !d.rings.length) return;
+              // A DRAWN boundary always wins. The hull is only a guess, and on
+              // a scattered site it is a bad one: East Bank's five components
+              // span 1.6km, so its hull swallows the Cumberland River and half
+              // of downtown. Draw it in Studio → massing editor → Draw.
+              const drawn = (window._skyBounds || {})[slug]
+                || (window._skyBounds || {})[String(d.uid || '')];
               const pts = [];
               d.rings.forEach(r => r.slice(0, -1).forEach(pt => pts.push(pt)));
-              let ring = skyHull(pts);
+              let ring = (Array.isArray(drawn) && drawn.length > 3)
+                ? drawn.slice(0, -1).map(pt => [ +pt[0], +pt[1] ])
+                : skyHull(pts);
+              if (!drawn && ring) {
+                // Reject an implausible auto-hull rather than draw nonsense.
+                const c0 = skyRingCentroid(ring.concat([ring[0]]));
+                const lm = 111320, gm = 111320 * Math.cos(c0[1] * Math.PI/180);
+                let span = 0;
+                ring.forEach(a => ring.forEach(b =>
+                  { span = Math.max(span, Math.hypot((a[0]-b[0])*gm, (a[1]-b[1])*lm)); }));
+                if (span > 520) return;   // too scattered to guess — wait for a drawn ring
+              }
               const cen = ring ? skyRingCentroid(ring.concat([ring[0]])) : skyRingCentroid(pts.concat([pts[0]]));
               const latM = 111320, lngM = 111320 * Math.cos(cen[1] * Math.PI/180);
               // Costa Palmas stacks all five children on one point, so the hull
@@ -14842,13 +14859,15 @@
                 fetch('/map/skyline-footprints.json').then(r => r.ok ? r.json() : null).catch(()=>null),
                 fetch('/map/skyline-massings.json').then(r => r.ok ? r.json() : null).catch(()=>null),
                 fetch('https://tmw.jake-ab7.workers.dev/massings-overrides').then(r => r.ok ? r.json() : null).catch(()=>null),
-                fetch('/map/city-skyline.json').then(r => r.ok ? r.json() : null).catch(()=>null)
-              ]).then(([fj, mj, oj, cj]) => {
+                fetch('/map/city-skyline.json').then(r => r.ok ? r.json() : null).catch(()=>null),
+                fetch('https://tmw.jake-ab7.workers.dev/district-bounds').then(r => r.ok ? r.json() : null).catch(()=>null)
+              ]).then(([fj, mj, oj, cj, dj]) => {
                 if (fj) window._skyFoot = fj;
                 if (mj) window._skyMass = mj;
                 if (oj) window._skyOver = oj;   // Studio editor hand-fixes: top priority
                 if (cj) window._skyCity = cj;   // far-zoom city
-                if (!fj && !mj && !oj && !cj) return;
+                if (dj) window._skyBounds = dj; // hand-drawn district parcels
+                if (!fj && !mj && !oj && !cj && !dj) return;
                 if (skyOn) skySetData();
               });
             }

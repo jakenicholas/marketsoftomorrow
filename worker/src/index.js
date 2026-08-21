@@ -14751,6 +14751,49 @@ async function handleMassingSave(request, env, origin) {
     .bind(slug, JSON.stringify(pieces), new Date().toISOString()).run();
   return json({ ok: true, slug, pieces: pieces.length }, {}, env, origin);
 }
+// ---- Future Skyline: DISTRICT boundaries (hand-drawn) ---------------------
+// The map derives a district parcel from the convex hull of its children, which
+// is fine for a tight campus and useless for a scattered one — East Bank's five
+// components span 1.6km, so the hull swallows the Cumberland River and half of
+// downtown. A drawn ring always wins over the hull.
+async function ensureDistrictTable(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS district_bounds (slug TEXT PRIMARY KEY, ring TEXT NOT NULL, updated_at TEXT)').run();
+}
+async function handleDistrictBounds(request, env, origin) {
+  await ensureDistrictTable(env);
+  const rows = (await env.DB.prepare('SELECT slug, ring FROM district_bounds').all()).results || [];
+  const out = {};
+  for (const r of rows) { try { out[r.slug] = JSON.parse(r.ring); } catch (_) {} }
+  const resp = json(out, {}, env, origin);
+  resp.headers.set('Cache-Control', 'public, max-age=60');
+  return resp;
+}
+function dbValidRing(ring) {
+  if (!Array.isArray(ring) || ring.length < 4 || ring.length > 200) return null;
+  const out = ring.map(pt => [ +pt[0], +pt[1] ]);
+  if (out.some(pt => !isFinite(pt[0]) || !isFinite(pt[1])
+      || pt[0] < -180 || pt[0] > 180 || pt[1] < -85 || pt[1] > 85)) return null;
+  const a = out[0], z = out[out.length - 1];
+  if (a[0] !== z[0] || a[1] !== z[1]) out.push([a[0], a[1]]);   // close it
+  return out;
+}
+async function handleDistrictSave(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  let body = {}; try { body = await request.json(); } catch (_) {}
+  const slug = String(body.slug || '').trim();
+  if (!slug || slug.length > 200) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  await ensureDistrictTable(env);
+  if (!body.ring || (Array.isArray(body.ring) && !body.ring.length)) {
+    await env.DB.prepare('DELETE FROM district_bounds WHERE slug = ?').bind(slug).run();
+    return json({ ok: true, slug, reverted: true }, {}, env, origin);
+  }
+  const ring = dbValidRing(body.ring);
+  if (!ring) return json({ error: 'invalid ring' }, { status: 400 }, env, origin);
+  await env.DB.prepare('INSERT INTO district_bounds (slug, ring, updated_at) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET ring = excluded.ring, updated_at = excluded.updated_at')
+    .bind(slug, JSON.stringify(ring), new Date().toISOString()).run();
+  return json({ ok: true, slug, points: ring.length }, {}, env, origin);
+}
 async function handleMassingContext(request, env, origin) {
   const denied = await requireAdminToken(request, env, origin);
   if (denied) return denied;
@@ -20098,6 +20141,8 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/massings-overrides')    return await handleMassingOverrides(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/massing-save')    return await handleMassingSave(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/massing-context') return await handleMassingContext(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/district-bounds')       return await handleDistrictBounds(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/district-save')   return await handleDistrictSave(request, env, origin);
       // Enterprise orgs: admin provisioning + member-facing partner endpoints.
       if (request.method === 'GET'  && url.pathname === '/admin/orgs')        return await handleOrgsList(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/org-upsert')  return await handleOrgUpsert(request, env, origin);
