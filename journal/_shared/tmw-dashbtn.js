@@ -95,7 +95,8 @@
     '.tmw-dashbtn .db-tier[hidden]{display:none}',
     /* the bell's number now lives in the button */
     '.tmw-auth .tmw-pulse-bell.tmw-db-hidden,.tmw-auth .v2-profile-btn.tmw-db-hidden{display:none !important}',
-    '@media(max-width:720px){.tmw-dashbtn .db-lbl,.tmw-dashbtn .db-tier{display:none}.tmw-dashbtn{padding:5px 8px 5px 6px}}'
+    /* Mobile: the label drops but the tier tag STAYS — the avatar alone does not state pro vs free. */
+    '@media(max-width:720px){.tmw-dashbtn .db-lbl{display:none}.tmw-dashbtn{padding:5px 9px 5px 6px;gap:7px}}'
   ].join('');
 
   function injectCss() {
