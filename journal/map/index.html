@@ -14588,7 +14588,9 @@
               // middle of its own site.
               const _selfSlug = _py(p.title || '');
               if (distSlugs.has(_selfSlug)) {
-                distMeta[_selfSlug] = { uid:p.uid||'', title:p.title||'', rings:[], top:0, yr:0 };
+                const dm = distMeta[_selfSlug] = distMeta[_selfSlug] ||
+                  { uid:'', title:'', rings:[], top:0, yr:0 };
+                dm.uid = p.uid || dm.uid; dm.title = p.title || dm.title;
                 return;
               }
               // EVERY pipeline pin converts to a 3D form. Towers rise by their
@@ -14672,6 +14674,7 @@
               const _ps = String(p.parentSlug || '').trim();
               if (_ps && distSlugs.has(_ps)) {
                 const d = distMeta[_ps] = distMeta[_ps] || { uid:'', title:'', rings:[], top:0, yr:0 };
+                if (!d.uid) d.uid = _ps;
                 d.rings.push(ring);
                 if (hM > d.top) d.top = hM;
                 const cy = yM ? +yM[0] : 0;
