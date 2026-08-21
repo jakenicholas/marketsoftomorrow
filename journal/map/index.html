@@ -14626,11 +14626,14 @@
               const _selfSlug = _py(p.title || '');
               const _isDist = distSlugs.has(_selfSlug);
               const _hasKids = _isDist && (kidsBy[_selfSlug] || []).length > 0;
-              // A bare umbrella (no floors, no massing) is a parcel, not a
-              // building — left alone it extrudes as a stray 10m slab on its own
-              // site. But a district that IS a tower keeps its form: Mori JP
-              // Tower is flagged a district and is also a 64-storey building.
-              const _selfForm = (Array.isArray(ms) && ms.length) || fl >= 3;
+              // "No building represents East Bank — all of the projects inside
+              // of it make up the district" (Jake). So a district WITH children
+              // is never a building, even if someone has drawn massing on it:
+              // East Bank carries a stray stadium massing that belongs to the
+              // Titans Stadium child. Real floors are the only thing that makes
+              // an umbrella also a building — Mori JP Tower is a flagged
+              // district AND a 64-storey tower.
+              const _selfForm = fl >= 3;
               if (_isDist) {
                 const dm = distMeta[_selfSlug] = distMeta[_selfSlug] ||
                   { uid:'', title:'', rings:[], top:0, yr:0 };
