@@ -13117,6 +13117,12 @@
                 openStateInSidebar(f._stateCode);
                 return;
               }
+              if (isCity === 'nb'){
+                if (di) di.value = (f._nb && f._nb.name) || q;
+                dismissMapLanding();
+                if (window._frameNeighborhood) window._frameNeighborhood(f._nb);
+                return;
+              }
               if (isCity){
                 if (di) di.value = f._cityLabel || q;
                 openCityInSidebar(f._cityValue, null);
@@ -18725,6 +18731,21 @@
       return (s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
     }
 
+    // Frame a borough/neighborhood pick: fit its pins, then draw the dashed
+    // hull ring (neighborhood-tagged pins only; boroughs just frame).
+    window._frameNeighborhood = function (nb) {
+      try {
+        const feats = (nb && nb.feats) || [];
+        if (!feats.length) return;
+        const b = new mapboxgl.LngLatBounds();
+        feats.forEach(p => { if (p.geometry && p.geometry.coordinates) b.extend(p.geometry.coordinates); });
+        window._mapFlyingTo = true;
+        if (feats.length === 1) map.flyTo({ center: feats[0].geometry.coordinates, zoom: 14, duration: 900 });
+        else map.fitBounds(b, { padding: 90, maxZoom: 15, duration: 900 });
+        if (typeof showNeighborhoodRing === 'function') { try { showNeighborhoodRing(nb.city, nb.name); } catch (e) {} }
+      } catch (e) {}
+    };
+
     function buildAutocomplete(query, features, container, onSelect) {
       const ql = normalizeForSearch(query);
       const PIN_SVG  = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>`;
@@ -18795,7 +18816,35 @@
         return out.sort((a, b) => b.count - a.count).slice(0, 3);
       })();
 
-      const hasLocal = twmCities.length > 0 || projects.length > 0 || regionMatches.length > 0;
+      // Boroughs + neighborhoods. Every feature carries borough ("Manhattan")
+      // and a comma-list neighborhood whose FIRST segment is the curated one
+      // (same rule as the ?nb= hull ring). Grouped by name+city so "Downtown"
+      // in two cities stays two rows. Names that already exist as City values
+      // (Brooklyn, Long Island City) stay under Places, not here.
+      const nbMatches = (() => {
+        if (ql.length < 2) return [];
+        const byKey = {};
+        allFeatures.forEach(f => {
+          const pr = f.properties || {};
+          const names = [];
+          const bo = String(pr.borough || '').trim();
+          if (bo) names.push(bo);
+          const nb = String(pr.neighborhood || '').split(',')[0].trim();
+          if (nb && nb.toLowerCase() !== bo.toLowerCase()) names.push(nb);
+          names.forEach(name => {
+            const k = name.toLowerCase() + '|' + (pr.city || '');
+            (byKey[k] || (byKey[k] = { name, city: pr.city || '', feats: [] })).feats.push(f);
+          });
+        });
+        const cityNames = new Set(twmCities.map(([c]) => String(c).toLowerCase()));
+        return Object.values(byKey)
+          .filter(e => normalizeForSearch(e.name).includes(ql))
+          .filter(e => !cityNames.has(e.name.toLowerCase()))
+          .sort((a, b) => b.feats.length - a.feats.length)
+          .slice(0, 4);
+      })();
+
+      const hasLocal = twmCities.length > 0 || projects.length > 0 || regionMatches.length > 0 || nbMatches.length > 0;
 
       if (query.length < 2 && !hasLocal) { container.classList.add('hidden'); return; }
 
@@ -18830,11 +18879,34 @@
         });
       };
 
-      // Helper: render project items. Projects render FIRST now -- they're
-      // the primary search target. Places (TMW cities + geo) come after.
-      // This helper handles its own Projects header at the top of the list.
+      // Helper: render borough/neighborhood items between Places and Regions.
+      const renderNeighborhoods = () => {
+        if (!nbMatches.length) return;
+        if (container.children.length > 0) {
+          const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
+        }
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Neighborhoods';
+        container.appendChild(label);
+        nbMatches.forEach((e, i) => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.style.animationDelay = `${i * 0.04}s`;
+          const cityLabel = e.city ? getCityLabel(e.city) : '';
+          item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(e.name, ql)}</strong><span>${e.feats.length} project${e.feats.length !== 1 ? 's' : ''}${cityLabel ? ' · ' + cityLabel : ''}</span></div>`;
+          item.addEventListener('mousedown', () => onSelect({ _nb: e }, 'nb'));
+          container.appendChild(item);
+        });
+      };
+
+      // Helper: render project items (own Projects header; divider when a
+      // location section rendered above).
       const renderProjects = () => {
         if (!projects.length) return;
+        if (container.children.length > 0) {
+          const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
+        }
         const label = document.createElement('div');
         label.className = 'autocomplete-section-label';
         label.textContent = 'Projects';
@@ -18886,13 +18958,13 @@
         });
       };
 
-      // Order: Projects FIRST (most direct match for what users type), then
-      // Regions (states/countries), then Places (cities). Previously Places led;
-      // users sorting by city name still get those results -- just below the
-      // project + region hits where the primary user intent lives.
-      renderProjects();
-      renderRegions();
+      // Order: Places (cities) FIRST, then Neighborhoods, then Regions, then
+      // Projects — location intent leads (per Jake, 2026-08-21); project-name
+      // hits still render, just beneath the geography.
       renderTMWCities();
+      renderNeighborhoods();
+      renderRegions();
+      renderProjects();
       if (!hasLocal) container.classList.add('hidden');
 
       // Broader-places autocomplete geocoding DISABLED to cut Mapbox Geocoding
@@ -19158,6 +19230,18 @@
                 window.mobileLoadedCount = 12;
                 renderFilteredGrid('gridMobile', allFeats);
               });
+              return;
+            }
+            if (isCity === 'nb') {
+              // Borough / neighborhood: frame its pins, grid shows just them.
+              mobileSearchBar.value = f._nb.name;
+              if (mobileClearBtn) mobileClearBtn.style.display = 'flex';
+              window.mobileSearchFeatures = f._nb.feats;
+              window.mobileLoadedCount = 12;
+              const g = document.getElementById('gridMobile');
+              if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+              if (window._frameNeighborhood) window._frameNeighborhood(f._nb);
+              map.once('moveend', () => { window.mobileLoadedCount = 12; renderFilteredGrid('gridMobile', f._nb.feats); });
               return;
             }
             if (isCity === 'state') {
@@ -19564,6 +19648,15 @@
             searchBar.value = f._stateLabel || query;
             if (clearBtn) clearBtn.style.display = 'flex';
             if (typeof window.openStateInSidebar === 'function') window.openStateInSidebar(f._stateCode);
+            return;
+          }
+          if (isCity === 'nb') {
+            searchBar.value = f._nb.name;
+            if (clearBtn) clearBtn.style.display = 'flex';
+            const g = document.getElementById('gridDesktop');
+            if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+            if (window._frameNeighborhood) window._frameNeighborhood(f._nb);
+            map.once('moveend', () => { renderFilteredGrid('gridDesktop', f._nb.feats); });
             return;
           }
           searchBar.value = isCity ? f._cityLabel : f.properties.title;
@@ -20480,7 +20573,10 @@
               type: 'Feature',
               geometry: { type: 'Point', coordinates: [+p.Longitude, +p.Latitude] },
               properties: {
-                title: p.Title, city: p.City, borough: p.Borough || '', description: p.Description,
+                // "New York" as a City value is NYC by another name — canonicalize
+                // so search/Places groups one city, and "New York" the STATE reads
+                // as a Region (like Florida) instead of a phantom second city.
+                title: p.Title, city: p.City === 'New York' ? 'New York City' : p.City, borough: p.Borough || '', description: p.Description,
                 neighborhood: p.Neighborhood || '',
                 delivery: p.Delivery, image: p.ImageURL, website: p.OfficialWebsite,
                 projectType: p.ProjectType,
