@@ -5348,6 +5348,37 @@
       // Intent router: a classified PROJECT query gets the full hero even if the
       // alphanumeric match is fuzzy (typos), as long as the top result is solid.
       if (opts && opts.intent && opts.intent.kind === 'project' && pScored[0].s >= 2) _exactName = true;
+      // NAMED BY TITLE + PLACE: people name a project the way they remember it
+      // ("mercedes benz miami" for Mercedes-Benz Places in Miami), so the query
+      // rarely contains the literal full title and the containment test above
+      // misses. When EVERY meaningful token the user typed is accounted for by
+      // THIS project's own title or its location, and at least one of them hit
+      // the title, they named this project and nothing else -- so it earns the
+      // full hero. Deliberately stricter than heroProjectEligible's 60% gate
+      // (here every token must land), which keeps city/area browses
+      // ("hotels in miami", "west palm beach") heroless per the hero policy.
+      if (!_exactName) {
+        var _mt = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
+          ? window.TmwSearchCore.filterMeaningfulTokens(toks)
+          : toks.filter(function(t){ return t.length >= 3; });
+        if (_mt.length) {
+          var _hp = pScored[0].p;
+          var _hTitle = norm(_hp.Title || '');
+          var _hLoc = norm([_hp.City, _hp.Neighborhood, _hp.CountyState, _hp.Country].filter(Boolean).join(' '));
+          var _tHits = 0, _covered = 0;
+          _mt.forEach(function(t){
+            var _inT = _hTitle.indexOf(t) >= 0, _inL = !!(_hLoc && _hLoc.indexOf(t) >= 0);
+            // The title hit must be DISTINCTIVE (a name word, not the place):
+            // "new projects in dubai" reduces to the single token "dubai",
+            // which sits in Mercedes-Benz Places Dubai's title AND its city.
+            // Counting that as a name match would hero a project on a plain
+            // city browse.
+            if (_inT && !_inL) _tHits++;
+            if (_inT || _inL) _covered++;
+          });
+          if (_tHits >= 1 && _covered === _mt.length) _exactName = true;
+        }
+      }
       if (_exactName) heroCandidates.push({ kind:'project', s: 1e5, item: pScored[0].p });
     }
     if (aScored.length) {

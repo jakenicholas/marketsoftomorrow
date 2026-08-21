@@ -1068,7 +1068,7 @@
   // journal-search-overlay.js or journal-search-core.js changes. (This file is
   // itself must-revalidate, so a compliant browser picks up the new token; once
   // it does, the versioned URL guarantees the new search code loads.)
-  var SEARCH_V = '20260820-hero-bell';
+  var SEARCH_V = '20260821-namedhero';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');
