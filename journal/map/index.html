@@ -14867,8 +14867,17 @@
         slider.value = Math.round(((START_YEAR - MIN) / (MAX - MIN)) * 100);
         applyYear(START_YEAR, START_YEAR >= MAX);
       }
-      const _iv = setInterval(()=>{ if (ready()){ clearInterval(_iv); boot(); } }, 300);
-      setTimeout(()=>clearInterval(_iv), 30000);
+      // The old poll gave up after 30s. On a slow connection the project data
+      // can take longer than that, and when it did the panel, the Future
+      // Skyline and the time scrubber never appeared AT ALL for the rest of
+      // the session — a permanently half-dead map with no way back but a
+      // reload. Poll fast at first, then slowly, and stop only once booted.
+      let _tries = 0;
+      (function _tick(){
+        if (ready()) { boot(); return; }
+        if (++_tries > 260) return;                       // ~5.5 min, then stop
+        setTimeout(_tick, _tries < 100 ? 300 : 2000);     // 30s fast, then easy
+      })();
     })();
 
     function updateResultCount(targetId) {
