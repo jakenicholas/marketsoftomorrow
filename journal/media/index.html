@@ -624,15 +624,6 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .mot-cc-frame{height:560px} .tmw-wordmark{width:80px}
 }
 
-/* TMW Pro video embed (from /pro) */
-.videoWrap{position:relative; width:100%; max-width:none; margin:0 auto; aspect-ratio:16/11.5; border-radius:18px; overflow:hidden; border:1px solid var(--hair); box-shadow:0 30px 80px rgba(0,0,0,.6); background:#0c0c0e}
-.videoWrap video{width:100%; height:100%; object-fit:cover; display:block}
-.vidbtn{position:absolute; right:16px; bottom:16px; z-index:2; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:rgba(8,8,10,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.18); box-shadow:0 4px 16px rgba(0,0,0,.4); transition:background .15s, transform .05s}
-.vidbtn:hover{background:rgba(8,8,10,.82)}
-.vidbtn:active{transform:scale(.94)}
-.vidbtn svg{width:18px; height:18px; display:block; fill:#fff}
-.vidbtn svg[hidden]{display:none}
-.vidbtn-mute{right:66px}
 
 /* info tooltip: always overlay above the tiles (fix stacking-context clipping) */
 .info-pop{z-index:200}
@@ -681,16 +672,6 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <div class="eyebrow reveal">The Network</div>
       <h2 class="reveal d1">A powerhouse<br class="m-br"> <span class="nowrap">news network</span><br>for what's next</h2>
       <p class="lede reveal d2">A reach snapshot across <span class="hl-gold">every outlet</span> &mdash;<br class="m-br"> the audience, the engagement, and<br class="m-br"> the markets where it all lands.</p>
-    </div>
-    <div class="videoWrap reveal" style="margin:42px auto 54px">
-      <video id="proVid" muted loop playsinline preload="auto">
-        <source src="https://media.oftmw.com/2026/06/b0cf8086d3bb-Introducing_TMWPro_Desktop.mp4" type="video/mp4">
-      </video>
-      <button class="vidbtn vidbtn-mute" id="muteBtn" type="button" aria-label="Unmute"><svg class="ic-soundon" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg><svg class="ic-soundoff" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><line x1="16.5" y1="9.5" x2="21.5" y2="14.5" stroke="#fff" stroke-width="2" stroke-linecap="round"></line><line x1="21.5" y1="9.5" x2="16.5" y2="14.5" stroke="#fff" stroke-width="2" stroke-linecap="round"></line></svg></button>
-      <button class="vidbtn" id="playPause" type="button" aria-label="Pause">
-        <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
-        <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true" hidden><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
-      </button>
     </div>
     <div class="headstats">
       <div class="statcard glass reveal d1"><div class="num">10.2M</div><div class="lab">Monthly social views</div></div>
@@ -1464,39 +1445,6 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
 <!-- Universal Partners spotlight slider (shared, synced — /_shared/partners.js) -->
 <script src="/_shared/partners.js" defer></script>
 
-<script>
-(function(){
-  var v=document.getElementById('proVid'), pp=document.getElementById('playPause');
-  var icPause=pp?pp.querySelector('.ic-pause'):null, icPlay=pp?pp.querySelector('.ic-play'):null;
-  var mb=document.getElementById('muteBtn');
-  var icOn=mb?mb.querySelector('.ic-soundon'):null, icOff=mb?mb.querySelector('.ic-soundoff'):null;
-  var audioLocked=false;   // user took manual control of the sound
-  var userPaused=false;    // user explicitly paused — don't let scrolling auto-resume
-  // Pause button <-> play button: pause icon while playing, play icon while paused.
-  // NOTE: use toggleAttribute, NOT el.hidden — these icons are <svg> (SVGElement),
-  // which does not reflect the `hidden` IDL property to the attribute, so `.hidden=`
-  // silently fails to match the `svg[hidden]{display:none}` rule and the icon never swaps.
-  function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.toggleAttribute('hidden',!playing); if(icPlay)icPlay.toggleAttribute('hidden',playing); pp.setAttribute('aria-label',playing?'Pause':'Play'); }
-  // Sound button: speaker while unmuted, muted-speaker while muted.
-  function syncMute(){ if(!mb||!v)return; if(icOn)icOn.toggleAttribute('hidden',v.muted); if(icOff)icOff.toggleAttribute('hidden',!v.muted); mb.setAttribute('aria-label',v.muted?'Unmute':'Mute'); }
-  if(v){ v.addEventListener('play',syncIcon); v.addEventListener('pause',syncIcon); v.addEventListener('volumechange',syncMute); syncIcon(); syncMute(); }
-  // NEVER auto-start on load — only once the video is actually IN FRAME.
-  function playInView(){ if(!v||userPaused)return; var p=v.play(); if(p&&p.catch){ p.catch(function(){ v.muted=true; syncMute(); v.play().catch(function(){}); }); } }
-  function unmuteVid(){ if(audioLocked||!v)return; v.muted=false; var pr=v.play(); if(pr&&pr.catch){ pr.catch(function(){ v.muted=true; v.play().catch(function(){}); }); } syncMute(); }
-  // Manual play/pause — records intent so the viewport gate won't fight the user.
-  if(pp) pp.addEventListener('click', function(e){ e.stopPropagation(); if(v.paused){ userPaused=false; v.muted=false; v.play().catch(function(){ v.muted=true; v.play().catch(function(){}); }); } else { userPaused=true; v.pause(); } });
-  // Sound toggle.
-  if(mb) mb.addEventListener('click', function(e){ e.stopPropagation(); audioLocked=true; v.muted=!v.muted; if(!v.muted){ v.play().catch(function(){}); } syncMute(); });
-  // Viewport gate: start playing when it scrolls into view, pause when it fully leaves,
-  // unmute once it's at least halfway on screen.
-  if(v && 'IntersectionObserver' in window){
-    var vio=new IntersectionObserver(function(es){ es.forEach(function(en){
-      if(en.isIntersecting){ playInView(); if(en.intersectionRatio>=.5) unmuteVid(); }
-      else if(en.intersectionRatio===0 && !v.paused){ v.pause(); }
-    }); },{threshold:[0,.5,1]}); vio.observe(v);
-  }
-})();
-</script>
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 <script>
