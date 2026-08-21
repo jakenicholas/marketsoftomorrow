@@ -71,32 +71,42 @@
   }
 
   var CSS = [
-    /* The pill itself is neutral dark gray; only the avatar and the count
-       carry the purple, so the button reads as chrome, not as an alert. */
-    '.tmw-dashbtn{display:inline-flex;align-items:center;gap:9px;padding:5px 13px 5px 6px;border-radius:999px;',
-      'border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);text-decoration:none;cursor:pointer;',
+    /* ── The capsule ──────────────────────────────────────────────────────
+       ONE outer border, hairline seams between segments, and no avatar circle.
+       The old pill nested a gold ring around a gold face inside a gold-tinted
+       border — three concentric outlines inside 34px, which is what made the
+       mobile corner read as a bullseye. Here identity (initials + DASHBOARD)
+       shares one segment because it is one thought, and the tier is the only
+       thing set apart. Mobile just drops the word, leaving JN | PRO. */
+    '.tmw-dashbtn{display:inline-flex;align-items:center;height:34px;border-radius:999px;overflow:hidden;',
+      'border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);text-decoration:none;cursor:pointer;',
       'transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;flex:0 0 auto}',
-    '.tmw-dashbtn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.26);',
-      'transform:translateY(-1px)}',
-    '.tmw-dashbtn .db-face{width:24px;height:24px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;',
-      'background:linear-gradient(135deg,#B9A6FF,#6d4fd6);color:#12091f;font:800 10px/1 "Inter",-apple-system,sans-serif;letter-spacing:.02em}',
+    '.tmw-dashbtn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.24);transform:translateY(-1px)}',
+    '.tmw-dashbtn .db-seg{display:inline-flex;align-items:center;height:100%;padding:0 12px}',
+    '.tmw-dashbtn .db-seg + .db-seg{border-left:1px solid rgba(255,255,255,.14)}',
+    '.tmw-dashbtn .db-id{gap:10px;padding:0 13px}',
+    '.tmw-dashbtn .db-face{font:800 10.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.04em;color:#fff}',
     '.tmw-dashbtn .db-lbl{font:700 10.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.13em;text-transform:uppercase;',
       'color:#D8DCD9;white-space:nowrap}',
-    /* Tier: gold = membership (purple stays the activity color). Pro warms the
-       pill border, turns the avatar gold with a gold ring, and states PRO;
-       free states FREE in a quiet outline tag that opens the Go Pro screen. */
-    '.tmw-dashbtn.db-pro{border-color:rgba(230,197,116,.42)}',
-    '.tmw-dashbtn.db-pro .db-face{background:linear-gradient(135deg,#f0d68a,#caa84f);',
-      'box-shadow:0 0 0 1.5px rgba(7,8,7,.9),0 0 0 3px #E6C574,0 0 10px rgba(230,197,116,.45)}',
-    '.tmw-dashbtn .db-tier{font:800 8.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.14em;margin-left:-2px;white-space:nowrap}',
-    '.tmw-dashbtn .db-tier.pro{color:#12091f;background:linear-gradient(135deg,#f0d68a,#caa84f);padding:3px 6px;border-radius:5px}',
-    '.tmw-dashbtn .db-tier.free{color:#6f776f;border:1px solid rgba(255,255,255,.14);padding:2px 6px;border-radius:5px;cursor:pointer;transition:border-color .15s,color .15s}',
-    '.tmw-dashbtn .db-tier.free:hover{border-color:rgba(230,197,116,.6);color:#E6C574}',
-    '.tmw-dashbtn .db-tier[hidden]{display:none}',
-    /* the bell's number now lives in the button */
+    '.tmw-dashbtn .db-tier{font:800 9px/1 "Inter",-apple-system,sans-serif;letter-spacing:.15em;color:#6f776f;white-space:nowrap}',
+    /* Tier: gold = membership (purple stays the activity colour, on the dock
+       bell). Pro tints the whole capsule; free stays neutral and its segment
+       is the Go Pro tap target. */
+    '.tmw-dashbtn.db-pro{border-color:rgba(230,197,116,.5);background:rgba(230,197,116,.09)}',
+    '.tmw-dashbtn.db-pro:hover{border-color:rgba(230,197,116,.75);background:rgba(230,197,116,.14)}',
+    '.tmw-dashbtn.db-pro .db-seg + .db-seg{border-left-color:rgba(230,197,116,.32)}',
+    '.tmw-dashbtn.db-pro .db-face{color:#f0d68a}',
+    '.tmw-dashbtn.db-pro .db-lbl{color:#F2E6C4}',
+    '.tmw-dashbtn.db-pro .db-tier{color:#E6C574}',
+    '.tmw-dashbtn .db-tierseg{cursor:pointer;transition:background .15s}',
+    '.tmw-dashbtn:not(.db-pro) .db-tierseg:hover{background:rgba(230,197,116,.1)}',
+    '.tmw-dashbtn:not(.db-pro) .db-tierseg:hover .db-tier{color:#E6C574}',
+    '.tmw-dashbtn .db-tierseg[hidden]{display:none}',
+    /* the bell's number now lives on the dock */
     '.tmw-auth .tmw-pulse-bell.tmw-db-hidden,.tmw-auth .v2-profile-btn.tmw-db-hidden{display:none !important}',
-    /* Mobile: the label drops but the tier tag STAYS — the avatar alone does not state pro vs free. */
-    '@media(max-width:720px){.tmw-dashbtn .db-lbl{display:none}.tmw-dashbtn{padding:5px 9px 5px 6px;gap:7px}}'
+    /* Mobile: drop the word and the capsule becomes JN | PRO. */
+    '@media(max-width:720px){.tmw-dashbtn .db-lbl{display:none}.tmw-dashbtn{height:32px}',
+      '.tmw-dashbtn .db-seg{padding:0 10px}.tmw-dashbtn .db-id{padding:0 11px}}'
   ].join('');
 
   function injectCss() {
@@ -126,11 +136,12 @@
     a.className = 'tmw-dashbtn';
     a.href = '/dashboard/';
     a.setAttribute('aria-label', 'Open your dashboard');
-    a.innerHTML = '<span class="db-face">' + initials() + '</span>'
-      + '<span class="db-lbl">Dashboard</span>'
-      + '<span class="db-tier" hidden></span>';
+    a.innerHTML = '<span class="db-seg db-id"><span class="db-face">' + initials() + '</span>'
+      +   '<span class="db-lbl">Dashboard</span></span>'
+      + '<span class="db-seg db-tierseg" hidden><span class="db-tier"></span></span>';
     // Tier read: journal-auth's durable signal ('pro' | 'in' | 'out'). The button
     // only exists signed-in, so anything that isn't 'pro' paints as FREE.
+    var tierSeg = a.querySelector('.db-tierseg');
     var tierEl = a.querySelector('.db-tier');
     function paintTier() {
       var pro = false;
@@ -138,13 +149,14 @@
       a.classList.toggle('db-pro', pro);
       tierEl.textContent = pro ? 'PRO' : 'FREE';
       tierEl.className = 'db-tier ' + (pro ? 'pro' : 'free');
-      tierEl.hidden = false;
+      tierSeg.className = 'db-seg db-tierseg ' + (pro ? 'pro' : 'free');
+      tierSeg.hidden = false;
     }
     paintTier();
     // FREE tag → the Go Pro screen (all viewports; a free member tapping the
     // tier wants the upgrade, not the dashboard).
     a.addEventListener('click', function (ev) {
-      var t = ev.target.closest && ev.target.closest('.db-tier.free');
+      var t = ev.target.closest && ev.target.closest('.db-tierseg.free');
       if (!t) return;
       ev.preventDefault(); ev.stopPropagation();
       if (window.tmwWelcome && window.tmwWelcome.pro && window.tmwWelcome.pro({ source: 'dashbtn_free_tag' })) return;
