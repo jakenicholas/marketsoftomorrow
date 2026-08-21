@@ -17,7 +17,7 @@ and keeps the payload small.
 
   python3 tools/build_city_skyline.py [--dry] [--min-height 60]
 """
-import argparse, json, math, pathlib, re, subprocess, sys, time
+import argparse, json, math, os, pathlib, re, subprocess, sys, time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -95,11 +95,16 @@ def main():
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--min-height", type=float, default=60.0)
     ap.add_argument("--markets", type=int, default=0, help="limit to the N biggest")
+    ap.add_argument("--force-shrink", action="store_true",
+                    help="write even if the harvest is far smaller than the file on disk")
     a = ap.parse_args()
 
     import mvt
-    tok = re.search(r'pk\.eyJ[A-Za-z0-9._-]+',
-                    (ROOT / "journal/map/index.html").read_text()).group(0)
+    # CI hands the token in; locally fall back to the one the map already ships.
+    tok = os.environ.get("MAPBOX_TOKEN", "").strip()
+    if not tok:
+        tok = re.search(r'pk\.eyJ[A-Za-z0-9._-]+',
+                        (ROOT / "journal/map/index.html").read_text()).group(0)
 
     markets = load_markets()
     if a.markets: markets = markets[:a.markets]
@@ -145,6 +150,20 @@ def main():
             out[key] = [round(cx, 5), round(cy, 5), round(w), round(l),
                         round(brg), round(h)]
     rows = sorted(out.values(), key=lambda r: -r[5])
+    # A refresh runs unattended on a schedule. If a bad token, an API outage or
+    # a network fault starves the harvest, writing the result would quietly
+    # replace a good city with an empty one — so refuse to shrink sharply.
+    if OUT.exists():
+        try:
+            prev = len(json.loads(OUT.read_text()))
+        except Exception:
+            prev = 0
+        if prev and len(rows) < prev * 0.6:
+            print(f"ABORT: harvested {len(rows)} buildings vs {prev} on file "
+                  f"({len(rows)/prev:.0%}). Refusing to overwrite — rerun or "
+                  f"pass --force-shrink if the drop is real.", file=sys.stderr)
+            if not a.force_shrink:
+                sys.exit(1)
     OUT.write_text(json.dumps(rows, separators=(",", ":")))
     print(f"\n{len(rows)} tall buildings -> {OUT} ({OUT.stat().st_size//1024} KB)")
 

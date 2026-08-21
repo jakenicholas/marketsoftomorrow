@@ -1,0 +1,101 @@
+# File: .github/workflows/refresh-city-skyline.yml
+# Refreshes journal/map/city-skyline.json — our own harvest of every building
+# over 60m across our markets, used by the Future Skyline's tmw-sky-city layer
+# from z10.5 to z15. It exists because mapbox-streets-v8 carries almost no
+# building geometry below z15 (per Manhattan tile: z13 -> 9 buildings, z14 ->
+# 50, z15 -> 1376) and GL cannot underzoom to borrow the z15 tiles.
+#
+# It reads the SAME z15 tiles the basemap draws from, so a refresh also picks up
+# anything Mapbox has shipped since the last run. Quarterly is plenty: buildings
+# over 60m do not appear quickly, and the layer hands off to the live basemap
+# at z15 anyway. Derived file only; never touches projects.json.
+
+name: Refresh City Skyline
+
+on:
+  schedule:
+    # 5th of Jan / Apr / Jul / Oct, 07:00 UTC — tall buildings appear slowly
+    - cron: '0 7 5 1,4,7,10 *'
+  workflow_dispatch:
+    inputs:
+      min_height:
+        description: 'Minimum building height in metres'
+        required: false
+        default: '60'
+      force_shrink:
+        description: 'Write even if the harvest is far smaller than the file on disk'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Harvest tall buildings
+        env:
+          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+        run: |
+          FLAGS="--min-height ${{ github.event.inputs.min_height || '60' }}"
+          [ "${{ github.event.inputs.force_shrink }}" = "true" ] && FLAGS="$FLAGS --force-shrink"
+          python3 tools/build_city_skyline.py $FLAGS
+
+      - name: Commit if changed
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add journal/map/city-skyline.json
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            # Commit BEFORE rebasing — autostash pops as unstaged and empties
+            # the commit; a committed change rebases cleanly instead.
+            git commit -m "city-skyline: quarterly refresh"
+            git pull --rebase origin main
+            git push
+          fi
+
+      - name: Configure Pages
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/configure-pages@v6
+      - name: Upload Pages artifact
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: '.'
+
+  # A GITHUB_TOKEN push does not trigger pages.yml, so deploy in-workflow —
+  # same pattern (and same `pages` concurrency group) as resolve-place-context.
+  deploy:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
