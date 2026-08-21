@@ -82,17 +82,30 @@
       'background:linear-gradient(135deg,#B9A6FF,#6d4fd6);color:#12091f;font:800 10px/1 "Inter",-apple-system,sans-serif;letter-spacing:.02em}',
     '.tmw-dashbtn .db-lbl{font:700 10.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.13em;text-transform:uppercase;',
       'color:#D8DCD9;white-space:nowrap}',
-    '.tmw-dashbtn .db-n{font:800 10px/1.5 "Inter",-apple-system,sans-serif;color:#12091f;background:#B9A6FF;',
-      'padding:2px 7px;border-radius:999px;min-width:19px;text-align:center;box-shadow:0 0 12px rgba(185,166,255,.6);',
-      'cursor:pointer;transition:transform .12s,box-shadow .15s}',
-    '.tmw-dashbtn .db-n:hover{transform:scale(1.12);box-shadow:0 0 18px rgba(185,166,255,.95)}',
-    /* zero state: the chip becomes a small dim bell so the dropdown stays reachable */
-    '.tmw-dashbtn .db-n.db-zero{background:rgba(185,166,255,.16);box-shadow:none;padding:2px 6px;display:inline-flex;align-items:center;justify-content:center}',
-    '.tmw-dashbtn .db-n.db-zero svg{width:11px;height:11px;display:block;stroke:#B9A6FF;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
+    /* Pulse chip: bell + number (translucent lavender, count in purple), replacing
+       the old solid-purple number chip. Zero state drops the number and dims. */
+    '.tmw-dashbtn .db-n{display:inline-flex;align-items:center;justify-content:center;gap:4px;',
+      'font:800 10px/1.5 "Inter",-apple-system,sans-serif;color:#B9A6FF;background:rgba(185,166,255,.16);',
+      'padding:2px 8px;border-radius:999px;min-width:19px;text-align:center;',
+      'cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}',
+    '.tmw-dashbtn .db-n:hover{transform:scale(1.08);background:rgba(185,166,255,.26);box-shadow:0 0 14px rgba(185,166,255,.5)}',
+    '.tmw-dashbtn .db-n svg{width:11px;height:11px;display:block;stroke:#B9A6FF;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
+    '.tmw-dashbtn .db-n.db-zero{opacity:.75;padding:2px 6px}',
     '.tmw-dashbtn .db-n[hidden]{display:none}',
+    /* Tier: gold = membership (purple stays the activity color). Pro warms the
+       pill border, turns the avatar gold with a gold ring, and states PRO;
+       free states FREE in a quiet outline tag that opens the Go Pro screen. */
+    '.tmw-dashbtn.db-pro{border-color:rgba(230,197,116,.42)}',
+    '.tmw-dashbtn.db-pro .db-face{background:linear-gradient(135deg,#f0d68a,#caa84f);',
+      'box-shadow:0 0 0 1.5px rgba(7,8,7,.9),0 0 0 3px #E6C574,0 0 10px rgba(230,197,116,.45)}',
+    '.tmw-dashbtn .db-tier{font:800 8.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.14em;margin-left:-2px;white-space:nowrap}',
+    '.tmw-dashbtn .db-tier.pro{color:#12091f;background:linear-gradient(135deg,#f0d68a,#caa84f);padding:3px 6px;border-radius:5px}',
+    '.tmw-dashbtn .db-tier.free{color:#6f776f;border:1px solid rgba(255,255,255,.14);padding:2px 6px;border-radius:5px;cursor:pointer;transition:border-color .15s,color .15s}',
+    '.tmw-dashbtn .db-tier.free:hover{border-color:rgba(230,197,116,.6);color:#E6C574}',
+    '.tmw-dashbtn .db-tier[hidden]{display:none}',
     /* the bell's number now lives in the button */
     '.tmw-auth .tmw-pulse-bell.tmw-db-hidden,.tmw-auth .v2-profile-btn.tmw-db-hidden{display:none !important}',
-    '@media(max-width:720px){.tmw-dashbtn .db-lbl{display:none}.tmw-dashbtn{padding:5px 8px 5px 6px}}'
+    '@media(max-width:720px){.tmw-dashbtn .db-lbl,.tmw-dashbtn .db-tier{display:none}.tmw-dashbtn{padding:5px 8px 5px 6px}}'
   ].join('');
 
   function injectCss() {
@@ -130,14 +143,28 @@
     a.setAttribute('aria-label', 'Open your dashboard');
     a.innerHTML = '<span class="db-face">' + initials() + '</span>'
       + '<span class="db-lbl">Dashboard</span>'
+      + '<span class="db-tier" hidden></span>'
       + '<span class="db-n"></span>';
     var n = a.querySelector('.db-n');
     var BELL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
     function paint(c) {
-      if (c > 0) { n.textContent = c > 99 ? '99+' : String(c); n.classList.remove('db-zero'); }
+      // Bell + number, always; at zero the number drops and the chip dims.
+      if (c > 0) { n.innerHTML = BELL_SVG + '<b>' + (c > 99 ? '99+' : String(c)) + '</b>'; n.classList.remove('db-zero'); }
       else { n.innerHTML = BELL_SVG; n.classList.add('db-zero'); }
       n.hidden = false;
     }
+    // Tier read: journal-auth's durable signal ('pro' | 'in' | 'out'). The button
+    // only exists signed-in, so anything that isn't 'pro' paints as FREE.
+    var tierEl = a.querySelector('.db-tier');
+    function paintTier() {
+      var pro = false;
+      try { pro = localStorage.getItem('tmw_auth_state') === 'pro'; } catch (e) {}
+      a.classList.toggle('db-pro', pro);
+      tierEl.textContent = pro ? 'PRO' : 'FREE';
+      tierEl.className = 'db-tier ' + (pro ? 'pro' : 'free');
+      tierEl.hidden = false;
+    }
+    paintTier();
     // ── The split pill (2026-07-30, mobile flip 2026-08-05) ──
     // Desktop: the label/avatar navigate to /dashboard/; the COUNT is its own
     // button that opens the Pulse dropdown (journal-dock.js still builds it —
@@ -155,6 +182,15 @@
         ev.preventDefault(); ev.stopPropagation();
         pop.hidden = !pop.hidden;
       }
+    });
+    // FREE tag → the Go Pro screen (all viewports; a free member tapping the
+    // tier wants the upgrade, not the dashboard).
+    a.addEventListener('click', function (ev) {
+      var t = ev.target.closest && ev.target.closest('.db-tier.free');
+      if (!t) return;
+      ev.preventDefault(); ev.stopPropagation();
+      if (window.tmwWelcome && window.tmwWelcome.pro && window.tmwWelcome.pro({ source: 'dashbtn_free_tag' })) return;
+      window.location.href = '/map/?upgrade=1';
     });
     function sync() {
       // The bell is the live source. Until it exists, hold the cached count so
@@ -180,6 +216,7 @@
     (function refresh() {
       var f = a.querySelector('.db-face');
       if (f) { var ini = initials(); if (ini && ini !== f.textContent) f.textContent = ini; }
+      paintTier();
       if (!live) {
         live = document.querySelector('.tmw-pulse-bell');
         if (live) {
