@@ -289,6 +289,9 @@
     '.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
     '.tmwx-search .si svg{width:100%;height:100%;display:block;overflow:visible}',
+    /* The intelligence mark reads a touch larger than the other glyphs. */
+    '.tmwx-pbtn svg.txs-mark{width:24px;height:24px}',
+    '.tmwx-search .si:has(.txs-mark){width:24px;height:24px}',
     /* Search icon <-> hexagon morph: keyframes cloned 1:1 from the old bar's
        ds-* choreography (journal-dock.js), renamed txs-*. */
     '.txs-hex-spinner{transform-origin:50% 50%;animation:txsHardSpin 8s ease-in-out infinite}',
@@ -329,7 +332,7 @@
      txs-* so the dock doesn't depend on the old pill's scoped CSS). The
      dock's one animated logo. */
   var HEX_SI =
-    '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" overflow="visible">' +
+    '<svg class="txs-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true" overflow="visible">' +
       '<g class="txs-hex-spinner">' +
         '<polygon class="txs-hex-core" points="12,4 18.93,8 18.93,16 12,20 5.07,16 5.07,8" fill="none" stroke="#A78BFA" stroke-width="1.7" stroke-linejoin="round"/>' +
       '</g>' +
