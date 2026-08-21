@@ -14575,6 +14575,22 @@
             });
             const distSlugs = new Set(Object.keys(kidsBy).filter(k => kidsBy[k].length >= 2));
             const distMeta = {};     // slug -> { uid, title, rings, top, yr }
+            // Called from BOTH build paths. A child with a hand-authored
+            // massing returns early, so accumulating only on the footprint
+            // path silently lost whole districts — all three Nora buildings
+            // have Studio massings, which is why Nora had no parcel.
+            const noteDistrictChild = (pp, ring, h) => {
+              const ps = String(pp.parentSlug || '').trim();
+              if (!ps || !distSlugs.has(ps)) return;
+              const d = distMeta[ps] = distMeta[ps] || { uid:'', title:'', rings:[], top:0, yr:0 };
+              if (!d.uid) d.uid = ps;
+              d.rings.push(ring);
+              if (h > d.top) d.top = h;
+              const m = String(pp.deliveryDate || '').match(/20\d{2}/);
+              const cy = m ? +m[0] : 0;
+              if (cy && (!d.yr || cy < d.yr)) d.yr = cy;
+              d.child = true;
+            };
             src.forEach((f, i) => {
               const p = (f && f.properties) || {};
               if (p.completed) return;                       // the future, not the past
@@ -14622,6 +14638,7 @@
                   feats.push({ type:'Feature',
                     properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:+pc.top||10, base:+pc.base||0, color: skyBodyCol((+pc.top||10) - (+pc.base||0), mv0), yr: yM0 ? +yM0[0] : 0 },
                     geometry:{ type:'Polygon', coordinates:[r2] } });
+                  noteDistrictChild(p, r2, +pc.top || 10);
                 });
                 return;
               }
@@ -14671,16 +14688,7 @@
               feats.push({ type:'Feature',
                 properties:{ uid:p.uid||'', title:p.title||'', floors:fl, height:hM, base:0, color: skyBodyCol(hM, mover), yr: yM ? +yM[0] : 0 },
                 geometry:{ type:'Polygon', coordinates:[ring] } });
-              const _ps = String(p.parentSlug || '').trim();
-              if (_ps && distSlugs.has(_ps)) {
-                const d = distMeta[_ps] = distMeta[_ps] || { uid:'', title:'', rings:[], top:0, yr:0 };
-                if (!d.uid) d.uid = _ps;
-                d.rings.push(ring);
-                if (hM > d.top) d.top = hM;
-                const cy = yM ? +yM[0] : 0;
-                if (cy && (!d.yr || cy < d.yr)) d.yr = cy;
-                d.child = true;
-              }
+              noteDistrictChild(p, ring, hM);
             });
             // Derived: breathing glow shells (scaled copies) + one roof label
             // per project — labels ride ABOVE the extrusions (symbol-z-elevate)
