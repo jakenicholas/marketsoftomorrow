@@ -18731,6 +18731,17 @@
       return (s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
     }
 
+    // Neighborhood names so common they are meaningless on their own: every
+    // city has one, so search must qualify (and thin out) these rows rather
+    // than listing a dozen near-identical hits. Match is on the WHOLE name, so
+    // "Midtown East" and "Downtown Dubai" are still treated as specific.
+    const NB_GENERIC = new Set(['downtown', 'midtown', 'uptown', 'city center', 'city centre',
+      'centro', 'old town', 'old city', 'new town', 'downtown core', 'city core',
+      'the heights', 'the village', 'the strip', 'waterfront', 'riverside', 'riverfront',
+      'west end', 'east end', 'north end', 'south end', 'west side', 'east side',
+      'financial district', 'arts district', 'historic district', 'marina district',
+      'business district', 'central business district', 'harbor', 'harbour', 'seaport']);
+
     // Frame a borough/neighborhood pick: fit its pins, then draw the dashed
     // hull ring (neighborhood-tagged pins only; boroughs just frame).
     window._frameNeighborhood = function (nb) {
@@ -18837,11 +18848,36 @@
           });
         });
         const cityNames = new Set(twmCities.map(([c]) => String(c).toLowerCase()));
-        return Object.values(byKey)
+        // A name that lives in one real place but also appears once somewhere
+        // else is almost always mis-tagged data (a Palm Beach project stamped
+        // borough "Manhattan"). When a bigger group owns the name, drop the
+        // shadowed singletons rather than showing three phantom Manhattans.
+        const maxByName = {};
+        Object.values(byKey).forEach(e => {
+          const n = e.name.toLowerCase();
+          if (!maxByName[n] || e.feats.length > maxByName[n]) maxByName[n] = e.feats.length;
+        });
+        const out = Object.values(byKey)
           .filter(e => normalizeForSearch(e.name).includes(ql))
           .filter(e => !cityNames.has(e.name.toLowerCase()))
-          .sort((a, b) => b.feats.length - a.feats.length)
-          .slice(0, 4);
+          .filter(e => !(e.feats.length === 1 && maxByName[e.name.toLowerCase()] > 1))
+          // GENERIC names are the whole problem: nearly every city on earth has
+          // a Midtown, a Downtown, a Waterfront. Three rules keep them useful
+          // instead of a wall of near-identical rows:
+          //   1. a generic row is ALWAYS city-qualified in its title
+          //      ("Midtown, Nashville") so it is self-disambiguating;
+          //   2. a generic row needs a real cluster (2+ projects) and a known
+          //      city — a lone "Midtown" is noise, and usually mis-tagged data;
+          //   3. at most 3 rows can share one generic base name.
+          .filter(e => !(NB_GENERIC.has(e.name.toLowerCase()) && (e.feats.length < 2 || !e.city)))
+          .sort((a, b) => b.feats.length - a.feats.length);
+        const perBase = {};
+        return out.filter(e => {
+          const base = e.name.toLowerCase();
+          if (!NB_GENERIC.has(base)) return true;
+          perBase[base] = (perBase[base] || 0) + 1;
+          return perBase[base] <= 3;
+        }).slice(0, 4);
       })();
 
       const hasLocal = twmCities.length > 0 || projects.length > 0 || regionMatches.length > 0 || nbMatches.length > 0;
@@ -18894,7 +18930,12 @@
           item.className = 'autocomplete-item';
           item.style.animationDelay = `${i * 0.04}s`;
           const cityLabel = e.city ? getCityLabel(e.city) : '';
-          item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${highlight(e.name, ql)}</strong><span>${e.feats.length} project${e.feats.length !== 1 ? 's' : ''}${cityLabel ? ' · ' + cityLabel : ''}</span></div>`;
+          // Generic names carry their city IN the title so two Midtowns never
+          // read as duplicates; specific names keep the city in the subtitle.
+          const generic = NB_GENERIC.has(e.name.toLowerCase());
+          const title = generic && e.city ? `${highlight(e.name, ql)}, ${e.city}` : highlight(e.name, ql);
+          const sub = `${e.feats.length} project${e.feats.length !== 1 ? 's' : ''}${!generic && cityLabel ? ' · ' + cityLabel : ''}`;
+          item.innerHTML = `<div class="autocomplete-icon location">${PIN_SVG}</div><div class="autocomplete-text"><strong>${title}</strong><span>${sub}</span></div>`;
           item.addEventListener('mousedown', () => onSelect({ _nb: e }, 'nb'));
           container.appendChild(item);
         });
