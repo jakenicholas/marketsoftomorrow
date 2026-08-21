@@ -14025,7 +14025,8 @@
           ".grid-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:0 0 4px}" +
           ".grid-title-row h3{flex:1;min-width:0}" +
           ".grid-recent{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#C4B5FD;padding:3px 8px;margin-top:2px;white-space:nowrap;border-radius:999px;border:1px solid rgba(167,139,250,.45);background:rgba(123,79,232,.14);box-shadow:0 0 10px rgba(139,92,246,.28);backdrop-filter:blur(4px)}" +
-          ".grid-recent i{width:6px;height:6px;border-radius:50%;background:#A78BFA;animation:tmwIlGlow 2.4s infinite}" +
+          ".grid-recent i{width:6px;height:6px;border-radius:50%;background:#A78BFA;animation:tmwRecentGlow 2.4s infinite}" +
+          "@keyframes tmwRecentGlow{0%,100%{box-shadow:0 0 4px 1px rgba(167,139,250,.4)}50%{box-shadow:0 0 8px 2px rgba(167,139,250,.85)}}" +
           ".tmw-il-legend .d{width:10px;height:10px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1px rgba(255,255,255,.18)}" +
           ".tmw-il-scrub{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:2;width:min(440px,92vw);background:rgba(14,14,18,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 14px 10px;box-shadow:0 16px 44px rgba(0,0,0,.5);font-family:'Inter',sans-serif;color:#fff;transition:opacity .15s}" +
           ".tmw-il-scrub.tmw-il-hidden{opacity:0;pointer-events:none}" +
@@ -14598,7 +14599,7 @@
           // DYNAMIC MODE: 3D towers own the close zooms; the moment the user
           // scrolls past the 3D horizon (the towers' minzoom), the pins take
           // over automatically — no dead empty map at country scale.
-          let pinsShown = null;
+          let pinsShown = null, skyPitchWant = null;
           function skyZoomSync(force){
             if (!skyOn) return;
             const three = map.getZoom() >= 12.9;
@@ -14607,8 +14608,20 @@
             if (!force && showPins === pinsShown) return;
             pinsShown = showPins;
             if (showPins) skyPinsBack(); else skyHidePins();
+            // Crossing the 3D horizon retilts the camera: flat top-down with
+            // the pins, the skyline tilt up close. Deferred to zoomend so we
+            // never hijack a wheel/pinch mid-gesture or a fly-in mid-flight.
+            skyPitchWant = three ? 62 : 0;
           }
           try { map.on('zoom', ()=>skyZoomSync(false)); } catch(e){}
+          try { map.on('zoomend', ()=>{
+            if (!skyOn || skyPitchWant === null) return;
+            // Stay armed until the target pitch is actually reached — a wheel
+            // tick can interrupt the ease mid-tilt, and the next zoomend
+            // re-fires it instead of leaving the camera stuck halfway.
+            if (Math.abs(map.getPitch() - skyPitchWant) < 1) { skyPitchWant = null; return; }
+            try { map.easeTo({ pitch: skyPitchWant, duration: 700 }); } catch(e){}
+          }); } catch(e){}
           window._skyZoomSync = skyZoomSync;
           // Sync with the Delivering-by-year scrubber: towers appear as their
           // year comes into range, exactly like the pins. Watches _scrubYear
