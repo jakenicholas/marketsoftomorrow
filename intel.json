@@ -11405,6 +11405,49 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
+    "rosewood-tokyo": {
+      "estimate_years": 4.7,
+      "estimate_label": "~4.7 years",
+      "range_low": 4.3,
+      "range_high": 5.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.64,
+      "avg_distance_km": 10846.9,
+      "avg_distance_mi": 6739.9,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Mori Building",
+        "count": 1,
+        "median_years": 4.25,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Tokyo",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.64,
+          "distance_km": 10846.9,
+          "distance_mi": 6739.9
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–5.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": true
+    },
     "the-halcyon-residences-marina": {
       "estimate_years": 2.4,
       "estimate_label": "~2.4 years",
@@ -17881,14 +17924,14 @@
   "stats": {
     "high": 10,
     "medium": 24,
-    "low": 99,
+    "low": 100,
     "known_date": 572,
     "completed": 71,
-    "skipped": 125,
+    "skipped": 124,
     "no_type": 0,
-    "firm_boosted": 55,
+    "firm_boosted": 56,
     "speculative_softened": 230,
     "district": 14,
-    "mixed_use_adjusted": 35
+    "mixed_use_adjusted": 36
   }
 }
