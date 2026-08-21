@@ -1088,7 +1088,7 @@
       // BUMP DOCK_V whenever tmw-mobile-dock.js changes — same reason as
       // SEARCH_V: aggressive mobile caches (and any zone-level Browser Cache
       // TTL) hold the old file for hours otherwise.
-      var DOCK_V = '20260820b';
+      var DOCK_V = '20260820c';
       var d = document.createElement('script');
       d.src = '/_shared/tmw-mobile-dock.js?v=' + DOCK_V;
       d.defer = true;

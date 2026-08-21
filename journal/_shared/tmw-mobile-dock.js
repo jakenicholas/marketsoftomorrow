@@ -348,7 +348,9 @@
     b.className = 'tmwx-pbtn' + (t.cls ? ' ' + t.cls : '') + (t.on ? ' on' : '');
     b.setAttribute('aria-label', t.t);
     b.setAttribute('data-tip', t.t);
-    b.innerHTML = svg(I[t.ic]);
+    /* The Search pill wears the signature spinning hexagon, same as the
+       tray's search bar - intelligence search is the hexagon everywhere. */
+    b.innerHTML = (t.ic === 'search') ? HEX_SI : svg(I[t.ic]);
     if (t.cls === 'bell') { b.innerHTML += '<span class="tmwx-nbadge" hidden></span>'; bellBtn = b; }
     b.addEventListener('click', t.act);
     pill.appendChild(b);
