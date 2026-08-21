@@ -157,9 +157,15 @@ def main():
         byslug = {p["slug"]: p for p in projects}
         dropped = 0
         for slug, v in list(result.items()):
+            if slug.endswith("#demo"):
+                continue
             pr = byslug.get(slug)
             if is_ring(v) and pr and not plausible(area_m2([tuple(x) for x in v]), pr["gfa"], pr["fl"]):
                 r0 = [tuple(x) for x in v]
+                # The rejected ring IS the old building on the redevelopment
+                # site — keep it as a demolition mask so the map can hide the
+                # basemap's copy of it under the new tower.
+                result[slug + "#demo"] = v
                 result[slug] = [longest_edge_bearing(r0), *centroid(r0)]
                 dropped += 1
         if dropped:
@@ -180,9 +186,16 @@ def main():
         for p in chunk:
             lng, lat = p["lng"], p["lat"]
             near = [(r, a) for r, a in rings if dist_m(r, lng, lat) <= RADIUS + 50]
-            containing = sorted((x for x in near if MIN_AREA <= x[1] <= MAX_AREA
-                                 and plausible(x[1], p["gfa"], p["fl"]) and contains(x[0], lng, lat)),
-                                key=lambda x: x[1])
+            containing_all = sorted((x for x in near if MIN_AREA <= x[1] <= MAX_AREA
+                                     and contains(x[0], lng, lat)), key=lambda x: x[1])
+            containing = [x for x in containing_all if plausible(x[1], p["gfa"], p["fl"])]
+            # A containing ring the plausibility guard rejects = the OLD
+            # building still standing on the site — capture it as a
+            # demolition mask for the skyline's existing-building clip.
+            demo = next((x for x in containing_all
+                         if not plausible(x[1], p["gfa"], p["fl"])), None)
+            if demo:
+                result[p["slug"] + "#demo"] = [[round(x, 6), round(y, 6)] for x, y in decimate(demo[0])]
             if containing:
                 ring = containing[0][0]
             else:
@@ -196,9 +209,10 @@ def main():
                     continue
             result[p["slug"]] = [[round(x, 6), round(y, 6)] for x, y in decimate(ring)]
         time.sleep(3)
-    footprints = sum(1 for v in result.values() if is_ring(v))
-    bearings = len(result) - footprints
-    print(f"\n{footprints} real footprints, {bearings} bearing-only, "
+    demos = sum(1 for k in result if k.endswith("#demo"))
+    footprints = sum(1 for k, v in result.items() if is_ring(v) and not k.endswith("#demo"))
+    bearings = len(result) - footprints - demos
+    print(f"\n{footprints} real footprints, {bearings} bearing-only, {demos} demolition masks, "
           f"{len(projects) - len(result)} no data (axis-aligned fallback)")
     OUT.write_text(json.dumps(result, separators=(",", ":")))
     print(f"wrote {OUT} ({OUT.stat().st_size // 1024} KB)")

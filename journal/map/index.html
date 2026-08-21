@@ -14384,6 +14384,8 @@
           let _skyShell = { type:'FeatureCollection', features:[] }, _skyLabels = { type:'FeatureCollection', features:[] }, _skyClip = null;
           function skyRingCentroid(r){ const n = r.length - 1; let x = 0, y = 0; for (let i = 0; i < n; i++){ x += r[i][0]; y += r[i][1]; } return [x/n, y/n]; }
           function skyScaleRing(r, f){ const c = skyRingCentroid(r); return r.map(pt => [c[0] + (pt[0]-c[0])*f, c[1] + (pt[1]-c[1])*f]); }
+          // 'within' silently no-ops on CW rings — normalize to CCW (shoelace).
+          function skyCCW(r){ let s = 0; for (let i = 0; i < r.length - 1; i++) s += (r[i+1][0]-r[i][0]) * (r[i+1][1]+r[i][1]); return s > 0 ? r.slice().reverse() : r; }
           function skySetData(){
             try {
               const s = map.getSource(SKY_SRC); if (s) s.setData(skyFC());
@@ -14507,9 +14509,20 @@
             _skyShell = { type:'FeatureCollection', features: auraFeats };
             // Demolition mask: existing basemap buildings standing fully inside
             // a pipeline parcel are assumed cleared for construction — the
-            // 'within' filter on the existing layer hides them.
+            // 'within' filter on the existing layer hides them. Redevelopment
+            // sites get a second mask: the OLD building's own OSM ring
+            // (slug#demo entries the footprints script captures when it rejects
+            // an implausibly large ring), so a big teardown that pokes out past
+            // the new parcel still disappears instead of battling the tower.
+            const demoRings = [];
+            if (window._skyFoot) for (const k in window._skyFoot) {
+              if (k.slice(-5) === '#demo') {
+                const r = window._skyFoot[k];
+                if (Array.isArray(r) && Array.isArray(r[0])) demoRings.push([ skyScaleRing(skyCCW(r.map(pt => [+pt[0], +pt[1]])), 1.05) ]);
+              }
+            }
             _skyClip = { type:'MultiPolygon',
-              coordinates: feats.map(ft => [ skyScaleRing(ft.geometry.coordinates[0], 1.2) ]) };
+              coordinates: feats.map(ft => [ skyScaleRing(ft.geometry.coordinates[0], 1.2) ]).concat(demoRings) };
             _skyLabels = { type:'FeatureCollection', features: Object.values(best).map(b => ({
               type:'Feature',
               properties:{ uid:b.uid, title:(typeof shortName === 'function' ? shortName(b.title) : b.title), yr:b.yr },
