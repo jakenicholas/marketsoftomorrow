@@ -9982,7 +9982,7 @@ export class OnyxRun {
     setStudioActor('onyx-admin');
 
     const tools = studioToolDefs();
-    if (tools.length) tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
+    if (tools.length) tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '5m' };
     tools.push({ type: 'web_search_20250305', name: 'web_search', max_uses: 16 });
 
     const convo = this.getJSON('convo', []);
@@ -10003,7 +10003,7 @@ export class OnyxRun {
           model: ONYX_MODEL,
           max_tokens: 8000,
           thinking: { type: 'adaptive' },
-          system: [{ type: 'text', text: sysText, cache_control: { type: 'ephemeral', ttl: '1h' } }],
+          system: [{ type: 'text', text: sysText, cache_control: { type: 'ephemeral', ttl: '5m' } }],
           tools,
           messages: convo,
         }),
@@ -10091,7 +10091,7 @@ async function onyxStudioAct(env, { message, context, surface, subject, history 
 
   const tools = studioToolDefs();
   if (!tools.length) return null;
-  tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '1h' };
+  tools[tools.length - 1].cache_control = { type: 'ephemeral', ttl: '5m' };
   tools.push({ type: 'web_search_20250305', name: 'web_search', max_uses: 8 });
 
   const sys = [
@@ -10131,7 +10131,7 @@ async function onyxStudioAct(env, { message, context, surface, subject, history 
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
           model: ONYX_MODEL, max_tokens: 3000,
-          system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral', ttl: '1h' } }],
+          system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral', ttl: '5m' } }],
           tools, messages: convo,
         }),
       });
@@ -10729,7 +10729,7 @@ async function handleAnalystChat(req, env, origin) {
         // 1h cache on the system block: tools + system are identical across every
         // question in a session, so follow-ups replay the prefix from cache.
         body: JSON.stringify({ model, max_tokens: 1600, tools: ANALYST_TOOLS,
-          system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral', ttl: '1h' } }], messages }),
+          system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral', ttl: '5m' } }], messages }),
       });
       if (r.status === 429 || r.status === 529 || r.status >= 500) { await _napMs(1000 * (attempt + 1)); continue; }
       if (!r.ok) {
@@ -16457,15 +16457,14 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500, retri
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        // Cache the assembled-brain system block at 1h TTL: a generate→revise
-        // loop on the same draft, and the day's several article generations,
-        // re-send the identical large brain — but a human reviews between passes,
-        // so gaps routinely exceed the 5m default and the cache would expire
-        // unread (paying the write, never the read). 1h spans a real editing
-        // session. Fable input is $10/MTok, so reads repay the 2x write fast.
+        // Cache the system block at 5m TTL. The 1h bet lost in production: the
+        // brain is assembled PER TOPIC, so the day's drafts never share a prefix
+        // and measured amortization was 0.16x — paying 2x input to write caches
+        // nobody read. 5m still catches back-to-back generate→revise bursts and
+        // a miss costs 1.25x instead of 2x.
         // Below the cacheable minimum it silently no-ops.
         body: JSON.stringify({ model, max_tokens: maxTokens,
-          system: system ? [{ type: 'text', text: String(system), cache_control: { type: 'ephemeral', ttl: '1h' } }] : undefined,
+          system: system ? [{ type: 'text', text: String(system), cache_control: { type: 'ephemeral', ttl: '5m' } }] : undefined,
           messages: [{ role: 'user', content: String(user) }] }),
       });
       // Transient overload (429 rate limit / 529 overloaded / 5xx): back off and
@@ -17970,7 +17969,7 @@ async function handleSmartAnswer(request, env, origin) {
       // stay in the user message. GA, no beta header; a prefix under the model's
       // cacheable minimum silently no-ops.
       system: [
-        { type: 'text', text: system, cache_control: { type: 'ephemeral', ttl: '1h' } },
+        { type: 'text', text: system, cache_control: { type: 'ephemeral', ttl: '5m' } },
       ].concat((useWeb ? (systemExtra + WEB_CLAUSE) : systemExtra).trim()
         ? [{ type: 'text', text: (useWeb ? (systemExtra + WEB_CLAUSE) : systemExtra).trim() }] : []),
       messages: history.flatMap(t => ([
