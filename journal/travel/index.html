@@ -126,7 +126,7 @@
   .tkwrap{flex:1 1 auto;min-width:0;overflow:hidden;
     -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 88%,transparent);
     mask-image:linear-gradient(90deg,transparent,#000 5%,#000 88%,transparent)}
-  .tkrun{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;animation:tdTick 42s linear infinite;will-change:transform}
+  .tkrun{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;animation:tdTick 64s linear infinite;will-change:transform}
   .td-tick:hover .tkrun{animation-play-state:paused}
   @keyframes tdTick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   .tk{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
@@ -778,7 +778,7 @@ function tripHtml(t, i){
     var STAY_COUNTS = { 'Four Seasons': 4, 'Ritz-Carlton': 3, 'Cabot': 2, 'Streamsong': 2, 'Nobu': 1 };
     var YEAR_COUNTS = { '2026': 30, '2025': 44, '2024': 22, '2023': 12 };
     var FIRM_COUNTS = { 'Quinn': 6, 'C&R': 5, 'Carli PR': 3, 'REM': 3 };
-    var FAVORITES = ['Iceland','Hawaii','New Zealand','Japan','Manhattan','London','The Bay Area'];
+    var FAVORITES = ['Iceland','Hawaii','New Zealand','Tokyo','Manhattan','London','The Bay Area'];
     // Home markets are not trips: counting them alongside destinations made the
     // real travel numbers unreadable (100+ vs 20) and compared two different
     // things. They pin to the top with an icon and no bar; everything below is
@@ -854,7 +854,7 @@ function tripHtml(t, i){
       +   panel(charts.markets, 'Markets Frequent',   'by visits', 8, frequentRow())
       +   panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
       + '</div>'
-      + rankPanel(FAVORITES, 'Favorite markets', 'ranked, not counted')
+      + rankPanel(FAVORITES, 'Favorite destinations', 'ranked, not counted')
       + panel(charts.firms,   'Firms we work with', 'by trips together')
       + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);
 
