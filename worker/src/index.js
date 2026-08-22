@@ -14607,6 +14607,20 @@ async function handleMassingVision(request, env, origin) {
   let body = {}; try { body = await request.json(); } catch (_) {}
   const slug = String(body.slug || '').trim();
   if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  // An uploaded SITE PLAN is far better evidence than a rendering: it is drawn
+  // to scale, north-up, and shows every block on the site. Accepts a data URL
+  // or raw base64 + mediaType.
+  let planImg = null;
+  const rawImg = String(body.image || '');
+  if (rawImg) {
+    const m = rawImg.match(/^data:(image\/[a-z.+-]+);base64,(.+)$/i);
+    const mt = m ? m[1] : String(body.mediaType || 'image/png');
+    const b64 = m ? m[2] : rawImg;
+    if (b64.length > 7_000_000) return json({ error: 'image too large (about 5MB max)' }, { status: 413 }, env, origin);
+    if (!/^image\/(png|jpeg|jpg|webp|gif)$/i.test(mt)) return json({ error: 'unsupported image type' }, { status: 400 }, env, origin);
+    planImg = { type: 'image', source: { type: 'base64', media_type: mt.toLowerCase().replace('image/jpg','image/jpeg'), data: b64 } };
+  }
+  const maxPieces = Math.max(1, Math.min(16, parseInt(body.maxPieces, 10) || (planImg ? 14 : 6)));
   const { flat, foot } = await mvData();
   const p = flat.find(x => x.Slug === slug);
   if (!p) return json({ error: 'unknown slug' }, { status: 404 }, env, origin);
@@ -14632,6 +14646,7 @@ async function handleMassingVision(request, env, origin) {
   // Satellite crop, fetched server-side with an oftmw Referer so the
   // URL-restricted public token accepts it; skipped gracefully if it 4xxs.
   const content = [];
+  if (planImg) content.push(planImg);
   let satOk = false;
   try {
     const su = `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${anchor[0].toFixed(6)},${anchor[1].toFixed(6)},16.5,0/640x640@2x?access_token=${MV_MAPBOX}`;
@@ -14655,18 +14670,20 @@ DESCRIPTION: ${desc}
 
 FRAME: x = metres EAST of the anchor, y = metres NORTH. Anchor (0,0) = ${anchor[0].toFixed(6)}, ${anchor[1].toFixed(6)}.
 SITE PARCEL: ${parcelTxt}
-${satOk ? 'The FIRST image is a satellite view centred on the anchor, north up, roughly 500 m across.' : ''}${renders.length ? ' The remaining images are official renderings of the project.' : ' No renderings are available — work from the description and parcel.'}
+${planImg ? 'The FIRST image is the official SITE PLAN / master plan for this development. It is drawn to scale and north is up unless its north arrow says otherwise — read the building footprints straight off it, including their shapes, spacing and orientation to the streets. Lettered or numbered blocks (A, B, C, E1 …) are each a separate building. Ignore the legend, title block, trees, parking stalls and any hatched "future phase" or "to be demolished" outlines.' : ''}
+${satOk ? (planImg ? 'The NEXT image is a satellite view' : 'The FIRST image is a satellite view') + ' centred on the anchor, north up, roughly 500 m across — use it to line the plan up with the real streets.' : ''}${renders.length ? ' The remaining images are official renderings of the project.' : (planImg ? '' : ' No renderings are available — work from the description and parcel.')}
 
 Return ONLY JSON, no prose:
 {"pieces":[{"cx":0,"cy":0,"w":30,"l":45,"bearing":0,"base":0,"top":100}],"confidence":0.7,"note":"one line"}
 
 Rules:
-- 1 to 6 rectangular pieces. cx,cy = piece centre in the frame; w,l = metres; bearing = degrees clockwise from north of the l axis; base/top = metres above ground.
+- 1 to ${maxPieces} rectangular pieces. cx,cy = piece centre in the frame; w,l = metres; bearing = degrees clockwise from north of the l axis; base/top = metres above ground.
 - Match the renderings: tower count, relative tower heights, podium if visible. A podium is a wide low piece; towers rising from it use base = the podium's top.
 - The tallest piece's top must equal floors × 3.35 (within a few metres) when floors is known.
+${planImg ? '- Draw ONE piece per building shown on the plan, not one per block of colour. Where the plan gives no height, infer a sensible one from the building\'s footprint and its neighbours (a wide shallow block is a podium or arena at 12-25 m; a slim block among towers is a tower).' : ''}
 - Every piece must sit on the site parcel / the development site visible in the satellite view — never on water, roads, or neighbouring buildings.
 - Align bearings to the street grid visible in the satellite view.
-- |cx| and |cy| must stay ≤ 200.` });
+- |cx| and |cy| must stay ≤ ${planImg ? 650 : 200}.` });
   const mvCall = async (blocks) => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
@@ -14689,19 +14706,19 @@ Rules:
   }
   const maxTop = Math.max(floors * 3.35 * 1.4, 80) + 30;
   const pieces = [];
-  for (const pc of draft.pieces.slice(0, 6)) {
+  for (const pc of draft.pieces.slice(0, maxPieces)) {
     const cx = +pc.cx, cy = +pc.cy, w = +pc.w, l = +pc.l;
     const bearing = ((+pc.bearing % 360) + 360) % 360 || 0;
     const base = Math.max(0, +pc.base || 0), top = +pc.top || 0;
     if (![cx, cy, w, l, top].every(isFinite)) continue;
-    if (Math.abs(cx) > 250 || Math.abs(cy) > 250) continue;
+    if (Math.abs(cx) > (planImg ? 700 : 250) || Math.abs(cy) > (planImg ? 700 : 250)) continue;
     if (w < 6 || w > 220 || l < 6 || l > 260) continue;
     if (top <= base || top > maxTop) continue;
     pieces.push({ ring: mvRing(anchor, cx, cy, w, l, bearing), base: Math.round(base), top: Math.round(top) });
   }
   if (!pieces.length) return json({ error: 'no valid pieces after validation', raw: txt.slice(0, 400) }, { status: 422 }, env, origin);
   return json({ slug, pieces, confidence: +draft.confidence || 0, note: String(draft.note || '').slice(0, 300),
-                satellite: satOk, renderings: renders.length, model: WRITE_MODEL }, {}, env, origin);
+                satellite: satOk, renderings: renders.length, plan: !!planImg, model: WRITE_MODEL }, {}, env, origin);
 }
 
 // ---- Future Skyline: massing OVERRIDES (Studio editor) --------------------
@@ -14722,7 +14739,7 @@ async function handleMassingOverrides(request, env, origin) {
   return resp;
 }
 function mvValidPieces(pieces) {
-  if (!Array.isArray(pieces) || !pieces.length || pieces.length > 8) return null;
+  if (!Array.isArray(pieces) || !pieces.length || pieces.length > 16) return null;   // a site plan legitimately yields a dozen blocks
   const out = [];
   for (const pc of pieces) {
     if (!pc || !Array.isArray(pc.ring) || pc.ring.length < 4 || pc.ring.length > 40) return null;
