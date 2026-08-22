@@ -347,12 +347,30 @@
     '.tmwx-smartgrp .tmwx-pbtn.smart:last-child{border-radius:0 999px 999px 0}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:active{background:rgba(167,139,250,.3)}',
-    '.tmwx-smartgrp .tmwx-div{width:1px;height:22px;margin:0 2px;flex:0 0 auto;background:rgba(167,139,250,.34)}',
+    /* The selected half is marked by a purple bubble that SLIDES between the
+       two, rather than a divider splitting them. */
+    '.tmwx-smartgrp{position:relative}',
+    '.tmwx-smartsel{position:absolute;top:3px;bottom:3px;left:3px;width:44px;border-radius:999px;pointer-events:none;',
+    'background:linear-gradient(180deg,rgba(178,152,255,.62),rgba(139,110,240,.44));',
+    'box-shadow:0 0 14px rgba(167,139,250,.55),inset 0 0 0 1px rgba(226,214,255,.4);',
+    'opacity:0;transform:translateX(0) scale(.7);',
+    'transition:transform .44s cubic-bezier(.34,1.56,.4,1),opacity .22s ease}',
+    '.tmwx-smartgrp.sel-0 .tmwx-smartsel{opacity:1;transform:translateX(0) scale(1)}',
+    '.tmwx-smartgrp.sel-1 .tmwx-smartsel{opacity:1;transform:translateX(44px) scale(1)}',
+    '.tmwx-smartgrp.sel-0 .tmwx-pbtn.smart:nth-of-type(1),',
+    '.tmwx-smartgrp.sel-1 .tmwx-pbtn.smart:nth-of-type(2){color:#fff}',
+    '@media (prefers-reduced-motion:reduce){.tmwx-smartsel{transition:opacity .15s ease}}',
     /* The split control needs ~37px more than a single smart button and the
        cluster had no room to give — shrinking every glyph to buy it made the
        whole bar look squished. Buy the room by dropping two icons instead:
        on the map, Atlas and Map are the two the page can spare (Map is the
        page you are already on). Every viewport — Jake asked for desktop too. */
+    /* backdrop-filter stalls while the compositor is busy — panning the GL
+       map, or scrolling the full-screen panel behind the bar — and the pill's
+       .82 background then lets content read straight through it, which looks
+       like the blur switching on and off. On this surface the bar carries its
+       own colour and treats the blur as a bonus. */
+    'html.tmw-surf-map .tmwx-pill,html.tmw-surf-map .tmwx-fab,html.tmw-surf-map .tmwx-tray{background:rgba(9,11,9,.965)}',
     'html.tmw-surf-map .tmwx-pill .tmwx-pbtn[data-k="atlas"],',
     'html.tmw-surf-map .tmwx-pill .tmwx-pbtn[data-k="map"]{display:none}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
@@ -451,12 +469,27 @@
     if (smarts.length > 1) {
       host = document.createElement('div');
       host.className = 'tmwx-smartgrp';
+      var sel = document.createElement('span');
+      sel.className = 'tmwx-smartsel';
+      host.appendChild(sel);
       pill.appendChild(host);
+      /* Which half is lit follows what the panel is actually showing, so the
+         bubble reads as state and not as a leftover hover. */
+      (function () {
+        function sync() {
+          var b = document.body.classList, narrow = window.matchMedia('(max-width: 800px)').matches;
+          host.classList.remove('sel-0', 'sel-1');
+          if (b.contains('v2-searching')) { host.classList.add('sel-0'); return; }
+          var panelUp = narrow ? b.contains('v2-sheet-open')
+                               : (b.contains('ui-v2') && !b.contains('v2-sidebar-collapsed'));
+          if (panelUp) host.classList.add('sel-1');
+        }
+        sync();
+        try { new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
+        window.addEventListener('resize', sync);
+      })();
     }
     smarts.forEach(function (S, i) {
-      if (i && host !== pill) {
-        var dv = document.createElement('span'); dv.className = 'tmwx-div'; host.appendChild(dv);
-      }
       var sb = document.createElement('button');
       sb.className = 'tmwx-pbtn smart';
       sb.setAttribute('aria-label', S.t);

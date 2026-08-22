@@ -13672,7 +13672,8 @@
         case 't': if (!isMobile) toggleSidebar(); break;
         case 'm':
           if (activePopup) { activePopup.remove(); activePopup = null; }
-          map.flyTo({ center: [-80.191, 25.774], zoom: isMobile ? 12.5 : 11, duration: 700 });
+          // Same frame the map boots to (see the mapboxgl.Map constructor).
+          map.flyTo({ center: isMobile ? [-80.196, 25.762] : [-80.191, 25.774], zoom: isMobile ? 11.8 : 11, duration: 700 });
           showToast('Returned to default view');
           break;
       }
@@ -13726,8 +13727,12 @@
       container: 'map',
       projection: 'mercator',   // explicit: GL v3 must not switch us to globe
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      center: _bootDeepLink ? [-96.0, 38.6] : [-80.191, 25.774],
-      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 12.5 : 11)
+      // Phones used to boot at 12.5 centred on downtown, which put the camera
+      // inside the towers before you had any bearings. Pull back and drop
+      // south so the opening frame reads as Miami (Wynwood down to Brickell)
+      // rather than one block of it.
+      center: _bootDeepLink ? [-96.0, 38.6] : (isMobile ? [-80.196, 25.762] : [-80.191, 25.774]),
+      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 11.8 : 11)
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
@@ -29244,7 +29249,7 @@
                     </span>
                     <span class="v2-search-label" style="flex:1;text-align:left">${escapeText(s)}</span>
                     <span class="v2-intel-out" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg>
                     </span>
                   </div>
                 `).join('')}
