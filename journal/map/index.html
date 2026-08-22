@@ -4416,15 +4416,14 @@
     position: absolute; top: 0; bottom: 0; right: 0;
     background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6);
   }
-  #projectModal .pm-tl-stages { display: flex; gap: 3px; margin-top: 12px; }
+  /* space-between, NOT flex:1 — equal slots made the gaps between the words
+     vary with word length; equal gaps is what reads as evenly spaced. */
+  #projectModal .pm-tl-stages { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; }
   #projectModal .pm-tl-stage {
-    flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase;
-    color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; text-align: center;
+    flex: 0 0 auto; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); white-space: nowrap;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  #projectModal .pm-tl-stage:first-child { text-align: left; }
-  #projectModal .pm-tl-stage:last-child { text-align: right; }
   #projectModal .pm-tl-stage.done { color: rgba(255,255,255,0.5); }
   /* Divider — removed for the firm stat row (the thin line above
      architect/developer/etc tiles is suppressed; the cards stand on
@@ -11600,10 +11599,10 @@
       position: absolute; top: 0; bottom: 0; right: 0; background: #0e0f0e;
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stages {
-      display: flex; gap: 2px; margin-top: 8px;
+      display: flex; justify-content: space-between; gap: 6px; margin-top: 8px;
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stage {
-      flex: 1; font-family: 'Inter', sans-serif; font-size: 6.5px; letter-spacing: .03em; text-transform: uppercase;
+      flex: 0 1 auto; min-width: 0; font-family: 'Inter', sans-serif; font-size: 6.5px; letter-spacing: .03em; text-transform: uppercase;
       color: rgba(255,255,255,0.22); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stage:first-child { text-align: left; }
@@ -11654,9 +11653,9 @@
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-empty {
       position: absolute !important; top: 0 !important; bottom: 0 !important; right: 0 !important; left: auto !important; background: #0e0f0e !important; width: auto !important;
     }
-    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stages { display: flex !important; gap: 2px !important; margin-top: 8px !important; }
+    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stages { display: flex !important; justify-content: space-between !important; gap: 6px !important; margin-top: 8px !important; }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage {
-      flex: 1 !important; font-family: 'Inter', sans-serif !important; font-size: 6.5px !important; letter-spacing: .03em !important;
+      flex: 0 1 auto !important; min-width: 0 !important; font-family: 'Inter', sans-serif !important; font-size: 6.5px !important; letter-spacing: .03em !important;
       text-transform: uppercase !important; color: rgba(255,255,255,0.22); text-align: center !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;
     }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage:first-child { text-align: left !important; }
@@ -16435,7 +16434,9 @@
         const months = Math.round(days / 30.44);
         if (months < 24) return months + (months === 1 ? ' month' : ' months') + ' to delivery';
         const years = (diffMs / MS_PER_YEAR);
-        return years.toFixed(1).replace(/\.0$/, '') + ' yrs to delivery';
+        // Tilde: this is derived from a targeted delivery window, not a date
+        // anyone has committed to.
+        return '~' + years.toFixed(1).replace(/\.0$/, '') + ' yrs to delivery';
       }
 
       // Returns { pct, label, color, subtitle } for the project.
@@ -26871,9 +26872,9 @@
         ${G} .tmw-tile-pm .pm-tl-empty, ${D} .tmw-tile-pm .pm-tl-empty {
           position:absolute !important; top:0 !important; bottom:0 !important; right:0 !important; background:#0e0f0e !important;
         }
-        ${G} .tmw-tile-pm .pm-tl-stages, ${D} .tmw-tile-pm .pm-tl-stages { display:flex !important; gap:2px !important; margin-top:8px !important; }
+        ${G} .tmw-tile-pm .pm-tl-stages, ${D} .tmw-tile-pm .pm-tl-stages { display:flex !important; justify-content:space-between !important; gap:6px !important; margin-top:8px !important; }
         ${G} .tmw-tile-pm .pm-tl-stage, ${D} .tmw-tile-pm .pm-tl-stage {
-          flex:1 !important; font-family:'Inter',sans-serif !important; font-size:6.5px !important; letter-spacing:.03em !important;
+          flex:0 1 auto !important; min-width:0 !important; font-family:'Inter',sans-serif !important; font-size:6.5px !important; letter-spacing:.03em !important;
           text-transform:uppercase !important; color:rgba(255,255,255,.22); text-align:center !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important;
         }
         ${G} .tmw-tile-pm .pm-tl-stage:first-child, ${D} .tmw-tile-pm .pm-tl-stage:first-child { text-align:left !important; }

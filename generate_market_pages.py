@@ -2145,10 +2145,8 @@ def render_page(
     .pm-tl-meter {{ position: relative; height: 4px; border-radius: 2px; overflow: hidden; }}
     .pm-tl-grad {{ position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }}
     .pm-tl-empty {{ position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }}
-    .pm-tl-stages {{ display: flex; gap: 3px; margin-top: 10px; }}
-    .pm-tl-stage {{ flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: var(--sans); }}
-    .pm-tl-stage:first-child {{ text-align: left; }}
-    .pm-tl-stage:last-child {{ text-align: right; }}
+    .pm-tl-stages {{ display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; }}
+    .pm-tl-stage {{ flex: 0 0 auto; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; font-family: var(--sans); }}
     .pm-tl-stage.done {{ color: rgba(255,255,255,0.5); }}
 
     /* Mini stats grid (Start / Completion / Units / Floors) */

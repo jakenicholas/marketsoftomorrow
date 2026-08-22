@@ -143,7 +143,11 @@
     '.pm-tl-knob{display:none !important}',
     '.pm-tl-meter{height:4px !important; border-radius:2px !important; box-shadow:none !important}',
     '.pm-tl-empty{border-radius:0 2px 2px 0}',
-    '.pm-tl-stages{margin-top:9px !important}',
+    '.pm-tl-stages{margin-top:9px !important; justify-content:space-between !important; gap:10px !important}',
+    /* flex:1 gave every stage an equal SLOT, so the gaps between the words
+       varied with word length. space-between + auto width equalises the GAPS,
+       which is what actually reads as evenly spaced. */
+    '.pm-tl-stage{flex:0 0 auto !important; text-align:left !important; overflow:visible !important}',
     '.tmw-chrome-head{position:sticky; top:0; z-index:60; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
     /* padding:0 is load-bearing — the .wrap owns the 14px vertical padding. Some pages (media proposals) carry a leftover generic `nav{padding:14px 0}` from a removed custom nav that would otherwise leak onto nav.main and DOUBLE the header height (99px vs 71px). Hardcoding it here keeps the chrome self-owned. */
     '.tmw-chrome-head nav.main{position:relative; padding:0; background:rgba(7,8,7,.78); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',

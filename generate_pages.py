@@ -224,7 +224,8 @@ def _format_time_to_delivery(delivery_date_str, status):
         return f'{months} month{"" if months == 1 else "s"} to delivery'
     years = diff_days / 365.25
     yrs = f'{years:.1f}'.rstrip('0').rstrip('.')
-    return f'{yrs} yrs to delivery'
+    # Tilde: derived from a targeted delivery window, not a committed date.
+    return f'~{yrs} yrs to delivery'
 
 def _label_to_seg_idx(label):
     """Map a status label to its segment index in the 5-stage bar."""
@@ -2600,10 +2601,8 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     @keyframes pmtlShine {{ 0% {{ background-position: 200% 0; }} 100% {{ background-position: -60% 0; }} }}
     @media (prefers-reduced-motion: reduce) {{ .pm-tl-grad::after {{ animation: none; }} }}
     .pm-tl-empty {{ position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }}
-    .pm-tl-stages {{ display: flex; gap: 3px; margin-top: 12px; }}
-    .pm-tl-stage {{ flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }}
-    .pm-tl-stage:first-child {{ text-align: left; }}
-    .pm-tl-stage:last-child {{ text-align: right; }}
+    .pm-tl-stages {{ display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; }}
+    .pm-tl-stage {{ flex: 0 0 auto; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }}
     .pm-tl-stage.done {{ color: rgba(255,255,255,0.5); }}
 
     /* Divider */

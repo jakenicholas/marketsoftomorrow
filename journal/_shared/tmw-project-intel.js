@@ -75,7 +75,7 @@
     var months = Math.round(days / 30.44);
     if (months < 24) return months + (months === 1 ? ' month' : ' months') + ' to delivery';
     var years = (diffMs / MS_PER_YEAR);
-    return years.toFixed(1).replace(/\.0$/, '') + ' yrs to delivery';
+    return '~' + years.toFixed(1).replace(/\.0$/, '') + ' yrs to delivery';
   }
 
   function labelToSegIdx(label) {
@@ -289,10 +289,10 @@
     '@keyframes pmtlShine{0%{background-position:200% 0}100%{background-position:-60% 0}}',
     '@media (prefers-reduced-motion:reduce){.tmw-pm .pm-tl-grad::after{animation:none}}',
     '.tmw-pm .pm-tl-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6)}',
-    '.tmw-pm .pm-tl-stages{display:flex;gap:3px;margin-top:11px}',
-    '.tmw-pm .pm-tl-stage{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
-    '.tmw-pm .pm-tl-stage:first-child{text-align:left}',
-    '.tmw-pm .pm-tl-stage:last-child{text-align:right}',
+    /* space-between, NOT flex:1 — equal slots made the gaps between the words
+       vary with word length; equal gaps is what reads as evenly spaced. */
+    '.tmw-pm .pm-tl-stages{display:flex;justify-content:space-between;gap:10px;margin-top:11px}',
+    '.tmw-pm .pm-tl-stage{flex:0 0 auto;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);white-space:nowrap;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
     '.tmw-pm .pm-tl-stage.done{color:rgba(255,255,255,.5)}',
     '.tmw-pm .pm-intel{margin:0;padding:18px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:12px}',
     '.tmw-pm .pm-intel-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}',
