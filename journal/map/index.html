@@ -9101,8 +9101,27 @@
       border: 0 !important;
       border-top: 0 !important;
       box-shadow: none !important;
-      background: rgba(12,12,15,0.99) !important;
+      /* Same solid as the universal header. It used to be translucent (and
+         the settled state layered a blur on top), so map labels bled through
+         the page and Discover read as a different surface from Search. */
+      background: #070807 !important;
     }
+    /* The settled blur is what made the two pages look like different
+       surfaces — kill it here, the panel is opaque now. */
+    body.ui-v2.v2-sheet-settled .v2-sheet {
+      background: #070807 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    /* Everything inside gets clear of the header and the screen edges. */
+    body.ui-v2 .v2-sheet-title-row { padding: 16px 20px 10px !important; }
+    body.ui-v2 .v2-sheet-body { padding: 0 20px 14px !important; }
+    body.ui-v2 .v2-pinned-search { margin: 2px 20px 14px !important; }
+    /* Search spans every project everywhere, so a count scoped to the map
+       frame was actively misleading. */
+    body.ui-v2 .v2-pinned-search .v2-results-count,
+    body.ui-v2 .v2-pinned-search .v2-results-divider { display: none !important; }
+    body.ui-v2 .v2-filter-pills { padding-left: 20px !important; padding-right: 20px !important; }
     /* Restated after the block above, which sets the closed transform with
        !important — the earlier `body.v2-sheet-open` rule can no longer win. */
     body.ui-v2.v2-sheet-open .v2-sheet { transform: translateY(0) !important; }
@@ -9475,6 +9494,16 @@
     body.ui-v2 .v2-search-group {
       margin-bottom: 12px;
     }
+    /* Outbound marker: these rows open the Intelligence lightbox, which
+       leaves the map behind. */
+    body.ui-v2 .v2-intel-row { cursor: pointer; }
+    body.ui-v2 .v2-intel-out {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex: 0 0 auto; margin-left: auto; padding-left: 10px;
+      color: rgba(255,255,255,0.34);
+    }
+    body.ui-v2 .v2-intel-out svg { width: 15px; height: 15px; display: block; }
+    body.ui-v2 .v2-intel-row:hover .v2-intel-out { color: rgba(185,166,255,0.9); }
     body.ui-v2 .v2-search-grouphead {
       font-size: 10px;
       font-weight: 700;
@@ -28030,16 +28059,10 @@
         document.body.classList.remove('v2-sheet-settled');
         document.body.classList.remove('v2-sheet-open');
         // The search page is a state OF this panel, so closing leaves it —
-        // otherwise reopening would land back in search with a stale query.
+        // otherwise reopening would land back in search with a stale query
+        // and the results overlay still covering Discover.
         if (document.body.classList.contains('v2-searching')) {
-          document.body.classList.remove('v2-searching');
-          var _t = document.getElementById('v2SheetTtl');
-          if (_t) _t.textContent = 'Discover';
-          var _s = document.getElementById('v2SearchInput');
-          if (_s && _s.value) {
-            _s.value = '';
-            try { _s.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
-          }
+          try { if (typeof dismissSearch === 'function') dismissSearch(); } catch (e) {}
         }
       }
       // Once the slide-in transition finishes, layer in the backdrop blur.
@@ -28074,9 +28097,9 @@
       // equivalent (setSearchMode) lives inside installDesktopSearchOverlay,
       // which returns immediately under 801px — hence a separate switch here.
       function mobileSearchMode(on) {
-        document.body.classList.toggle('v2-searching', !!on);
-        var ttl = document.getElementById('v2SheetTtl');
-        if (ttl) ttl.textContent = on ? 'Search' : 'Discover';
+        // NB: the title is owned by setSearchTabVisible(), which stashes the
+        // outgoing text in ttl.dataset.savedText. Setting it here first meant
+        // "Search" got stashed as the text to restore on dismiss.
         if (on) {
           openSheet();
           if (search) {
@@ -28092,6 +28115,10 @@
           try { if (typeof runDiscoverSearch === 'function') runDiscoverSearch(''); } catch (e) {}
           return;
         }
+        // The full dismiss hides #v2SearchOverlay and re-activates Discover.
+        // Just clearing the input left the search rows on screen under a
+        // "Discover" title.
+        if (typeof dismissSearch === 'function') { try { dismissSearch(); return; } catch (e) {} }
         if (search && search.value) {
           search.value = '';
           try { search.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
@@ -29204,20 +29231,27 @@
           // any recent searches. Each opens the in-page Intelligence overlay
           // via the homepage ?q= deep-link (the standalone /search/ page is gone).
           const INTEL_SUGGEST = ['Tallest towers under construction in Florida','Hotels opening around the world soon','New condos coming to West Palm Beach','Recent golf course openings'];
-          function renderRecentList() {
-            const items = loadRecent();
-            let html = `
+          // Intelligence is a LIGHTBOX (window.tmwOverlay.open) — it must never
+          // route through the loading veil or a page redirect. The rows used to
+          // be <a href="/?q=..."> which did exactly that.
+          const INTEL_HTML = `
               <div class="v2-search-group">
                 <div class="v2-search-grouphead">TMW Intelligence</div>
                 ${INTEL_SUGGEST.map(s => `
-                  <a class="v2-search-row" href="https://www.oftmw.com/?q=${encodeURIComponent(s)}" style="display:flex;align-items:center;text-decoration:none">
+                  <div class="v2-search-row v2-intel-row" role="button" tabindex="0" data-intel="${escapeAttr(s)}">
                     <span class="v2-search-icon" style="pointer-events:none;color:#B9A6FF">
                       <svg viewBox="0 0 24 24" fill="none" stroke="#B9A6FF" stroke-width="1.8" stroke-linejoin="round"><polygon points="12,3 19.5,7.5 19.5,16.5 12,21 4.5,16.5 4.5,7.5"/></svg>
                     </span>
                     <span class="v2-search-label" style="flex:1;text-align:left">${escapeText(s)}</span>
-                  </a>
+                    <span class="v2-intel-out" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+                    </span>
+                  </div>
                 `).join('')}
               </div>`;
+          function renderRecentList() {
+            const items = loadRecent();
+            let html = '';
             if (items.length) {
               html += `
               <div class="v2-search-group">
@@ -29235,9 +29269,24 @@
                 `).join('')}
               </div>`;
             }
+            // Intelligence sits LAST: it leaves the map, so it reads as the
+            // fallback after your own recent work.
+            html += INTEL_HTML;
             so.innerHTML = html;
             so.hidden = false;
             setSearchTabVisible(true);
+            so.querySelectorAll('[data-intel]').forEach(row => {
+              const fire = (e) => {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                const q = row.dataset.intel || '';
+                if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') { window.tmwOverlay.open(q); return; }
+                // Overlay script not loaded yet — this opener loads it, then opens.
+                if (typeof window.tmwOpenSearch === 'function') { window.tmwOpenSearch(q); return; }
+                if (window.tmw && typeof window.tmw.search === 'function') window.tmw.search(q);
+              };
+              row.addEventListener('click', fire);
+              row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fire(e); });
+            });
             so.querySelectorAll('[data-recent]').forEach(lbl => {
               lbl.addEventListener('click', () => {
                 searchInput.value = lbl.dataset.recent;

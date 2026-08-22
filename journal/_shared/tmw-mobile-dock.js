@@ -33,9 +33,18 @@
     if (window.matchMedia('(max-width: 800px)').matches) {
       try { if (typeof window.closeProjectModal === 'function') window.closeProjectModal(); } catch (e) {}
       try { if (typeof window._dismissMapLanding === 'function') window._dismissMapLanding(); } catch (e) {}
-      /* The map owns the search page state (full-screen panel, input docked
-         at the bottom by the keyboard). Nothing else can open it. */
-      if (typeof window.tmwMapMobileSearch === 'function') { window.tmwMapMobileSearch(true); return; }
+      /* The map owns the search page state. Nothing else can open it. */
+      if (typeof window.tmwMapMobileSearch === 'function') {
+        /* Pressing search again while the search page is up closes it. */
+        if (document.body.classList.contains('v2-searching')) {
+          window.tmwMapMobileSearch(false);
+          if (typeof window.v2CloseSheet === 'function') window.v2CloseSheet();
+          else document.body.classList.remove('v2-sheet-open');
+          return;
+        }
+        window.tmwMapMobileSearch(true);
+        return;
+      }
       /* ...unless the map page is serving from cache and predates that hook,
          in which case drive the same classes directly. The state is entirely
          class-driven, so this is a faithful stand-in. */
