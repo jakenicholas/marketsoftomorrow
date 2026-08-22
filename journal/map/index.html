@@ -14576,8 +14576,18 @@
             const distSlugs = new Set(Object.keys(kidsBy).filter(k => kidsBy[k].length >= 2));
             // Hand-flagged in Studio, with or without children.
             src.forEach(f => { const pp = (f && f.properties) || {};
-              if (pp.isDistrict && !pp.completed) distSlugs.add(_py(pp.title || ''));
+              if (!pp.isDistrict || pp.completed) return;
+              if (pp.slug) distSlugs.add(String(pp.slug));
+              if (pp.title) distSlugs.add(_py(pp.title));
             });
+            // Resolve a project to its district key by EITHER name — never
+            // assume slug and slugified title agree.
+            const distKeyOf = (pp) => {
+              const a = String(pp.slug || '');
+              if (a && distSlugs.has(a)) return a;
+              const b = _py(pp.title || '');
+              return b && distSlugs.has(b) ? b : '';
+            };
             const distMeta = {};     // slug -> { uid, title, rings, top, yr }
             // Called from BOTH build paths. A child with a hand-authored
             // massing returns early, so accumulating only on the footprint
@@ -14623,8 +14633,8 @@
               // from our own project descriptions — a twin-tower project shows
               // two towers at their real heights, not one averaged slab.
               const ms = (window._skyOver || {})[p.slug] || (window._skyMass || {})[p.slug];
-              const _selfSlug = _py(p.title || '');
-              const _isDist = distSlugs.has(_selfSlug);
+              const _selfSlug = distKeyOf(p);
+              const _isDist = !!_selfSlug;
               const _hasKids = _isDist && (kidsBy[_selfSlug] || []).length > 0;
               // "No building represents East Bank — all of the projects inside
               // of it make up the district" (Jake). So a district WITH children
