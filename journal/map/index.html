@@ -9200,13 +9200,16 @@
        that button rendered as a bare white box. */
     .v2-sheet-x {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px; border-radius: 50%;
-      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.8); cursor: pointer; padding: 0; margin-left: 2px;
+      /* Built from the SAME box metrics as .v2-watch-btn — 5px padding, 1px
+         border, 13px glyph, line-height 1 — so the two chips are exactly the
+         same height (25px) and stay matched if those numbers ever change. */
+      padding: 5px; border-radius: 999px; line-height: 1;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7); cursor: pointer; margin-left: 2px;
       flex: 0 0 auto;
     }
-    .v2-sheet-x svg { width: 15px; height: 15px; display: block; }
-    .v2-sheet-x:hover { background: rgba(255,255,255,0.13); color: #fff; }
+    .v2-sheet-x svg { width: 13px; height: 13px; display: block; }
+    .v2-sheet-x:hover { color: #fff; border-color: rgba(255,255,255,0.24); }
     /* The blur only renders AFTER the slide-in finishes. JS adds the
        `v2-sheet-settled` class on transitionend (and removes it on close
        BEFORE the slide-out so the close is also cheap). */
@@ -13673,7 +13676,7 @@
         case 'm':
           if (activePopup) { activePopup.remove(); activePopup = null; }
           // Same frame the map boots to (see the mapboxgl.Map constructor).
-          map.flyTo({ center: isMobile ? [-80.196, 25.762] : [-80.191, 25.774], zoom: isMobile ? 11.8 : 11, duration: 700 });
+          map.flyTo({ center: isMobile ? [-80.172, 25.735] : [-80.170, 25.745], zoom: isMobile ? 11.35 : 10.6, duration: 700 });
           showToast('Returned to default view');
           break;
       }
@@ -13731,8 +13734,8 @@
       // inside the towers before you had any bearings. Pull back and drop
       // south so the opening frame reads as Miami (Wynwood down to Brickell)
       // rather than one block of it.
-      center: _bootDeepLink ? [-96.0, 38.6] : (isMobile ? [-80.196, 25.762] : [-80.191, 25.774]),
-      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 11.8 : 11)
+      center: _bootDeepLink ? [-96.0, 38.6] : (isMobile ? [-80.172, 25.735] : [-80.170, 25.745]),
+      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 11.35 : 10.6)
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
@@ -21776,6 +21779,30 @@
             } catch (e) { /* region search just stays off */ }
           })();
 
+          // A camera move refreshes the in-view list, which REBUILDS the grid
+          // and would otherwise throw away wherever the user had scrolled to.
+          // Anything that moves the camera without the user asking — the Future
+          // Skyline's pitch ease, a popup's auto-pan, a settling flight — then
+          // reads as "the list jumped back to the top by itself". Deliberate
+          // rebuilds (filter change, tab switch) still start at the top; only
+          // these pan-driven refreshes hold position.
+          function keepScroll(sel, fn) {
+            const el = document.querySelector(sel);
+            const y = el ? el.scrollTop : 0;
+            fn();
+            if (!el || y <= 0) return;
+            const restore = () => {
+              const max = Math.max(0, el.scrollHeight - el.clientHeight);
+              const want = Math.min(y, max);
+              if (Math.abs(el.scrollTop - want) > 1) el.scrollTop = want;
+            };
+            restore();
+            requestAnimationFrame(restore);
+            setTimeout(restore, 80);
+          }
+          const DESK_SCROLL = '#desktopSidebar .sidebar-content';
+          const MOB_SCROLL  = '.v2-sheet-body';
+
           let updateTimeout;
           map.on('moveend', () => {
             const wasFlyingTo = window._mapFlyingTo;
@@ -21799,11 +21826,13 @@
                 // repopulates when the user pans the map.
                 const v2Desktop = document.body.classList.contains('ui-v2');
                 if ((sidebar?.classList.contains('open') || v2Desktop) && dsort === 'default') {
-                  if (hasActiveSearch && window.allProjectFeatures) {
-                    renderFilteredGrid('gridDesktop', window.allProjectFeatures);
-                  } else {
-                    renderGrid('gridDesktop');
-                  }
+                  keepScroll(DESK_SCROLL, () => {
+                    if (hasActiveSearch && window.allProjectFeatures) {
+                      renderFilteredGrid('gridDesktop', window.allProjectFeatures);
+                    } else {
+                      renderGrid('gridDesktop');
+                    }
+                  });
                 }
               }
               if (isMobile) {
@@ -21820,12 +21849,19 @@
                 const drawerOpen = (mobileDrawerEl && mobileDrawerEl.classList.contains('expanded'))
                                  || document.body.classList.contains('v2-sheet-open');
                 if (drawerOpen) {
-                  window.mobileLoadedCount = 12;
-                  if (hasActiveSearch && (window.mobileSearchFeatures || window.allProjectFeatures)) {
-                    renderFilteredGrid('gridMobile', window.mobileSearchFeatures || window.allProjectFeatures);
-                  } else {
-                    renderGrid('gridMobile');
-                  }
+                  const _mobEl = document.querySelector(MOB_SCROLL);
+                  const _scrolled = !!(_mobEl && _mobEl.scrollTop > 0);
+                  keepScroll(MOB_SCROLL, () => {
+                    // Resetting the page size to 12 while the user is deep in
+                    // the list truncates it under them, so a restored scroll
+                    // position has nowhere to land. Only reset at the top.
+                    if (!_scrolled) window.mobileLoadedCount = 12;
+                    if (hasActiveSearch && (window.mobileSearchFeatures || window.allProjectFeatures)) {
+                      renderFilteredGrid('gridMobile', window.mobileSearchFeatures || window.allProjectFeatures);
+                    } else {
+                      renderGrid('gridMobile');
+                    }
+                  });
                 } else {
                   // Mark grid stale so the next expand re-renders fresh; cheap.
                   window._mobileGridStale = true;
@@ -21841,7 +21877,7 @@
               // Same v2-desktop carve-out as moveend above.
               const v2Desktop = !isMobile && document.body.classList.contains('ui-v2');
               if (!isMobile && (document.getElementById('desktopSidebar')?.classList.contains('open') || v2Desktop)) {
-                renderGrid('gridDesktop');
+                keepScroll(DESK_SCROLL, () => renderGrid('gridDesktop'));
               }
             }, 300);
           });

@@ -335,7 +335,7 @@
     '.tmwx-pbtn.smart{color:#C4B5FD;background:rgba(167,139,250,.13);margin-left:3px;',
     'box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 14px rgba(167,139,250,.32);',
     'animation:tmwxSmartGlow 2.6s ease-in-out infinite}',
-    '.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
+    '@media (hover:hover) and (pointer:fine){.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}}',
     /* Two actions sharing ONE purple slot: the group carries the glow and the
        halves go flat, so it still reads as a single smart control. */
     '.tmwx-smartgrp{display:flex;align-items:center;margin-left:5px;padding:0 3px;border-radius:999px;',
@@ -345,8 +345,12 @@
     '.tmwx-smartgrp .tmwx-pbtn.smart{width:44px;margin:0;background:transparent;box-shadow:none;animation:none}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:first-child{border-radius:999px 0 0 999px}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:last-child{border-radius:0 999px 999px 0}',
-    '.tmwx-smartgrp .tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
-    '.tmwx-smartgrp .tmwx-pbtn.smart:active{background:rgba(167,139,250,.3)}',
+    /* Touch screens keep :hover latched on the last thing tapped until the
+       next touch, so these painted a fill that looked like a leftover divider
+       and "disappeared when you scrolled". The bubble is the only state now. */
+    '@media (hover:hover) and (pointer:fine){',
+    '.tmwx-smartgrp .tmwx-pbtn.smart:hover{background:rgba(167,139,250,.16)}',
+    '}',
     /* The selected half is marked by a purple bubble that SLIDES between the
        two, rather than a divider splitting them. */
     '.tmwx-smartgrp{position:relative}',
