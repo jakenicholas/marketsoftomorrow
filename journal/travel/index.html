@@ -120,9 +120,11 @@
   .td-rail .n .u{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--d-mute);letter-spacing:0}
   .td-rail .l{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--d-mute);margin-top:6px}
   /* tabs + CTA */
-  .td-tabs{display:flex;gap:2px;margin-top:18px;border-bottom:1px solid var(--d-hair);scrollbar-width:none;padding-bottom:14px;flex-wrap:wrap;row-gap:6px}
-  .td-tabs::-webkit-scrollbar{display:none}
-  .td-tab{flex:0 0 auto;padding:11px 15px;font:600 12.5px/1 var(--sans);color:var(--d-mute);background:none;border:0;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+    .td-tabs{display:flex;align-items:center;gap:10px;margin-top:18px;border-bottom:1px solid var(--d-hair);padding-bottom:14px}
+  /* only the tab row scrolls; the CTA stays outside so its glow isn't clipped */
+  .td-tabscroll{display:flex;gap:2px;min-width:0;flex:1 1 auto;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .td-tabscroll::-webkit-scrollbar{display:none}
+    .td-tab{flex:0 0 auto;padding:11px 15px;font:600 12.5px/1 var(--sans);color:var(--d-mute);background:none;border:0;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
   .td-tab.on{color:var(--d-white);border-bottom-color:var(--d-acc)}
   .td-tab .cnt{font-family:var(--mono,monospace);font-size:9.5px;color:var(--d-mute);margin-left:6px}
   .td-cta{flex:0 0 auto;margin-left:auto;align-self:center;margin-bottom:2px;display:inline-flex;align-items:center;gap:7px;padding:10px 17px;border-radius:999px;
@@ -151,6 +153,10 @@
   .atlas-type-bar-wrap{background:rgba(255,255,255,0.05);height:8px;border-radius:4px;overflow:hidden}
   .atlas-type-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c63d6,#A78BFA);transition:width .3s}
   .atlas-type-count{font-family:var(--mono);font-size:12px;color:var(--mute-2);text-align:right}
+  /* home markets: an icon in place of the bar, so they don't skew the scale */
+  .atlas-type-row.is-home .atlas-type-label{color:var(--gold-soft,#f0d68a)}
+  .atlas-home-mark{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold,#E6C574)}
+  .atlas-home-mark svg{width:13px;height:13px;flex:0 0 auto}
   @media(max-width:640px){ .lb-name{font-size:15px} .lb-row{grid-template-columns:24px 1fr auto;gap:10px;padding:11px 12px} }
   @media(max-width:760px){
     .tdesk{padding-top:22px;margin-bottom:18px}
@@ -159,8 +165,9 @@
     .td-rail .s{min-width:50%;border-bottom:1px solid var(--d-hair)}
     .td-rail .s:nth-child(2n){border-right:0}
     .td-rail .s:nth-last-child(-n+2){border-bottom:0}
-    .td-cta{margin-left:0;width:100%;justify-content:center;margin-top:10px}
-    .td-tabs{flex-wrap:wrap}
+    .td-tabs{flex-wrap:wrap;row-gap:12px}
+    .td-tabscroll{flex:1 1 100%}
+    .td-cta{margin-left:0;width:100%;justify-content:center}
   }
   .eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--mute2);margin-bottom:18px}
   header.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(40px,7vw,68px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
@@ -328,10 +335,12 @@
     </div>
     <div class="td-rail" id="tdRail"></div>
     <div class="td-tabs" id="tdTabs">
-      <button type="button" class="td-tab on" data-view="itinerary">Itinerary</button>
-      <button type="button" class="td-tab" data-view="past">Past trips <span class="cnt" data-cnt="past"></span></button>
-      <button type="button" class="td-tab" data-view="markets">Markets <span class="cnt" data-cnt="markets"></span></button>
-      <button type="button" class="td-tab" data-view="partners">Partners <span class="cnt" data-cnt="partners"></span></button>
+      <div class="td-tabscroll">
+        <button type="button" class="td-tab on" data-view="itinerary">Itinerary</button>
+        <button type="button" class="td-tab" data-view="past">Past trips <span class="cnt" data-cnt="past"></span></button>
+        <button type="button" class="td-tab" data-view="markets">Markets <span class="cnt" data-cnt="markets"></span></button>
+        <button type="button" class="td-tab" data-view="partners">Partners <span class="cnt" data-cnt="partners"></span></button>
+      </div>
       <button type="button" class="td-cta" id="tdSubmit">Submit a trip <span class="arw">&#8594;</span></button>
     </div>
     <div class="td-pad"></div>
@@ -638,10 +647,14 @@ function tripHtml(t, i){
     // these two objects to update the charts.
     var STAY_COUNTS = { 'Four Seasons': 4, 'Cabot': 4, 'Ritz-Carlton': 3, 'Nobu': 1 };
     var YEAR_COUNTS = { '2026': 30, '2025': 44, '2024': 22, '2023': 12 };
+    // Home markets are not trips: counting them alongside destinations made the
+    // real travel numbers unreadable (100+ vs 20) and compared two different
+    // things. They pin to the top with an icon and no bar; everything below is
+    // ranked travel, scaled to the largest real count.
     var MARKET_COUNTS = [
-      { name:'South Florida', n:110, label:'Home' },
-      { name:'Minnesota',     n:100, label:'100+' },
-      { name:'Milwaukee',     n:100, label:'100+' },
+      { name:'South Florida', kind:'home'  },
+      { name:'Minnesota',     kind:'lived' },
+      { name:'Milwaukee',     kind:'lived' },
       { name:'Florida Keys',  n:20 },
       { name:'California',    n:7 },
       { name:'Hawaii',        n:6 },
@@ -667,8 +680,11 @@ function tripHtml(t, i){
         .map(function(k){ return { name:k, count:o[k] }; }); }
       function authoredByKey(o){ return Object.keys(o).sort().reverse()
         .map(function(k){ return { name:k, count:o[k] }; }); }
-      var mk = MARKET_COUNTS.slice().sort(function(a,b){ return b.n - a.n; })
-        .map(function(d){ return { name:d.name, count:d.n, label:d.label }; });
+      var homes = MARKET_COUNTS.filter(function(d){ return d.kind; });
+      var trips = MARKET_COUNTS.filter(function(d){ return !d.kind; })
+        .sort(function(a,b){ return b.n - a.n; });
+      var mk = homes.map(function(d){ return { name:d.name, kind:d.kind }; })
+        .concat(trips.map(function(d){ return { name:d.name, count:d.n }; }));
       return { stays: authored(STAY_COUNTS), firms: rank(firms),
                markets: mk, years: authoredByKey(YEAR_COUNTS) };
     })();
@@ -676,9 +692,17 @@ function tripHtml(t, i){
       rows = rows.slice(0, cap || 7);
       if (!rows.length) return '';
       var max = Math.max.apply(null, rows.map(function(d){ return d.count||0; }).concat([1]));
+      var HOME_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2.5 11h3v9h5v-5.5h3V20h5v-9h3L12 3z"/></svg>';
+      var LIVED_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6 3.4 11h2.4v8.4h4.4v-5.2h3.6v5.2h4.4V11h2.4L12 3.6z"/></svg>';
       return '<div class="atlas-panel">'
         + '<h3 class="atlas-ph"><span class="lbl">'+esc(title)+'</span><span class="hint">'+esc(hint)+'</span></h3>'
         + rows.map(function(d){
+            if (d.kind) {
+              return '<div class="atlas-type-row is-home"><div class="atlas-type-label">'+esc(d.name)+'</div>'
+                + '<div class="atlas-home-mark">'+(d.kind === 'home' ? HOME_SVG : LIVED_SVG)
+                + '<span>'+(d.kind === 'home' ? 'Home base' : 'Lived here')+'</span></div>'
+                + '<div class="atlas-type-count"></div></div>';
+            }
             return '<div class="atlas-type-row"><div class="atlas-type-label">'+esc(d.name)+'</div>'
               + '<div class="atlas-type-bar-wrap"><div class="atlas-type-bar" style="width:'+((d.count||0)/max*100)+'%"></div></div>'
               + '<div class="atlas-type-count">'+esc(d.label != null ? d.label : String(d.count||0))+'</div></div>'; }).join('')
