@@ -264,9 +264,8 @@
   /* image / placeholder */
   .trip-img{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/9.3;background:var(--panel);border:1px solid var(--hair)}
   .trip-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
-  .trip-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+  .trip-ph{position:absolute;inset:0;background:#000}
   .trip-ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.22))}
-  .trip-ph .ph-name{position:relative;z-index:1;font-family:var(--serif);font-weight:600;font-size:clamp(20px,3vw,27px);line-height:1.12;color:#FBF6EC;letter-spacing:-.01em;text-shadow:0 2px 14px rgba(40,25,12,.4)}
 
   /* body */
   .trip-body{min-width:0}
@@ -283,7 +282,7 @@
   button.trip-pill.open-pill .arw{transition:transform .18s}
   button.trip-pill.open-pill:hover .arw{transform:translateX(3px)}
   .p-lead{color:var(--mute);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;align-self:center;margin-right:2px}
-  .trip-link{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
+  .trip-link{display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
   .trip-link .arw{transition:transform .18s}
   a.trip:hover .trip-link .arw{transform:translateX(4px)}
   /* status pill anchored inside the image's top-right corner, filled with the tile bg */
@@ -504,6 +503,10 @@
 // Newest first. `href` = clickable (has a detail page); past trips have none.
 // `img` empty → an elegant gradient placeholder tile (drop a URL in later).
 var TRIPS = [
+  { title:'Cap Juluca, A Belmond Hotel', place:'Anguilla', date:'December 2026', upcoming:true, planning:true, openCTA:true,
+    start:'2026-12-05', end:'2026-12-10',
+    img:'https://media.oftmw.com/2026/08/6b5a3310edb9-cap-acc-ssv-suite-jonquil02.avif',
+    partners:['Belmond'] },
   { title:'Previewing Bone Valley', place:'Streamsong Resort', date:'December 2026', upcoming:true, start:'2026-12-01', end:'2026-12-31',
     img:'https://media.oftmw.com/wix/ca3b83_5711439bb4fe41ceac59f04221065d3d~mv2.jpeg',
     partners:['Streamsong Resort'] },
@@ -578,7 +581,7 @@ var TRIPS = [
     img:'https://media.cntraveler.com/photos/5a99b5c9b00933493b9a6d42/16:9/w_2560%2Cc_limit/SAN-DIEGO_Balboa-Park_2018_Balboa-Park_2018_Balboa-Park-Casa-del-Prado--Courtesy-Joanne-DiBona-SanDiego.jpg', partners:[] },
   { title:'Tampa', place:'Tampa, Florida', date:'February 2024', older:true,
     img:'https://cache.marriott.com/is/image/marriotts7prod/ak-tparo-outdoorpool--16214:Feature-Hor?wid=1920&fit=constrain',
-    partners:['Oxford Commons','Three Oaks Hospitality','Cabot Citrus Farms','Meat Market'] },
+    partners:['Oxford Commons','Three Oaks Hospitality','Cabot','Meat Market'] },
   { title:'Washington D.C.', place:'Washington, D.C.', date:'January 2024', older:true,
     img:'https://images.musement.com/cover/0001/43/washington_header-42349.jpeg', partners:[] },
   { title:'Rome, Amalfi Coast & Florence', place:'Italy', date:'May 2023', older:true,
@@ -588,20 +591,15 @@ var TRIPS = [
 ];
 
 // Warm Mediterranean gradients for placeholder tiles, cycled by index.
-var PH = [
-  'linear-gradient(135deg,#E8C9A0,#B0603A)',
-  'linear-gradient(135deg,#CDB88C,#8A6D3B)',
-  'linear-gradient(135deg,#D9A679,#A8813A)',
-  'linear-gradient(135deg,#C98A6A,#7A4A2E)',
-  'linear-gradient(135deg,#E1C08E,#9C5C34)',
-  'linear-gradient(135deg,#CBA678,#6E4A2C)',
-];
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
 function imgHtml(t, i){
   // Gradient placeholder always sits behind; the photo overlays it and removes
   // itself on error, so a blocked/broken URL degrades to the placeholder tile.
-  var ph = '<div class="trip-ph" style="background:'+PH[i % PH.length]+'"><div class="ph-name">'+esc(t.title)+'</div></div>';
+  // Flat black while the photo loads. The old beige gradient with the title
+  // set across it read as a designed tile, so a slow image looked like the
+  // finished card rather than a loading one.
+  var ph = '<div class="trip-ph"></div>';
   var img = t.img ? '<img class="trip-photo" loading="lazy" src="'+esc(t.img)+'" alt="'+esc(t.title)+'" onerror="this.remove()">' : '';
   return ph + img;
 }
