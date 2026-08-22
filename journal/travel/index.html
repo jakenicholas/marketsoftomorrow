@@ -112,13 +112,35 @@
   .td-next .bar{height:3px;border-radius:2px;background:var(--d-hair);margin-top:11px;overflow:hidden}
   .td-next .bar i{display:block;height:100%;background:var(--d-acc)}
   /* stat rail */
-  .td-rail{display:flex;flex-wrap:wrap;margin-top:20px;border:1px solid var(--d-hair);border-radius:14px;overflow:hidden;background:var(--d-panel)}
-  .td-rail .s{flex:1 1 0;min-width:112px;padding:13px 16px;border-right:1px solid var(--d-hair)}
-  .td-rail .s:last-child{border-right:0}
-  .td-rail .n{font-family:var(--serif);font-size:23px;font-weight:600;line-height:1;color:var(--d-white);letter-spacing:-.02em}
-  .td-rail .n em{font-style:normal;color:var(--d-acc)}
-  .td-rail .n .u{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--d-mute);letter-spacing:0}
-  .td-rail .l{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--d-mute);margin-top:6px}
+  /* ── The partner ticker ────────────────────────────────────────────
+     Replaced the four-cell rail: four numbers of equal weight with no
+     relationship, which wrapped into a 2x2 block on a phone. One line now,
+     ~59px against the old 84px: the partner count leads, the roster it counts
+     drifts past, and the open-trip count is pinned as the live end. */
+  .td-tick{display:flex;align-items:center;gap:14px;margin-top:20px;padding:13px 16px;overflow:hidden;
+    border:1px solid var(--d-hair);border-radius:14px;background:var(--d-panel)}
+  .td-tick .lead{display:flex;align-items:baseline;gap:8px;flex:0 0 auto;padding-right:14px;border-right:1px solid var(--d-hair)}
+  .td-tick .lead b{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1;letter-spacing:-.02em;color:var(--d-white)}
+  .td-tick .lead span{font-family:var(--mono,monospace);font-size:10px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--d-mute)}
+  .tkwrap{flex:1 1 auto;min-width:0;overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 88%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 5%,#000 88%,transparent)}
+  .tkrun{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;animation:tdTick 42s linear infinite;will-change:transform}
+  .td-tick:hover .tkrun{animation-play-state:paused}
+  @keyframes tdTick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .tk{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+    border:1px solid var(--d-hair2);font-size:12px;color:var(--d-mute2,#C2C9C3);text-decoration:none}
+  .tk b{color:var(--d-white);font-weight:600}
+  .tk em{font-style:normal;font-size:10px;font-weight:700;color:#12091f;background:#C4B5FD;border-radius:999px;
+    padding:1px 6px;font-variant-numeric:tabular-nums}
+  .td-tick .tail{flex:0 0 auto;display:flex;align-items:center;gap:12px;font-size:11.5px;color:var(--d-mute)}
+  .td-tick .tail b{color:var(--d-white);font-weight:600;font-variant-numeric:tabular-nums}
+  .td-tick .open{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono,monospace);font-size:10.5px;
+    font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold,#E6C574);white-space:nowrap}
+  .td-tick .open i{width:6px;height:6px;border-radius:50%;background:var(--gold,#E6C574);
+    box-shadow:0 0 8px rgba(230,197,116,.9);flex:0 0 auto}
+  @media(prefers-reduced-motion:reduce){ .tkrun{animation:none} }
   /* tabs + CTA */
     .td-tabs{display:flex;align-items:center;gap:10px;margin-top:18px;border-bottom:1px solid var(--d-hair);padding-bottom:14px}
   /* only the tab row scrolls; the CTA stays outside so its glow isn't clipped */
@@ -200,9 +222,10 @@
     .tdesk{padding-top:22px;margin-bottom:18px}
     .td-top{grid-template-columns:1fr;gap:16px}
     .td-next{min-width:0}
-    .td-rail .s{min-width:50%;border-bottom:1px solid var(--d-hair)}
-    .td-rail .s:nth-child(2n){border-right:0}
-    .td-rail .s:nth-last-child(-n+2){border-bottom:0}
+    .td-tick{gap:10px;padding:11px 13px}
+    .td-tick .lead{padding-right:10px}
+    .td-tick .lead b{font-size:23px}
+    .td-tick .tail .stat{display:none}
     /* Submit a trip reads as the primary action, so on a phone it sits ABOVE
        the tab row rather than below it (order flips the flex children). */
     .td-tabs{flex-wrap:wrap;row-gap:12px;padding-bottom:0}
@@ -694,12 +717,33 @@ function tripHtml(t, i){
         + '<div class="bar"><i style="width:'+pct+'%"></i></div></div>';
     } else if (n) { n.style.display = 'none'; }
 
+    // The ticker roster is DERIVED from the trips, so it can never disagree
+    // with the partner count sitting next to it: same source, one counts keys,
+    // the other counts occurrences.
+    var partnerTrips = {};
+    TRIPS.forEach(function(t){ (t.partners||[]).forEach(function(p){ partnerTrips[p] = (partnerTrips[p]||0) + 1; }); });
+    var roster = Object.keys(partnerTrips)
+      .sort(function(a,b){ return partnerTrips[b] - partnerTrips[a] || a.localeCompare(b); });
     var rail = document.getElementById('tdRail');
-    if (rail) rail.innerHTML =
-        '<div class="s"><div class="n">'+TRIPS.length+'</div><div class="l">Trips logged</div></div>'
-      + '<div class="s"><div class="n">'+marketCount+'</div><div class="l">Markets visited</div></div>'
-      + '<div class="s"><div class="n">'+Object.keys(partners).length+'</div><div class="l">Partners hosted</div></div>'
-      + '<div class="s"><div class="n"><em>'+openCount+'</em></div><div class="l">Open trips</div></div>';
+    if (rail && roster.length) {
+      rail.className = 'td-tick';
+      // Most partners have hosted once, so a badge on every chip would be a
+      // row of 1s. The count only appears when there is something to say.
+      var chips = roster.map(function(name){
+        var n = partnerTrips[name];
+        return '<span class="tk"><b>' + esc(name) + '</b>' + (n > 1 ? '<em>' + n + '</em>' : '') + '</span>';
+      }).join('');
+      rail.innerHTML =
+          '<span class="lead"><b>' + roster.length + '</b><span>Partners</span></span>'
+        // The run is printed twice: the keyframe translates it -50%, so the
+        // second copy is already in place when the first scrolls out.
+        + '<span class="tkwrap"><span class="tkrun">' + chips + chips + '</span></span>'
+        + '<span class="tail">'
+        +   '<span class="stat"><b>' + TRIPS.length + '</b> trips</span>'
+        +   '<span class="stat"><b>' + marketCount + '</b> markets</span>'
+        +   (openCount ? '<span class="open"><i></i>' + openCount + ' open</span>' : '')
+        + '</span>';
+    }
 
 
     // Tabs are real view switches: one panel at a time, deep-linkable via #hash.
