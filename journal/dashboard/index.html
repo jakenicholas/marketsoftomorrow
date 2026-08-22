@@ -605,7 +605,7 @@ main.wrap{padding-bottom:70px}
     var e;
     if((e=document.getElementById('ppMemLvl'))&&window.__tmwMemberLvl!=null) e.textContent='Level '+window.__tmwMemberLvl;
     if((e=document.getElementById('ppMemTier'))&&window.__tmwMemberTier) e.textContent=window.__tmwMemberTier;
-    if(e=document.getElementById('ppMemStatus')) e.textContent=(window.__tmwMemberFounding?'Founding Member':'Blueprint Member');
+    if(e=document.getElementById('ppMemStatus')) e.textContent=(window.__tmwMemberFounding?'Founding Member':'Member');
   };
   try{window.__tmwFillMemberFace();}catch(_){}
   (function(){
@@ -691,7 +691,7 @@ main.wrap{padding-bottom:70px}
     var ppNo=$('ppcNo'); if(ppNo) ppNo.textContent='THE PASSPORT · No. '+String(m.memberNo||1).padStart(4,'0');
     if(window.__tmwCardQR) window.__tmwCardQR(m.memberNo||1);
     var cm=$('cardMarket'); if(cm){ cm.textContent=m.market||''; cm.style.display=m.market?'':'none'; }
-    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding':' · Blueprint');
+    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding':'');
     if(next){var pct=Math.max(4,Math.min(100,Math.round((m.xp-cur.xp)/(next.xp-cur.xp)*100)));$('xpFill').style.width=pct+'%';$('xpNext').textContent=fmt(next.xp-m.xp)+' to '+next.tier;}
     else{$('xpFill').style.width='100%';$('xpNext').textContent='Max level';}
     $('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';
@@ -705,8 +705,8 @@ main.wrap{padding-bottom:70px}
       return '<div class="lv '+st+'"><div class="lvnode">'+(st==='done'?'✓':L.lvl)+'</div><div class="lvbody"><div class="t"><div class="lvtier">'+tierName(L,m)+'</div><div class="lvunlock">'+L.unlock+'</div></div>'+tag+'</div></div>';
     }).join('');
     var ach=m.achievements||{};
-    // Cohort badge: #0001–0099 = Founding Member; #0100+ = Blueprint Member.
-    BADGES[0].n=m.founding?'Founding Member':'Blueprint Member';
+    // Cohort badge: #0001–0099 = Founding Member; everyone after is just Member.
+    BADGES[0].n=m.founding?'Founding Member':'Member';
     BADGES[0].d=m.founding?'One of the first 100':'Member No. '+String(m.memberNo||100).padStart(4,'0');
     BADGES[0].on=true;
     BADGES[1].on=(ach.reader!=null)?ach.reader:((S.articles||0)>=30);
