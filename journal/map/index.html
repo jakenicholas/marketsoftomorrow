@@ -14863,6 +14863,26 @@
             _skyLabels = { type:'FeatureCollection', features: _labels };
             return { type:'FeatureCollection', features:feats };
           }
+          // SELECTED = GOLD. Every piece of the chosen project — tower, podium,
+          // each massing block — repaints, so a multi-piece building lights up
+          // as one thing rather than whichever slab happened to be clicked.
+          const SKY_GOLD = '#F2C75C';
+          window._skySelect = function(uid){
+            window._skySelUid = uid || '';
+            const u = window._skySelUid;
+            try {
+              if (map.getLayer('tmw-sky-future')) {
+                map.setPaintProperty('tmw-sky-future', 'fill-extrusion-color',
+                  u ? ['case', ['==', ['get','uid'], u], SKY_GOLD, ['get','color']] : ['get','color']);
+                map.setPaintProperty('tmw-sky-future', 'fill-extrusion-emissive-strength',
+                  u ? ['case', ['==', ['get','uid'], u], 0.85, 0.55] : 0.55);
+              }
+              if (map.getLayer('tmw-sky-halo')) {
+                map.setPaintProperty('tmw-sky-halo', 'fill-color',
+                  u ? ['case', ['==', ['get','uid'], u], SKY_GOLD, '#7C5CFA'] : '#7C5CFA');
+              }
+            } catch (e) {}
+          };
           function skyRemove(){
             ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-dedge','tmw-sky-dpool1','tmw-sky-dpool2','tmw-sky-dpool3','tmw-sky-city-full','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
             _cityShown = '';
@@ -14974,6 +14994,7 @@
             } catch(e){}
             skyBreathe();
             skyScrub();
+            if (window._skySelUid) window._skySelect(window._skySelUid);
             skyCityFullSync();
             if (!window._skyCityHook){ window._skyCityHook = 1;
               try { map.on('moveend', skyCityFullSync); } catch(e){} }
@@ -18091,6 +18112,16 @@
             </div>
           </div>
         `).addTo(map);
+
+      // Light the whole project gold in 3D while its card is open. Hooked to
+      // the popup's own 'close' so every dismissal path clears it — there are
+      // half a dozen places that null activePopup.
+      try {
+        if (window._skySelect) {
+          window._skySelect(f.properties.uid || '');
+          activePopup.on('close', () => { try { window._skySelect(null); } catch (_) {} });
+        }
+      } catch (_) {}
 
       // TMW Intelligence chip: inject after popup is mounted so we can
       // use the cached/lazy-loaded intel data without blocking the popup
