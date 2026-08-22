@@ -14874,8 +14874,9 @@
               if (map.getLayer('tmw-sky-future')) {
                 map.setPaintProperty('tmw-sky-future', 'fill-extrusion-color',
                   u ? ['case', ['==', ['get','uid'], u], SKY_GOLD, ['get','color']] : ['get','color']);
-                map.setPaintProperty('tmw-sky-future', 'fill-extrusion-emissive-strength',
-                  u ? ['case', ['==', ['get','uid'], u], 0.85, 0.55] : 0.55);
+                // NB: fill-extrusion-emissive-strength takes NO data expression
+                // (Mapbox rejects it and logs a style error), so the gold has to
+                // carry the selection on colour alone.
               }
               if (map.getLayer('tmw-sky-halo')) {
                 map.setPaintProperty('tmw-sky-halo', 'fill-color',
