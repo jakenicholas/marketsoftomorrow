@@ -78,7 +78,13 @@
   function mapList() {
     closeNow();
     if (window.matchMedia('(max-width: 800px)').matches) {
-      try { if (typeof window.tmwMapMobileSearch === 'function') window.tmwMapMobileSearch(false); } catch (e) {}
+      /* Coming FROM the search page, this button means "show me Discover" —
+         not "toggle the panel". Leaving search is the whole action. */
+      if (document.body.classList.contains('v2-searching')) {
+        try { if (typeof window.tmwMapMobileSearch === 'function') window.tmwMapMobileSearch(false); } catch (e) {}
+        if (!document.body.classList.contains('v2-sheet-open')) document.body.classList.add('v2-sheet-open');
+        return;
+      }
       if (document.body.classList.contains('v2-sheet-open')) { document.body.classList.remove('v2-sheet-open'); return; }
       var cap = document.getElementById('v2Capsule');
       if (cap) { try { cap.click(); return; } catch (e) {} }
