@@ -608,7 +608,7 @@ function stopHtml(s, marker){
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
   var pill = s.pending ? jprPill('Open to Partnerships', null, false, 'jpr-open')   // red filled, matches the homepage
            : s.noClient ? jprPill('Private')
-           : jprPill(s.client || 'J/PR','Client');
+           : jprPill(s.client || 'J/PR', s.relKey || 'Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
   // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
   // Every location gets an "Request partnership" action; hotel-seeking stops get a

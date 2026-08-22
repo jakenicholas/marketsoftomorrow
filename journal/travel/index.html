@@ -142,6 +142,12 @@
   .trip-partners{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
   .trip-pill{font-size:10.5px;font-weight:600;letter-spacing:.01em;color:var(--mute2);border:1px solid var(--hair2);border-radius:99px;padding:4px 10px;background:rgba(176,96,58,.05);white-space:nowrap}
   .trip-pill.open-pill{color:#FBF6EC;background:var(--terra);border-color:var(--terra)}
+  /* the open pill is the partnership CTA now (a real <button> inside a card that
+     may itself be an <a>), so reset UA chrome and give it affordance */
+  button.trip-pill.open-pill{display:inline-flex;align-items:center;gap:6px;font-family:inherit;line-height:1.15;cursor:pointer;transition:background .18s,transform .18s}
+  button.trip-pill.open-pill:hover{background:#9E4A28;border-color:#9E4A28;transform:translateY(-1px)}
+  button.trip-pill.open-pill .arw{transition:transform .18s}
+  button.trip-pill.open-pill:hover .arw{transform:translateX(3px)}
   .p-lead{color:var(--mute);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;align-self:center;margin-right:2px}
   .trip-link{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
   .trip-link .arw{transition:transform .18s}
@@ -281,7 +287,7 @@ var TRIPS = [
   { title:'Italy, The Isles & The Alps', place:'Italy · Greece · Switzerland · Slovenia', date:'September 3 – 29, 2026',
     href:'/travel/2026/europe/', upcoming:true, openCTA:true, start:'2026-09-03', end:'2026-09-29',
     img:'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
-    partners:['J/PR'] },
+    partners:['J/PR','Cali','Andronis'] },
   { title:'The Bay, Big Sur\n& Napa Valley', place:'Palo Alto, California', date:'August 2026', upcoming:true, openCTA:true, start:'2026-08-01', end:'2026-08-09',
     href:'/travel/2026/california/',
     img:'https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg',
@@ -290,6 +296,9 @@ var TRIPS = [
     href:'/travel/2026/charleston/',
     img:'https://www.charlestoncvb.com/assets/images/home/collage-1.jpg',
     partners:['Kate Hudson PR','Hotel Bennett'] },
+  { title:'La Crosse', place:'La Crosse, Wisconsin', date:'August 2026', start:'2026-08-11', end:'2026-08-14',
+    img:'https://explorelacrosse.com/wp-content/uploads/2025/09/Bluffs-Blog-1-1024x576.png',
+    partners:[] },
   { title:'Bimini', place:'Bimini, Bahamas', date:'May 2026',
     img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
     partners:['Bimini Tides'] },
@@ -367,9 +376,9 @@ function imgHtml(t, i){
   var img = t.img ? '<img class="trip-photo" loading="lazy" src="'+esc(t.img)+'" alt="'+esc(t.title)+'" onerror="this.remove()">' : '';
   return ph + img;
 }
-function partnersHtml(list, openCTA){
+function partnersHtml(list, openCTA, tripTitle){
   var pills = (list || []).map(function(p){ return '<span class="trip-pill">'+esc(p)+'</span>'; });
-  if(openCTA) pills.unshift('<span class="trip-pill open-pill">Open to Partnerships</span>');
+  if(openCTA) pills.unshift('<button type="button" class="trip-pill open-pill trip-reqlink" data-trip="'+esc(tripTitle||'').replace(/\n/g,' ')+'">Open to Partnerships <span class="arw">\u2192</span></button>');
   if(!pills.length) return '';
   return '<div class="trip-partners"><span class="p-lead">Partners</span>' + pills.join('') + '</div>';
 }
@@ -408,11 +417,9 @@ function tripHtml(t, i){
     +   '<div class="trip-date">'+esc(st === 'ended' ? t.date : coarseWindow(t))+'</div>'
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
-    +   partnersHtml(t.partners, t.openCTA && st !== 'ended')
-    +   (st !== 'ended'
-          ? (t.href
-              ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>'
-              : '<button type="button" class="trip-link trip-reqlink" data-trip="'+esc(t.title).replace(/\n/g,' ')+'">Request partnership <span class="arw">→</span></button>')
+    +   partnersHtml(t.partners, t.openCTA && st !== 'ended', t.title)
+    +   (st !== 'ended' && t.href
+          ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>'
           : '')
     + '</div>';
   var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '') + (t._next ? ' trip-next' : '') + (t.older ? ' trip-older' : '');

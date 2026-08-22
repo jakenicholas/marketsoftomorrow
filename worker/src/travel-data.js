@@ -97,7 +97,7 @@ export const TRAVEL_STOPS = {
     imgs:['https://assets.purewow.com/wp-content/uploads/2024/03/things-to-do-in-milan_uni.jpg'] },
 
   // ── Part 1: The Greek Isles ──
-  { loc:'Mykonos', nights:'2 Nights · Sept 14 → 16', stay:'Cali Mykonos', confirmed:true,
+  { loc:'Mykonos', nights:'2 Nights · Sept 14 → 16', stay:'Cali Mykonos', confirmed:true, relKey:'Partner',
     in:{ date:'Sept 14', mode:'flight', note:'Milan → Mykonos' },
     logi:[['Transit','Fly Air Serbia from Milan on Sept 14, landing in Mykonos at <b>3:50 PM</b>.']],
     todo:[
@@ -107,7 +107,7 @@ export const TRAVEL_STOPS = {
       'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
       'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
 
-  { loc:'Santorini, Greece', nights:'2 Nights · Sept 16 → 18', stay:'Andronis Arcadia', confirmed:true,
+  { loc:'Santorini, Greece', nights:'2 Nights · Sept 16 → 18', stay:'Andronis Arcadia', confirmed:true, relKey:'Partner',
     in:{ date:'Sept 16', mode:'ferry', note:'Ferry to Santorini' },
     logi:[['Transit','Ferry from Mykonos to Santorini, <b>11:30 AM → 1:40 PM</b>.']],
     imgs:[
