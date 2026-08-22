@@ -9138,6 +9138,10 @@
     body.ui-v2.v2-searching .v2-pinned-search {
       display: flex !important;
       order: 90; margin-top: auto;
+      /* The panel runs to the screen bottom now and the dock floats over it,
+         so the field has to be lifted clear of the pill or it sits directly
+         underneath it (measured: input 764-784 vs dock 740-798). */
+      margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
       border-top: 1px solid rgba(255,255,255,0.08);
       background: rgba(16,16,20,0.98);
     }
