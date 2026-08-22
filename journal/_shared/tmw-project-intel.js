@@ -203,7 +203,6 @@
     return '<div class="tmw-pm"><div class="pm-tl">' + date +
       '<div class="pm-tl-meter"><div class="pm-tl-grad"></div>' +
         '<div class="pm-tl-empty" style="left:' + pct + '%"></div>' +
-        '<div class="pm-tl-knob" style="left:' + knobLeft + ';box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(' + glow + ',.42),0 0 12px rgba(' + glow + ',.55)">' + pct + '%</div>' +
       '</div>' +
       '<div class="pm-tl-stages">' + stages + '</div>' +
     '</div></div>';
@@ -284,13 +283,12 @@
     // ── Gradient Meter timeline (purple → green; green only at completion) ──
     '.tmw-pm .pm-tl{margin-bottom:0}',
     '.tmw-pm .pm-tl-date{text-align:right;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:9px;letter-spacing:.04em;color:rgba(255,255,255,.55);margin-bottom:7px}',
-    '.tmw-pm .pm-tl-meter{position:relative;height:10px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}',
+    '.tmw-pm .pm-tl-meter{position:relative;height:4px;border-radius:2px;overflow:hidden}',
     '.tmw-pm .pm-tl-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67)}',
     '.tmw-pm .pm-tl-grad::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);background-size:200% 100%;animation:pmtlShine 2.6s linear infinite;mix-blend-mode:overlay}',
     '@keyframes pmtlShine{0%{background-position:200% 0}100%{background-position:-60% 0}}',
     '@media (prefers-reduced-motion:reduce){.tmw-pm .pm-tl-grad::after{animation:none}}',
     '.tmw-pm .pm-tl-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6)}',
-    '.tmw-pm .pm-tl-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:9px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.5);font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
     '.tmw-pm .pm-tl-stages{display:flex;gap:3px;margin-top:11px}',
     '.tmw-pm .pm-tl-stage{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}',
     '.tmw-pm .pm-tl-stage:first-child{text-align:left}',

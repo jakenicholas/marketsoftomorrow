@@ -4398,8 +4398,8 @@
     color: rgba(255,255,255,0.5); margin-bottom: 8px;
   }
   #projectModal .pm-tl-meter {
-    position: relative; height: 11px; border-radius: 999px; overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.55);
+    position: relative; height: 4px; border-radius: 2px; overflow: hidden;
+    box-shadow: none;
   }
   #projectModal .pm-tl-grad {
     position: absolute; inset: 0;
@@ -4415,13 +4415,6 @@
   #projectModal .pm-tl-empty {
     position: absolute; top: 0; bottom: 0; right: 0;
     background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6);
-  }
-  #projectModal .pm-tl-knob {
-    position: absolute; top: 50%; transform: translate(-50%,-50%);
-    background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800;
-    padding: 4px 9px; border-radius: 999px; white-space: nowrap; z-index: 2;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    box-shadow: 0 2px 6px rgba(0,0,0,.5);
   }
   #projectModal .pm-tl-stages { display: flex; gap: 3px; margin-top: 12px; }
   #projectModal .pm-tl-stage {
@@ -4486,7 +4479,7 @@
     padding: 16px 18px 18px;
     margin-bottom: 16px;
   }
-  #projectModal .pm-panel .pm-progress { margin-bottom: 0; }
+  /* (pm-progress moved into .pm-intel-lead — see that block.) */
   /* ── The story so far — living dossier timeline (mirrors the project page) ── */
   #projectModal .pm-dossier { margin: 20px 0 6px; }
   /* Match the project page's section header (.pp-sec-h): 12px / 800 / .1em sans. */
@@ -4992,9 +4985,16 @@
     padding: 14px 0 calc(18px + var(--safe-area-bottom, 0px));
     border-top: 0.5px solid rgba(255,255,255,0.07);
   }
-  /* Request Info + Dive Deeper share the top row (each at least ~46% so they
-     never squeeze onto one cramped line); Watch + Share wrap below. */
+  /* Mobile keeps the two primaries on their own row (they need the width);
+     desktop puts Official Page / Request Info / Watch on ONE row — see the
+     min-width:801px override below. Share was removed entirely. */
   #projectModal .pm-btn-inquire, #projectModal #pmLearnBtn { min-width: 46%; }
+  @media (min-width: 801px) {
+    #projectModal .pm-cta { flex-wrap: nowrap; }
+    #projectModal .pm-btn-inquire,
+    #projectModal #pmLearnBtn { min-width: 0; flex: 1 1 0; }
+    #projectModal .pm-watch-btn { flex: 0 0 auto; white-space: nowrap; }
+  }
   /* Purple-glow "Project Profile" (TMW Intelligence style) → the project's full page. */
   #projectModal .pm-btn-learn {
     flex: 1; height: 46px;
@@ -5220,6 +5220,34 @@
     border: 1px solid rgba(167,139,250,0.18);
     border-radius: 12px;
   }
+  /* ── TMW Intelligence lead card ────────────────────────────────────────
+     The card itself now carries the purple box; the last-verified stamp, the
+     construction meter, the estimate and the Atlas rows all sit inside it and
+     go flat so it reads as ONE block, the way the map popup card does. */
+  #projectModal .pm-intel-lead {
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.18);
+    border-radius: 12px;
+    padding: 15px 18px 17px;
+    margin: 0 0 16px;
+  }
+  #projectModal .pm-intel-lead:empty { display: none; }
+  #projectModal .pm-intel-lead .pm-intel {
+    margin: 0; padding: 0; background: none; border: 0; border-radius: 0;
+  }
+  #projectModal .pm-intel-lead .pm-updated { margin: 0 0 11px; }
+  #projectModal .pm-intel-lead .pm-progress { margin: 0 0 15px; }
+  #projectModal .pm-intel-lead .pm-atlas { margin: 14px 0 0; }
+  /* Nested boxes inside a box read as clutter — flatten the Atlas rows the
+     same way the popup does inside its intel chip. */
+  #projectModal .pm-intel-lead .pa-box {
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: none;
+    padding: 2px 12px;
+  }
+  /* The spec sheet is just the facts grid now; hide the shell when empty. */
+  #projectModal .pm-panel:has(#pmFacts:empty) { display: none; }
   #projectModal .pm-intel-head {
     display: flex;
     align-items: center;
@@ -11537,17 +11565,13 @@
       letter-spacing: .05em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 7px;
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-meter {
-      position: relative; height: 8px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+      position: relative; height: 4px; border-radius: 2px; overflow: hidden;
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-grad {
       position: absolute; inset: 0; background: linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67);
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-empty {
       position: absolute; top: 0; bottom: 0; right: 0; background: #0e0f0e;
-    }
-    body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-knob {
-      position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a;
-      font-family: 'Inter', sans-serif; font-size: 8px; font-weight: 800; padding: 2.5px 6px; border-radius: 999px; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,.45);
     }
     body.ui-v2 :is(#gridMobile, #desktopSidebar) .grid-item .tmw-tile-pm .pm-tl-stages {
       display: flex; gap: 2px; margin-top: 8px;
@@ -11596,18 +11620,13 @@
       letter-spacing: .05em !important; text-transform: uppercase !important; color: rgba(255,255,255,0.45) !important; margin-bottom: 7px !important;
     }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-meter {
-      position: relative !important; height: 8px !important; border-radius: 999px !important; overflow: hidden !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5) !important;
+      position: relative !important; height: 4px !important; border-radius: 2px !important; overflow: hidden !important; box-shadow: none !important;
     }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-grad {
       position: absolute !important; inset: 0 !important; background: linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67) !important;
     }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-empty {
       position: absolute !important; top: 0 !important; bottom: 0 !important; right: 0 !important; left: auto !important; background: #0e0f0e !important; width: auto !important;
-    }
-    body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-knob {
-      position: absolute !important; top: 50% !important; transform: translate(-50%,-50%) !important; background: #fff !important; color: #0a0a0a !important;
-      font-family: 'Inter', sans-serif !important; font-size: 8px !important; font-weight: 800 !important; padding: 2.5px 6px !important; border-radius: 999px !important; white-space: nowrap !important;
-      box-shadow: 0 1px 4px rgba(0,0,0,.45) !important;
     }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stages { display: flex !important; gap: 2px !important; margin-top: 8px !important; }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-stage {
@@ -12902,9 +12921,20 @@
           <!-- Timeline + facts share a glass panel, exactly like the project
                page hero panel. Facts (units / floors / delivery / market, +keys
                for hotels) render as big-value minis below the timeline. -->
-          <div class="pm-panel">
+          <!-- TMW Intelligence LEADS the modal, same shape as the map popup
+               card: the estimate box carries the last-verified stamp, the
+               construction meter and the Atlas supply / pricing rows, so the
+               read is "what is this and when" before the spec sheet. The
+               nodes below keep their own ids so every existing renderer
+               (renderIntelBlock, the atlas chips, buildProgress) still writes
+               to exactly the element it always wrote to. -->
+          <div class="pm-intel-lead" id="pmIntelLead">
             <div class="pm-updated" id="pmUpdated" style="display:none"></div>
             <div class="pm-progress" id="pmProgress"></div>
+            <div class="pm-intel" id="pmIntel" hidden></div>
+            <div class="pm-atlas" id="pmAtlasChips" hidden></div>
+          </div>
+          <div class="pm-panel">
             <div class="pm-facts" id="pmFacts"></div>
           </div>
           <div class="pm-div"></div>
@@ -12921,10 +12951,6 @@
                comparable completed projects (same type + same metro).
                Hidden by default; renderIntelBlock() populates and reveals
                this when intel.json has an entry for the open project's slug. -->
-          <div class="pm-intel" id="pmIntel" hidden></div>
-          <!-- Atlas Intelligence chips: market supply score + projected-pricing
-               teaser, funneling to the market page / full project page. -->
-          <div class="pm-atlas" id="pmAtlasChips" hidden></div>
           <!-- Developer & Design — its own titled section with bordered firm
                cards (mirrors the project page's "Developer & design"). -->
           <div class="pm-firms-section" id="pmFirmsSection" hidden>
@@ -12936,8 +12962,8 @@
                under the bio; the Watch button sits in the 2nd slot, label always
                visible (incl. mobile) so the watch action reads clearly. -->
           <div class="pm-cta">
+            <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Official Page</a>
             <button class="pm-btn-learn pm-btn-inquire" id="pmInquireBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Request Info</button>
-            <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>Dive Deeper</a>
             <!-- Watch button (Phase 1). Replaces the old icon-only favorite
                  button. The underlying isFavorited()/toggleFavorite() data
                  layer is unchanged -- only the UI is rebranded to "Watch". -->
@@ -12952,9 +12978,6 @@
               <span class="pm-watch-btn-label" id="pmWatchBtnLabel">Watch</span>
               <span class="pm-watch-btn-dot" aria-hidden="true"></span>
             </button>
-            <div class="pm-btn-icon" id="pmShareIconBtn">
-              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            </div>
           </div>
           <!-- (Project Updates removed — superseded by the "story so far" dossier
                above, which is event-dated + sourced.) -->
@@ -16595,7 +16618,6 @@
         return `${date}
           <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
             <div class="pm-tl-empty" style="left:${pct}%"></div>
-            <div class="pm-tl-knob" style="left:${knobLeft};box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(${glow},.42),0 0 12px rgba(${glow},.55)">${pct}%</div>
           </div>
           <div class="pm-tl-stages">${stagesHtml}</div>`;
       }
@@ -17224,6 +17246,12 @@
         currentFeature = f;
         fromSource = source || 'tile';
         const p = f.properties;
+        // Light the whole project GOLD in the 3D skyline. This used to live
+        // only on the map popup, which desktop no longer opens (and which a
+        // tile / search / watchlist click never opened on either surface), so
+        // selection silently stopped colouring the towers. The modal is now
+        // the single place that owns it; closeModal() releases it.
+        try { if (window._skySelect) window._skySelect(p.uid || ''); } catch (e) {}
         // CLIENT REPORTING — opening a project's modal is an "interaction" on
         // the Map row of that client's monthly report (impression → interaction
         // → URL click). Keyed by project slug so it rolls up per development.
@@ -17773,6 +17801,8 @@
         if (window._currentProjectView) {
           _fireProjectViewDuration('closed');
         }
+        // Release the gold 3D selection (see openProjectModal).
+        try { if (window._skySelect) window._skySelect(null); } catch (e) {}
         modal.classList.remove('open');
         // Drop the modal below the Pulse drawer for the duration of the
         // slide-away animation, so on exit it visually disappears behind
@@ -17974,16 +18004,23 @@
           navigator.share({ title: title + ' | Map of Tomorrow', url }).catch(() => {});
         } else {
           navigator.clipboard?.writeText(url).then(() => {
+            // The modal's share button is gone (the dock's Share tool covers
+            // it); keep the confirmation flash only if some caller still has
+            // a button to flash.
             const btn = document.getElementById('pmShareIconBtn');
+            if (!btn) return;
             const orig = btn.innerHTML;
-            btn.innerHTML = '‚úì';
+            btn.innerHTML = '\u2713';
             btn.style.color = '#1FDF67';
             setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
           }).catch(() => {});
         }
       }
 
-      document.getElementById('pmShareIconBtn').addEventListener('click', () => {
+      // Share left the modal's action row (Jake: one row, no Share). Guarded
+      // because an unguarded getElementById().addEventListener here threw and
+      // took the Watch button's wiring — the very next statement — down with it.
+      document.getElementById('pmShareIconBtn')?.addEventListener('click', () => {
         const p = currentFeature?.properties;
         if (p) {
           if (window.gtag) gtag('event', 'project_share', {
@@ -18403,7 +18440,16 @@
       try {
         if (window._skySelect) {
           window._skySelect(f.properties.uid || '');
-          activePopup.on('close', () => { try { window._skySelect(null); } catch (_) {} });
+          activePopup.on('close', () => {
+            try {
+              // The popup closes when its Learn More opens the modal — and the
+              // modal owns the selection from that point, so don't clear it out
+              // from under itself. closeModal() releases it instead.
+              const pm = document.getElementById('projectModal');
+              if (pm && pm.classList.contains('open')) return;
+              window._skySelect(null);
+            } catch (_) {}
+          });
         }
       } catch (_) {}
 
@@ -26693,18 +26739,13 @@
           letter-spacing:.05em !important; text-transform:uppercase !important; color:rgba(255,255,255,.45) !important; margin-bottom:7px !important;
         }
         ${G} .tmw-tile-pm .pm-tl-meter, ${D} .tmw-tile-pm .pm-tl-meter {
-          position:relative !important; height:8px !important; border-radius:999px !important; overflow:hidden !important; box-shadow:inset 0 1px 2px rgba(0,0,0,.5) !important;
+          position:relative !important; height:4px !important; border-radius:2px !important; overflow:hidden !important; box-shadow:none !important;
         }
         ${G} .tmw-tile-pm .pm-tl-grad, ${D} .tmw-tile-pm .pm-tl-grad {
           position:absolute !important; inset:0 !important; background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67) !important;
         }
         ${G} .tmw-tile-pm .pm-tl-empty, ${D} .tmw-tile-pm .pm-tl-empty {
           position:absolute !important; top:0 !important; bottom:0 !important; right:0 !important; background:#0e0f0e !important;
-        }
-        ${G} .tmw-tile-pm .pm-tl-knob, ${D} .tmw-tile-pm .pm-tl-knob {
-          position:absolute !important; top:50% !important; transform:translate(-50%,-50%) !important; background:#fff !important; color:#0a0a0a !important;
-          font-family:'Inter',sans-serif !important; font-size:8px !important; font-weight:800 !important; padding:2.5px 6px !important; border-radius:999px !important; white-space:nowrap !important;
-          box-shadow:0 1px 4px rgba(0,0,0,.45) !important;
         }
         ${G} .tmw-tile-pm .pm-tl-stages, ${D} .tmw-tile-pm .pm-tl-stages { display:flex !important; gap:2px !important; margin-top:8px !important; }
         ${G} .tmw-tile-pm .pm-tl-stage, ${D} .tmw-tile-pm .pm-tl-stage {

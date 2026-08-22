@@ -540,7 +540,6 @@ def progress_bar_html(delivery, delivery_date='', start_date=''):
     <div class="pm-tl">{date_html}
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:{pct}%"></div>
-        <div class="pm-tl-knob" style="left:{knob_left};box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba({glow},.42),0 0 12px rgba({glow},.55)">{pct}%</div>
       </div>
       <div class="pm-tl-stages">{stages_html}</div>
     </div>'''
@@ -2594,13 +2593,13 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
        modal's buildProgress() so every surface reads as one system. ── */
     .pm-tl {{ margin-bottom: 16px; }}
     .pm-tl-date {{ text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }}
-    .pm-tl-meter {{ position: relative; height: 11px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); }}
+    /* Matches the map popup card: no % knob, 4px track. */
+    .pm-tl-meter {{ position: relative; height: 4px; border-radius: 2px; overflow: hidden; }}
     .pm-tl-grad {{ position: absolute; inset: 0; background: linear-gradient(90deg, #3a2f6b, #7C5CE0 38%, #A78BFA 64%, #1FDF67); }}
     .pm-tl-grad::after {{ content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; animation: pmtlShine 2.6s linear infinite; mix-blend-mode: overlay; }}
     @keyframes pmtlShine {{ 0% {{ background-position: 200% 0; }} 100% {{ background-position: -60% 0; }} }}
     @media (prefers-reduced-motion: reduce) {{ .pm-tl-grad::after {{ animation: none; }} }}
     .pm-tl-empty {{ position: absolute; top: 0; bottom: 0; right: 0; background: #0d0f0e; box-shadow: inset 2px 0 3px rgba(0,0,0,0.6); }}
-    .pm-tl-knob {{ position: absolute; top: 50%; transform: translate(-50%,-50%); background: #fff; color: #0a0a0a; font-size: 9.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; z-index: 2; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,.5); }}
     .pm-tl-stages {{ display: flex; gap: 3px; margin-top: 12px; }}
     .pm-tl-stage {{ flex: 1; font-size: 7.5px; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }}
     .pm-tl-stage:first-child {{ text-align: left; }}
