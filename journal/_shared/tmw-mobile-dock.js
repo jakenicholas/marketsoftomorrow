@@ -336,12 +336,10 @@
     /* The split control needs ~37px more than a single smart button and the
        cluster had no room to give — shrinking every glyph to buy it made the
        whole bar look squished. Buy the room by dropping two icons instead:
-       on a PHONE on the map, Atlas and Map are the two the map page can
-       spare (Map is the page you're already on). Desktop keeps all of them. */
-    '@media (max-width:800px){',
+       on the map, Atlas and Map are the two the page can spare (Map is the
+       page you are already on). Every viewport — Jake asked for desktop too. */
     'html.tmw-surf-map .tmwx-pill .tmwx-pbtn[data-k="atlas"],',
     'html.tmw-surf-map .tmwx-pill .tmwx-pbtn[data-k="map"]{display:none}',
-    '}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
     '.tmwx-search .si svg{width:100%;height:100%;display:block;overflow:visible}',
     /* The intelligence mark reads a touch larger than the other glyphs. */

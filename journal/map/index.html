@@ -9080,7 +9080,11 @@
     body.ui-v2 .v2-sheet {
       position: fixed !important;
       left: 0 !important; right: 0 !important;
-      top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
+      /* --header-height is a fixed 62px constant while the real header
+         renders 59-71px depending on width, so deriving the top from it left
+         a sliver of live map between the two. --tmw-hdr-b is measured from
+         the header's own rect (see the observer in JS). */
+      top: var(--tmw-hdr-b, calc(var(--header-height) + var(--safe-area-top, 0px))) !important;
       /* Runs to the very bottom of the screen. Ending it above the action bar
          left a band of live map showing under the panel, which read as the
          page being cut off. The dock floats ON TOP of the panel instead, and
@@ -9118,7 +9122,7 @@
     /* A project fills the same screen. */
     body.ui-v2 #projectModal {
       left: 0 !important; right: 0 !important;
-      top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
+      top: var(--tmw-hdr-b, calc(var(--header-height) + var(--safe-area-top, 0px))) !important;
       bottom: 0 !important;
       position: fixed !important;
       width: auto !important; height: auto !important;
@@ -9135,16 +9139,17 @@
 
     /* Searching is just another full-screen page; the input drops to the
        bottom so it sits by the keyboard with results filling upward. */
+    /* The field sits directly under the title row — a search page reads as a
+       search page. (It lives BEFORE the title row in source, hence the
+       explicit order on all three children.) Parking it at the bottom by the
+       keyboard did not read as an input you could type into. */
+    body.ui-v2.v2-searching .v2-sheet-title-row { order: 0; }
     body.ui-v2.v2-searching .v2-pinned-search {
       display: flex !important;
-      order: 90; margin-top: auto;
-      /* The panel runs to the screen bottom now and the dock floats over it,
-         so the field has to be lifted clear of the pill or it sits directly
-         underneath it (measured: input 764-784 vs dock 740-798). */
-      margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      background: rgba(16,16,20,0.98);
+      order: 1; margin: 0 0 6px;
+      background: transparent;
     }
+    body.ui-v2.v2-searching .v2-sheet-body { order: 2; }
     @media (prefers-reduced-motion: reduce) {
       body.ui-v2 #projectModal { transition: opacity .12s ease !important; transform: none !important; }
     }
@@ -9164,21 +9169,25 @@
        changing opacity. Confine it to the map band: below the header, above
        the pill. Nothing the scrim is there to dim lives outside that band. */
     .tmwx-scrim {
-      top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
+      top: var(--tmw-hdr-b, calc(var(--header-height) + var(--safe-area-top, 0px))) !important;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important;
       left: 0 !important; right: 0 !important;
     }
 
-    /* Close button, sitting right of the bookmark chip. */
+    }
+    /* Close button, sitting right of the bookmark chip. DELIBERATELY OUTSIDE
+       the max-width:800px block above — the desktop panel builds its own
+       .v2-sheet-x too, and while these rules were trapped in the media query
+       that button rendered as a bare white box. */
     .v2-sheet-x {
       display: inline-flex; align-items: center; justify-content: center;
       width: 30px; height: 30px; border-radius: 50%;
       background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
       color: rgba(255,255,255,0.8); cursor: pointer; padding: 0; margin-left: 2px;
+      flex: 0 0 auto;
     }
-    .v2-sheet-x svg { width: 15px; height: 15px; }
+    .v2-sheet-x svg { width: 15px; height: 15px; display: block; }
     .v2-sheet-x:hover { background: rgba(255,255,255,0.13); color: #fff; }
-    }
     /* The blur only renders AFTER the slide-in finishes. JS adds the
        `v2-sheet-settled` class on transitionend (and removes it on close
        BEFORE the slide-out so the close is also cheap). */
@@ -11766,6 +11775,9 @@
        journal-chrome.js's runtime-injected z-60 — otherwise the full-screen
        loader covers the universal header while loading between screens. */
     .tmw-chrome-head{position:fixed!important;top:0;left:0;right:0;z-index:100!important;}
+    /* The chrome ships nav.main at rgba(7,8,7,.78); over a moving WebGL map
+       that reads as the header changing opacity as you pan. Solid here. */
+    .tmw-chrome-head nav.main{background:#070807!important;}
     .tmw-chrome-head nav.main{padding-top:var(--safe-area-top);}
     /* Loading overlay covers the FULL viewport (top:0) and sits BEHIND the
        z-99 journal header, which renders on top of it. Covering from the very
@@ -28073,6 +28085,11 @@
             try { search.focus({ preventScroll: true }); } catch (e) { try { search.focus(); } catch (e2) {} }
             setTimeout(function () { try { search.focus(); } catch (e) {} }, 420);
           }
+          // Hand off to the real search pipeline with an empty query: it
+          // renders the Intelligence suggestions + recent searches into
+          // #v2SearchOverlay, which is what hides the project tiles. Without
+          // this the search page opened onto the Discover grid.
+          try { if (typeof runDiscoverSearch === 'function') runDiscoverSearch(''); } catch (e) {}
           return;
         }
         if (search && search.value) {
@@ -28081,6 +28098,33 @@
         }
       }
       window.tmwMapMobileSearch = mobileSearchMode;
+
+      // ‚îÄ‚îÄ Real header bottom ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // --header-height is a hardcoded 62px but .tmw-chrome-head actually
+      // renders 59-71px depending on width and safe-area, so anything butted
+      // against it from that constant left (or overlapped) a few px. Publish
+      // the measured bottom instead.
+      (function () {
+        var head = null, tries = 0;
+        function sync() {
+          head = head || document.querySelector('.tmw-chrome-head');
+          if (!head) return;
+          var b = Math.round(head.getBoundingClientRect().bottom);
+          if (b > 0) document.documentElement.style.setProperty('--tmw-hdr-b', b + 'px');
+        }
+        (function poll() {
+          sync();
+          // The chrome injects itself asynchronously; keep looking briefly.
+          if (!head && ++tries < 40) setTimeout(poll, 250);
+        })();
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', function () { setTimeout(sync, 250); });
+        try { if (window.ResizeObserver && document.querySelector('.tmw-chrome-head')) new ResizeObserver(sync).observe(document.querySelector('.tmw-chrome-head')); } catch (e) {}
+        setTimeout(function () {
+          var h = document.querySelector('.tmw-chrome-head');
+          try { if (window.ResizeObserver && h) new ResizeObserver(sync).observe(h); } catch (e) {}
+        }, 1500);
+      })();
       // Back-to-map pill in the drawer search bar → close the drawer.
       var mapPill = document.getElementById('v2MapPill');
       if (mapPill) mapPill.addEventListener('click', function(e){ e.stopPropagation(); closeSheet(); });
