@@ -5452,21 +5452,56 @@
       "delivery_speculative": false
     },
     "oracle-campus": {
-      "source": "district",
-      "is_district": true,
-      "component_count": 2,
+      "estimate_years": 5.2,
+      "estimate_label": "~5.2 years",
+      "range_low": 1.6,
+      "range_high": 6.0,
+      "confidence": "medium",
+      "comparable_count": 2,
+      "good_count": 2,
+      "exact_count": 2,
+      "used_relaxed": false,
+      "avg_match_score": 1.0,
+      "avg_distance_km": 1.6,
+      "avg_distance_mi": 1.0,
+      "scale_used": false,
+      "firm_signal": {
+        "firm": "Foster + Partners",
+        "count": 5,
+        "median_years": 6.0,
+        "stddev_years": 2.66,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Nashville",
-      "comparables": [],
-      "comparable_count": 0,
-      "phased_through": 2031,
-      "confidence": "medium",
-      "estimate_years": 5.4,
-      "estimate_label": "5.5 years",
-      "days_out": 1957,
-      "delivery_date": "2031-12-31",
-      "inflight_undated": 0,
-      "pattern_summary": "Phased master plan — 2 components delivering through 2031; latest dated phase (Oracle Campus) ~5.5 years out."
+      "comparables": [
+        {
+          "name": "Dolly Parton's SongTeller Hotel",
+          "slug": "dolly-partons-songteller-hotel",
+          "location": "Nashville",
+          "years": 1.6,
+          "score": 1.0,
+          "distance_km": 1.4,
+          "distance_mi": 0.9
+        },
+        {
+          "name": "Nashville Yards",
+          "slug": "nashville-yards",
+          "location": "Nashville",
+          "years": 6.0,
+          "score": 1.0,
+          "distance_km": 1.7,
+          "distance_mi": 1.1
+        }
+      ],
+      "pattern_summary": "Among 2 nearby hotel projects in TMW's data, the median build time is 3.8 years (range 1.6–6). Adjusted to ~5.2 years for Foster + Partners's own track record (~6-year typical pace across 5 prior projects).",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "oracle-pedestrian-bridge": {
       "estimate_years": 2.5,
@@ -17888,15 +17923,15 @@
   },
   "stats": {
     "high": 10,
-    "medium": 24,
+    "medium": 25,
     "low": 99,
     "known_date": 572,
     "completed": 71,
     "skipped": 125,
     "no_type": 0,
-    "firm_boosted": 56,
+    "firm_boosted": 57,
     "speculative_softened": 230,
-    "district": 14,
+    "district": 13,
     "mixed_use_adjusted": 36
   }
 }
