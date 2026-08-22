@@ -14636,14 +14636,18 @@
               const _selfSlug = distKeyOf(p);
               const _isDist = !!_selfSlug;
               const _hasKids = _isDist && (kidsBy[_selfSlug] || []).length > 0;
-              // "No building represents East Bank — all of the projects inside
-              // of it make up the district" (Jake). So a district WITH children
-              // is never a building, even if someone has drawn massing on it:
-              // East Bank carries a stray stadium massing that belongs to the
-              // Titans Stadium child. Real floors are the only thing that makes
-              // an umbrella also a building — Mori JP Tower is a flagged
-              // district AND a 64-storey tower.
-              const _selfForm = fl >= 3;
+              // A district with children is not a building by default — "no
+              // building represents East Bank, all of the projects inside of it
+              // make up the district" — so it never extrudes a FALLBACK shape.
+              // But two things are deliberate and must render: real floors
+              // (Mori JP Tower is a flagged district AND a 64-storey tower), and
+              // a massing somebody hand-authored in Studio (Oracle Campus has
+              // nine blocks drawn on the umbrella itself). An auto-derived
+              // massing does not count — that is what put a phantom stadium on
+              // East Bank. `[]` is the editor's "No massing" and stays empty.
+              const _ovr = (window._skyOver || {})[p.slug];
+              const _handMassed = Array.isArray(_ovr) && _ovr.length > 0;
+              const _selfForm = fl >= 3 || _handMassed;
               if (_isDist) {
                 const dm = distMeta[_selfSlug] = distMeta[_selfSlug] ||
                   { uid:'', title:'', rings:[], top:0, yr:0 };
