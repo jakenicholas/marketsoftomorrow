@@ -14724,9 +14724,13 @@
             Object.keys(distMeta).forEach(k => {
               const d = distMeta[k]; if (d && d.child && d.uid) _kidUids.add(d.uid);
             });
+            // EVERY project stays in `best` — it feeds the roof LABELS as well
+            // as the beacons, and a building inside a district still needs its
+            // name (Titans Stadium, Nobu, Eastpoint all went silent when this
+            // filtered them out). Only the beacon loop skips them.
             const best = {};
             feats.forEach(ft => { const pp = ft.properties;
-              if (!pp.uid || _kidUids.has(pp.uid)) return;   // the district beams for them
+              if (!pp.uid) return;
               if (!best[pp.uid] || pp.height > best[pp.uid].height) best[pp.uid] = { uid:pp.uid, title:pp.title, height:pp.height, yr:pp.yr, ring:ft.geometry.coordinates[0] };
             });
             // Beacon: a shaft of light per project, fired from the tallest
@@ -14736,6 +14740,7 @@
             // the building instead of parked on top of it.
             const auraFeats = [];
             Object.values(best).forEach(b => {
+              if (_kidUids.has(b.uid)) return;   // the district beams for them
               const c = skyRingCentroid(b.ring);
               const r0 = Math.max(8, Math.min(18, skyPlateR(b.ring) * 0.55));
               const rise = Math.max(300, Math.round(b.height * 1.9));
@@ -14773,16 +14778,17 @@
               let ring = (Array.isArray(drawn) && drawn.length > 3)
                 ? drawn.slice(0, -1).map(pt => [ +pt[0], +pt[1] ])
                 : skyHull(pts);
+              const cen = ring ? skyRingCentroid(ring.concat([ring[0]])) : skyRingCentroid(pts.concat([pts[0]]));
+              d.centre = cen;   // BEFORE any early return: a district still needs
+                                // its NAME even when its parcel is rejected below
               if (!drawn && ring) {
                 // Reject an implausible auto-hull rather than draw nonsense.
-                const c0 = skyRingCentroid(ring.concat([ring[0]]));
-                const lm = 111320, gm = 111320 * Math.cos(c0[1] * Math.PI/180);
+                const lm = 111320, gm = 111320 * Math.cos(cen[1] * Math.PI/180);
                 let span = 0;
                 ring.forEach(a => ring.forEach(b =>
                   { span = Math.max(span, Math.hypot((a[0]-b[0])*gm, (a[1]-b[1])*lm)); }));
                 if (span > 520) return;   // too scattered to guess — wait for a drawn ring
               }
-              const cen = ring ? skyRingCentroid(ring.concat([ring[0]])) : skyRingCentroid(pts.concat([pts[0]]));
               const latM = 111320, lngM = 111320 * Math.cos(cen[1] * Math.PI/180);
               // Costa Palmas stacks all five children on one point, so the hull
               // degenerates — fall back to a disc, and hold a floor size so a
@@ -14841,10 +14847,20 @@
             }
             _skyClip = { type:'MultiPolygon',
               coordinates: feats.map(ft => [ skyScaleRing(ft.geometry.coordinates[0], 1.2) ]).concat(demoRings) };
-            _skyLabels = { type:'FeatureCollection', features: Object.values(best).map(b => ({
+            const _labels = Object.values(best).map(b => ({
               type:'Feature',
               properties:{ uid:b.uid, title:(typeof shortName === 'function' ? shortName(b.title) : b.title), yr:b.yr },
-              geometry:{ type:'Point', coordinates: skyRingCentroid(b.ring) } })) };
+              geometry:{ type:'Point', coordinates: skyRingCentroid(b.ring) } }));
+            // A bare umbrella has no roof to hang a name on, so label the parcel.
+            Object.keys(distMeta).forEach(k => {
+              const d = distMeta[k];
+              if (!d || !d.child || !d.title || (d.uid && best[d.uid])) return;
+              const c = d.centre;
+              if (c) _labels.push({ type:'Feature',
+                properties:{ uid:d.uid, title:(typeof shortName === 'function' ? shortName(d.title) : d.title), yr:d.yr },
+                geometry:{ type:'Point', coordinates: c } });
+            });
+            _skyLabels = { type:'FeatureCollection', features: _labels };
             return { type:'FeatureCollection', features:feats };
           }
           function skyRemove(){
