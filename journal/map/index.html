@@ -5262,6 +5262,20 @@
   /* The spec sheet is just the facts grid now; hide the whole section when
      there are no facts to show. */
   #projectModal .pm-details-section:has(#pmFacts:empty) { display: none; }
+  /* Option B from the card studies: the specs read as a sentence rather than
+     a grid of bordered tiles inside an already-bordered box. */
+  #projectModal .pm-facts-line {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.55);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  #projectModal .pm-facts-line b {
+    color: #fff;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
   /* Small mono label INSIDE the box — the exact treatment the firm cards use
      for DEVELOPERS / DESIGN (see .pp-firm-group > .k). */
   #projectModal .pm-panel-k {
@@ -13728,7 +13742,7 @@
           if (activePopup) { activePopup.remove(); activePopup = null; }
           // Same frame the map boots to (see the mapboxgl.Map constructor).
           const bv = window._tmwBootView
-            || { center: isMobile ? [-80.196, 25.768] : [-80.195, 25.772], zoom: isMobile ? 12.7 : 13.2, pitch: 55 };
+            || { center: isMobile ? [-80.194, 25.769] : [-80.194, 25.771], zoom: isMobile ? 13.5 : 14.0, pitch: 55 };
           map.flyTo({ center: bv.center, zoom: bv.zoom, pitch: window._skyOn ? (bv.pitch || 0) : 0, duration: 700 });
           showToast('Returned to default view');
           break;
@@ -13786,8 +13800,8 @@
     // rounds tuned this while the old auto-click was still flying the camera
     // somewhere else afterwards, which is how it ended up at a 10.6 regional
     // view once that click was retired.
-    const BOOT_CENTER = isMobile ? [-80.196, 25.768] : [-80.195, 25.772];
-    const BOOT_ZOOM   = isMobile ? 12.7 : 13.2;
+    const BOOT_CENTER = isMobile ? [-80.194, 25.769] : [-80.194, 25.771];
+    const BOOT_ZOOM   = isMobile ? 13.5 : 14.0;
     const BOOT_PITCH  = 55;
     // Published so the reset-view button can read the same frame. It is wired
     // EARLIER in the file than this declaration and its enclosing scope is not
@@ -17655,12 +17669,64 @@
         if (unitsVal)      factItems.push({ label: 'Units',      val: unitsVal });
         if (floorsVal)     factItems.push({ label: 'Floors',     val: floorsVal });
 
+        // ── DETAILS: one sentence, not a grid of tiles ──────────────────
+        // Clauses are assembled from whatever the project actually HAS, so a
+        // hotel picks up "and 205 keys" and a project with no confirmed start
+        // date simply never mentions one — no empty tiles, no orphan cells.
+        // (factItems above is left intact: other code reads it.)
+        const MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const humanDate = (raw) => {
+          if (!raw) return '';
+          const t = String(raw).trim();
+          let m;
+          if ((m = t.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/))) {
+            const mi = parseInt(m[2], 10) - 1;
+            return (MON3[mi] ? MON3[mi] + ' ' : '') + m[1];
+          }
+          if ((m = t.match(/^([A-Za-z]{3,})\.?\s+(\d{4})$/))) return m[1].slice(0, 3) + ' ' + m[2];
+          if ((m = t.match(/(\d{4})/))) return m[1];
+          return t;
+        };
+        const yearOf = (raw) => { const m = String(raw || '').match(/(\d{4})/); return m ? parseInt(m[1], 10) : null; };
+        const B = (v) => '<b>' + escTxt(v) + '</b>';
+        const plural = (v, word) => B(v) + ' ' + word + (String(v) === '1' ? '' : 's');
+
+        const scaleBits = [];
+        if (floorsVal) scaleBits.push(plural(floorsVal, 'floor'));
+        if (unitsVal)  scaleBits.push(plural(unitsVal, 'residence'));
+        if (keysVal)   scaleBits.push(plural(keysVal, 'hotel key'));
+        const listJoin = (arr) => arr.length < 2 ? (arr[0] || '')
+          : arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+
+        const startHuman = startFmt ? humanDate(startRaw) : '';
+        const compRaw    = (_eff && _eff.completionRaw) ? _eff.completionRaw.trim() : (p.deliveryDate || '').trim();
+        const compHuman  = humanDate(compRaw);
+        const isBuildOut = !!(_eff && _eff.completionRaw);
+        const compEst    = !isBuildOut && !!p.deliverySpeculative;
+        const nowOpen    = /now open/i.test(p.delivery || '');
+        const thisYear   = new Date().getFullYear();
+        const startYr    = yearOf(startRaw);
+
+        const sentences = [];
+        if (scaleBits.length) sentences.push(listJoin(scaleBits) + '.');
+        if (nowOpen) {
+          if (compHuman) sentences.push('Open since ' + B(compHuman) + '.');
+        } else {
+          const started = startYr != null && startYr <= thisYear;
+          const startClause = startHuman ? (started ? 'Broke ground ' : 'Breaks ground ') + B(startHuman) : '';
+          const compVerb = isBuildOut ? 'full build-out ' : (compEst ? 'targeting ' : 'completing ');
+          const compClause = compHuman ? compVerb + B(compHuman) : '';
+          if (startClause && compClause) sentences.push(startClause + ', ' + compClause + '.');
+          else if (startClause)          sentences.push(startClause + '.');
+          else if (compClause)           sentences.push(compClause.charAt(0).toUpperCase() + compClause.slice(1) + '.');
+        }
+
         const factsEl = document.getElementById('pmFacts');
         if (factsEl) {
-          factsEl.innerHTML = factItems.map(s =>
-            `<div class="pm-mini"><div class="v">${escTxt(s.val)}</div><div class="k">${escTxt(s.label)}</div></div>`
-          ).join('');
-          factsEl.style.display = factItems.length ? 'grid' : 'none';
+          factsEl.innerHTML = sentences.length
+            ? '<p class="pm-facts-line">' + sentences.join(' ') + '</p>'
+            : '';
+          factsEl.style.display = sentences.length ? 'block' : 'none';
         }
 
         // ── DEVELOPER & DESIGN — every firm listed as a clickable pill (was: the
