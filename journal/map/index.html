@@ -9120,6 +9120,17 @@
     @media (prefers-reduced-motion: reduce) {
       body.ui-v2 #projectModal { transition: opacity .12s ease !important; transform: none !important; }
     }
+    /* The mobile dock's scrim (.tmwx-scrim) is a full-viewport dimmer at
+       z-index 9001 — above the universal header at 100 — so whenever it fades
+       in it visibly greys the header out. With the panel full screen there is
+       nothing left to dim behind it anyway, so suppress it while the map's own
+       page is up. */
+    body.v2-sheet-open .tmwx-scrim,
+    body:has(#projectModal.open) .tmwx-scrim {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
     /* Close button, sitting right of the bookmark chip. */
     .v2-sheet-x {
       display: inline-flex; align-items: center; justify-content: center;
