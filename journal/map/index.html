@@ -15427,8 +15427,11 @@
                 if (window._skyZoomSync) window._skyZoomSync(true);
               } catch (e) { /* leave it off rather than break the map */ }
             };
-            if (map.isStyleLoaded && map.isStyleLoaded()) map.once('idle', boot);
-            else map.once('load', () => map.once('idle', boot));
+            // Whichever comes first: the map settling, or a short fallback for
+            // the case where `idle` never fires (slow tiles, throttled tab).
+            try { map.once('idle', boot); } catch (e) {}
+            try { map.once('load', boot); } catch (e) {}
+            setTimeout(boot, 1200);
           })();
 
           // Cinematic orbit: the camera drifts slowly around the skyline until
@@ -15481,10 +15484,15 @@
           // What's Moving toggled while the skyline is up → recolor towers
           // live (brighter movers) without rebuilding the layers.
 
-          // The skyline IS the default view: plain loads boot with the toggle
-          // on and fly into the towers. Deep links (?project/?city) keep their
-          // own destination and arrive in 2D — the toggle is one click away.
-          if (!_bootDeepLink) setTimeout(()=>{ try { if (!skyOn) skyT.click(); } catch(e){} }, 700);
+          // (The old auto-click that booted the skyline lived here. It fired
+          // the toggle's own click handler, which meant two problems: it was
+          // skipped whenever _bootDeepLink was set — and opening a project sets
+          // ?project=, so coming back from a project page always landed in 2D,
+          // the "skyline keeps turning off" report — and on a plain load it
+          // flew the camera to a tower at zoom 15.1, discarding the tuned
+          // default frame. skyRestorePref() below replaces it: same default-on
+          // behaviour, honoured on deep links too, and it never moves the
+          // camera. See the SKY_PREF_KEY block.)
           // A tower is a real pin: glass, glow shell, or roof name — click any
           // of them and the same project modal opens.
           function skyClick(e){
