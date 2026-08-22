@@ -105,6 +105,62 @@
 
   /* header */
   header.hero{padding:56px 0 30px;text-align:center}
+  /* ── TRAVEL DESK masthead (Direction B) ──────────────────────────────
+     A dark band at the top of the beige page: the hub reports its own
+     state (next departure, live counts) instead of introducing itself.
+     Tokens are local so the beige page palette below is untouched. */
+  .tdesk{--d-ink:#0B0C0B;--d-panel:#131614;--d-hair:rgba(255,255,255,.10);--d-hair2:rgba(255,255,255,.18);
+         --d-text:#ECEAE5;--d-mute:#8b958d;--d-mute2:#C2C9C3;--d-acc:#A78BFA;--d-white:#fff;
+         background:var(--d-ink);color:var(--d-text);padding:30px 0 0;margin-bottom:26px}
+  .tdesk .wrap{padding:0 22px}
+  .td-top{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:end}
+  .td-eyebrow{font-family:var(--mono,'JetBrains Mono',monospace);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--d-acc);display:flex;align-items:center;gap:9px}
+  .td-eyebrow i{width:6px;height:6px;border-radius:50%;background:#1d9d5c;box-shadow:0 0 0 3px rgba(29,157,92,.18);animation:tdPulse 2.4s infinite}
+  @keyframes tdPulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .tdesk h1{font-family:var(--serif);font-weight:600;letter-spacing:-.022em;color:var(--d-white);margin:12px 0 0;line-height:1;font-size:clamp(30px,4.4vw,46px)}
+  .tdesk .td-sub{color:var(--d-mute2);font-size:14.5px;line-height:1.55;margin:10px 0 0;max-width:60ch}
+  /* next-departure card */
+  .td-next{display:flex;gap:14px;align-items:center;border:1px solid var(--d-hair2);border-radius:16px;padding:13px;background:var(--d-panel);min-width:320px;text-decoration:none}
+  .td-next .thumb{flex:0 0 84px;width:84px;height:84px;border-radius:11px;overflow:hidden;background:var(--d-hair)}
+  .td-next .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .td-next .meta{min-width:0;flex:1}
+  .td-next .k{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--d-acc);display:flex;align-items:center;gap:7px}
+  .td-next .k i{width:6px;height:6px;border-radius:50%;background:#1d9d5c;display:inline-block}
+  .td-next .v{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--d-white);margin-top:7px;line-height:1.1}
+  .td-next .m{font-size:12px;color:var(--d-mute);margin-top:5px}
+  .td-next .bar{height:3px;border-radius:2px;background:var(--d-hair);margin-top:11px;overflow:hidden}
+  .td-next .bar i{display:block;height:100%;background:var(--d-acc)}
+  /* stat rail */
+  .td-rail{display:flex;flex-wrap:wrap;margin-top:20px;border:1px solid var(--d-hair);border-radius:14px;overflow:hidden;background:var(--d-panel)}
+  .td-rail .s{flex:1 1 0;min-width:112px;padding:13px 16px;border-right:1px solid var(--d-hair)}
+  .td-rail .s:last-child{border-right:0}
+  .td-rail .n{font-family:var(--serif);font-size:23px;font-weight:600;line-height:1;color:var(--d-white);letter-spacing:-.02em}
+  .td-rail .n em{font-style:normal;color:var(--d-acc)}
+  .td-rail .l{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--d-mute);margin-top:6px}
+  /* tabs + CTA */
+  .td-tabs{display:flex;gap:2px;margin-top:18px;border-bottom:1px solid var(--d-hair);overflow-x:auto;scrollbar-width:none}
+  .td-tabs::-webkit-scrollbar{display:none}
+  .td-tab{flex:0 0 auto;padding:11px 15px;font:600 12.5px/1 var(--sans);color:var(--d-mute);background:none;border:0;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+  .td-tab.on{color:var(--d-white);border-bottom-color:var(--d-acc)}
+  .td-tab .cnt{font-family:var(--mono,monospace);font-size:9.5px;color:var(--d-mute);margin-left:6px}
+  .td-cta{flex:0 0 auto;margin-left:auto;align-self:center;display:inline-flex;align-items:center;gap:7px;padding:10px 17px;border-radius:999px;
+    background:transparent;color:var(--d-acc);border:1px solid var(--d-acc);font:700 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;white-space:nowrap;box-shadow:0 0 0 1px rgba(167,139,250,.12),0 0 16px rgba(167,139,250,.30);
+    transition:box-shadow .2s,background .2s,transform .18s}
+  .td-cta:hover{background:rgba(167,139,250,.10);box-shadow:0 0 0 1px rgba(167,139,250,.25),0 0 26px rgba(167,139,250,.55);transform:translateY(-1px)}
+  .td-cta .arw{transition:transform .18s}
+  .td-cta:hover .arw{transform:translateX(3px)}
+  .td-pad{height:26px}
+  @media(max-width:760px){
+    .tdesk{padding-top:22px;margin-bottom:18px}
+    .td-top{grid-template-columns:1fr;gap:16px}
+    .td-next{min-width:0}
+    .td-rail .s{min-width:50%;border-bottom:1px solid var(--d-hair)}
+    .td-rail .s:nth-child(2n){border-right:0}
+    .td-rail .s:nth-last-child(-n+2){border-bottom:0}
+    .td-cta{margin-left:0;width:100%;justify-content:center;margin-top:10px}
+    .td-tabs{flex-wrap:wrap}
+  }
   .eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--mute2);margin-bottom:18px}
   header.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(40px,7vw,68px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
   header.hero h1 em{font-style:italic;color:var(--terra)}
@@ -233,13 +289,26 @@
 </head>
 <body>
 <div class="tvl-page">
-<div class="wrap">
-  <header class="hero">
-    <div class="eyebrow">Travel</div>
-    <h1>The travel <em>log.</em></h1>
-    <p class="sub">Every journey we curate — the destinations, the stays, and the partners who make them.</p>
-  </header>
-</div>
+<header class="tdesk">
+  <div class="wrap">
+    <div class="td-top">
+      <div>
+        <div class="td-eyebrow"><i></i>Travel Desk</div>
+        <h1>The travel desk.</h1>
+        <p class="td-sub">Where we're going, who we're going with, and what's still open.</p>
+      </div>
+      <a class="td-next" id="tdNext" href="#trips"></a>
+    </div>
+    <div class="td-rail" id="tdRail"></div>
+    <div class="td-tabs" id="tdTabs">
+      <button type="button" class="td-tab on" data-view="itinerary">Itinerary</button>
+      <button type="button" class="td-tab" data-view="past">Past trips <span class="cnt" data-cnt="past"></span></button>
+      <button type="button" class="td-tab" data-view="markets">Markets <span class="cnt" data-cnt="markets"></span></button>
+      <button type="button" class="td-cta" id="tdSubmit">Submit a trip <span class="arw">&#8594;</span></button>
+    </div>
+    <div class="td-pad"></div>
+  </div>
+</header>
 <div class="wrap">
   <main class="trips" id="trips"></main>
 </div>
@@ -443,6 +512,63 @@ function tripHtml(t, i){
     + (future.length > 1 ? div('Pipeline') + future.slice(1).map(tripHtml).join('') : '')
     + (past.length ? div('Past trips') + past.map(tripHtml).join('') : '')
     + (hasOlder ? '<button type="button" class="trips-more" id="tripsMore">Load older trips</button>' : '');
+  // ── Travel Desk masthead: reports the page's own state from the same
+  //    TRIPS data the list renders, so it can never drift out of sync.
+  setTimeout(function paintDesk(){
+    var next = future[0];
+    var partners = {}; TRIPS.forEach(function(t){ (t.partners||[]).forEach(function(p){ partners[p]=1; }); });
+    var openCount = TRIPS.filter(function(t){ return t.openCTA && tripStatus(t) !== 'ended'; }).length;
+    var marketCount = (typeof MARKETS !== 'undefined' && MARKETS.length) ? MARKETS.length : 0;
+
+    var n = document.getElementById('tdNext');
+    if (n && next) {
+      // Fill bar = how far into the run-up to departure we are.
+      var pct = 38;
+      if (next.start) {
+        var d0 = new Date(next.start + 'T00:00:00'), now = new Date();
+        var lead = 120 * 864e5, left = d0 - now;
+        pct = Math.max(4, Math.min(96, Math.round((1 - left / lead) * 100)));
+      }
+      n.href = next.href || '#trips';
+      n.innerHTML =
+          (next.img ? '<div class="thumb"><img src="'+esc(next.img)+'" alt="" loading="lazy" onerror="this.remove()"></div>' : '')
+        + '<div class="meta"><div class="k"><i></i>Next departure</div>'
+        + '<div class="v">'+esc(next.title).replace(/\n/g,' ')+'</div>'
+        + '<div class="m">'+esc(coarseWindow(next))+' &middot; '+esc(next.place)+'</div>'
+        + '<div class="bar"><i style="width:'+pct+'%"></i></div></div>';
+    } else if (n) { n.style.display = 'none'; }
+
+    var rail = document.getElementById('tdRail');
+    if (rail) rail.innerHTML =
+        '<div class="s"><div class="n">'+TRIPS.length+'</div><div class="l">Trips logged</div></div>'
+      + '<div class="s"><div class="n">'+marketCount+'</div><div class="l">Markets visited</div></div>'
+      + '<div class="s"><div class="n">'+Object.keys(partners).length+'</div><div class="l">Partners hosted</div></div>'
+      + '<div class="s"><div class="n"><em>'+openCount+'</em></div><div class="l">Open to partners</div></div>';
+
+    var pc = document.querySelector('[data-cnt="past"]'); if (pc) pc.textContent = past.length;
+    var mc = document.querySelector('[data-cnt="markets"]'); if (mc) mc.textContent = marketCount;
+
+    // Tabs scroll to the section they name; the masthead stays put.
+    var tabs = document.getElementById('tdTabs');
+    if (tabs) tabs.addEventListener('click', function(e){
+      var b = e.target.closest && e.target.closest('.td-tab');
+      if (!b) return;
+      tabs.querySelectorAll('.td-tab').forEach(function(x){ x.classList.toggle('on', x === b); });
+      var v = b.getAttribute('data-view'), target = null;
+      if (v === 'markets') target = document.getElementById('markets');
+      else if (v === 'past') {
+        var divs = el.querySelectorAll('.trips-div');
+        for (var i = 0; i < divs.length; i++) if (/past/i.test(divs[i].textContent)) { target = divs[i]; break; }
+      } else target = el;
+      if (target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+
+    var sub = document.getElementById('tdSubmit');
+    if (sub) sub.addEventListener('click', function(){
+      if (typeof window.tdOpenPartnership === 'function') window.tdOpenPartnership('');
+    });
+  }, 0);
+
   var btn = document.getElementById('tripsMore');
   if (btn) btn.addEventListener('click', function(){ el.classList.add('show-older'); btn.remove(); });
 })();
@@ -462,9 +588,10 @@ function tripHtml(t, i){
     + '</div>';
   document.body.appendChild(scrim);
   var tripName = '';
-  function open(name){ tripName = name || ''; document.getElementById('prTitle').textContent = 'Partner on ' + (tripName || 'a trip'); scrim.classList.add('on'); }
+  function open(name){ window.tdOpenPartnership = open; tripName = name || ''; document.getElementById('prTitle').textContent = 'Partner on ' + (tripName || 'a trip'); scrim.classList.add('on'); }
   function close(){ scrim.classList.remove('on'); }
   scrim.addEventListener('click', function(e){ if (e.target === scrim) close(); });
+  window.tdOpenPartnership = open;
   document.getElementById('prCancel').addEventListener('click', close);
   document.getElementById('prSend').addEventListener('click', function(){
     var name = document.getElementById('prName').value.trim();
