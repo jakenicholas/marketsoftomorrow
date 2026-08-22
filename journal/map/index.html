@@ -9253,6 +9253,20 @@
     }
     /* While searching: regular active tab loses gold highlight so the
        search icon tab is the only gold element in the bar. */
+    /* Tab row removed on BOTH surfaces (one header serves desktop and the
+       mobile sheet). The buttons stay in the DOM so the pane-switching logic
+       is untouched — the watchlist chip below just clicks the hidden tab. */
+    body.ui-v2 .v2-segmented { display: none !important; }
+    .v2-watch-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7); border-radius: 999px; padding: 5px 10px;
+      cursor: pointer; font: 600 11px/1 Inter, sans-serif; transition: all .15s ease;
+    }
+    .v2-watch-btn svg { width: 13px; height: 13px; }
+    .v2-watch-btn:hover { color: #fff; border-color: rgba(255,255,255,0.24); }
+    .v2-watch-btn.on { color: var(--accent, #1FDF67); border-color: rgba(31,223,103,0.45); background: rgba(31,223,103,0.12); }
+    .v2-watch-num { font-variant-numeric: tabular-nums; }
     body.ui-v2 .v2-segmented.v2-searching .v2-tab.active {
       background: transparent !important;
       color: rgba(255,255,255,0.5) !important;
@@ -12592,6 +12606,11 @@
         <div class="v2-sheet-title-row">
           <div class="v2-sheet-ttl" id="v2SheetTtl">Discover</div>
           <div class="v2-sheet-right" id="v2SheetRight">
+            <button class="v2-watch-btn" id="v2WatchBtn" type="button"
+                    aria-label="Watchlist" title="Watchlist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              <span class="v2-watch-num" id="v2WatchBtnNum" hidden>0</span>
+            </button>
             <span class="v2-sheet-sub" id="v2SheetSub" hidden></span>
             <!-- "Fly to pin" glow switch replaces the old "In View / More
                  Nearby" indicator. Lights up gold + glows when ON; gates
@@ -28766,6 +28785,37 @@
         });
       });
       updateSearchPlaceholder();
+
+      // The Discover/Watchlist tab row is gone, but #watchlistBtn is also
+      // hidden under ui-v2 — so without this the watchlist has no door at all.
+      // Drives the still-present (hidden) tabs, so every pane behaviour, count
+      // and search interaction keeps working exactly as before.
+      (function wireWatchChip(){
+        const chip = document.getElementById('v2WatchBtn');
+        if (!chip) return;
+        const tab = sel => document.querySelector('.v2-tab[data-v2-tab="' + sel + '"]');
+        chip.addEventListener('click', () => {
+          const w = tab('watchlist'), d = tab('discover');
+          const onWatch = w && w.classList.contains('active');
+          const go = onWatch ? d : w;
+          if (go) go.click();
+        });
+        const sync = () => {
+          const w = tab('watchlist');
+          chip.classList.toggle('on', !!(w && w.classList.contains('active')));
+          const src = document.getElementById('v2WatchlistCount');
+          const num = document.getElementById('v2WatchBtnNum');
+          if (src && num) {
+            num.textContent = src.textContent || '0';
+            num.hidden = src.hidden || !parseInt(src.textContent || '0', 10);
+          }
+        };
+        sync();
+        const seg = document.querySelector('.v2-segmented');
+        if (seg && window.MutationObserver) {
+          new MutationObserver(sync).observe(seg, { subtree: true, attributes: true, childList: true, characterData: true });
+        }
+      })();
 
       // Discover search results overlay — show when search input has
       // content AND active tab is Discover.
