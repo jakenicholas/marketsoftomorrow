@@ -690,11 +690,11 @@ function tripHtml(t, i){
       return { stays: authored(STAY_COUNTS), firms: authored(FIRM_COUNTS),
                markets: mk, years: authoredByKey(YEAR_COUNTS) };
     })();
+    var HOME_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2.5 11h3v9h5v-5.5h3V20h5v-9h3L12 3z"/></svg>';
     function panel(rows, title, hint, cap, footer){
       rows = rows.slice(0, cap || 7);
       if (!rows.length) return '';
       var max = Math.max.apply(null, rows.map(function(d){ return d.count||0; }).concat([1]));
-      var HOME_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2.5 11h3v9h5v-5.5h3V20h5v-9h3L12 3z"/></svg>';
       return '<div class="atlas-panel">'
         + '<h3 class="atlas-ph"><span class="lbl">'+esc(title)+'</span><span class="hint">'+esc(hint)+'</span></h3>'
         + rows.map(function(d){
