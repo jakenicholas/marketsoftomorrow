@@ -15765,7 +15765,15 @@
       // BUILDING. Only ever raises the floor, so an already-closer camera and
       // any explicit higher baseZoom both still win.
       const SKY_ARRIVE_ZOOM = 15.6;
-      const zoomFloor = window._skyOn
+      // On a cold deep link the flight starts BEFORE the skyline preference
+      // restores (that waits on the Interactive Layers panel booting), so
+      // window._skyOn is still undefined and the arrival would fall back to 13.
+      // Fall through to the stored preference in exactly that window; once the
+      // flag is a real boolean it wins, so an in-session toggle-off is honoured.
+      const skyWanted = (typeof window._skyOn === 'boolean')
+        ? window._skyOn
+        : (function () { try { return localStorage.getItem('tmw-sky-pref') !== 'off'; } catch (e) { return true; } })();
+      const zoomFloor = skyWanted
         ? Math.max(opts.baseZoom || 13, SKY_ARRIVE_ZOOM)
         : (opts.baseZoom || 13);
       const baseZoom = Math.max(map.getZoom(), zoomFloor);
