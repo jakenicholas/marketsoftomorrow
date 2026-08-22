@@ -326,6 +326,14 @@
     '.tmwx-smartgrp .tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:active{background:rgba(167,139,250,.3)}',
     '.tmwx-smartgrp .tmwx-div{width:1px;height:22px;flex:0 0 auto;background:rgba(167,139,250,.34)}',
+    /* The split control is ~37px wider than a single smart button, which on a
+       375-390px phone pushed the whole cluster past both screen edges (it was
+       already within ~9px of overflowing). Tighten the glyphs on narrow
+       screens, and only where the split control actually exists. */
+    '@media (max-width:470px){',
+    '.tmwx-pill:has(.tmwx-smartgrp) .tmwx-pbtn{width:36px}',
+    '.tmwx-pill:has(.tmwx-smartgrp) .tmwx-smartgrp .tmwx-pbtn.smart{width:32px}',
+    '}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
     '.tmwx-search .si svg{width:100%;height:100%;display:block;overflow:visible}',
     /* The intelligence mark reads a touch larger than the other glyphs. */
