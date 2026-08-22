@@ -11345,7 +11345,7 @@
        legacy per-grid #gridMobile tile rules on mobile, so re-declare the same
        Option-A styling with an explicit #gridMobile id selector (proper id
        specificity + later in source + !important) so it wins on phones. */
-    body.ui-v2 #gridMobile .grid-item .grid-item-content { padding: 14px 20px 2px !important; }
+    body.ui-v2 #gridMobile .grid-item .grid-item-content { padding: 14px 22px 2px !important; }
     body.ui-v2 #gridMobile .grid-item .grid-item-content h3 {
       font-family: 'Fraunces', Georgia, serif !important; font-weight: 600 !important;
       font-size: 22px !important; letter-spacing: -0.02em !important; line-height: 1.04 !important;
@@ -11359,7 +11359,7 @@
     }
     body.ui-v2 #gridMobile .grid-item .v2-status-pill,
     body.ui-v2 #gridMobile .grid-item .delivery-bar { display: none !important; }
-    body.ui-v2 #gridMobile .grid-item .v2-tile-meter { padding: 13px 20px 16px !important; border-top: none !important; margin: 0 !important; }
+    body.ui-v2 #gridMobile .grid-item .v2-tile-meter { padding: 13px 22px 16px !important; border-top: none !important; margin: 0 !important; }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm { margin: 0 !important; }
     body.ui-v2 #gridMobile .grid-item .tmw-tile-pm .pm-tl-date {
       text-align: right !important; font-family: 'Inter', sans-serif !important; font-size: 8.5px !important;
@@ -26327,7 +26327,7 @@
       const s = document.createElement('style');
       s.id = 'v2OptionATileCss';
       s.textContent = `
-        ${G} .grid-item-content, ${D} .grid-item-content { padding:14px 20px 2px !important; }
+        ${G} .grid-item-content, ${D} .grid-item-content { padding:14px 22px 2px !important; }
         ${G} .grid-item-content h3, ${D} .grid-item-content h3 {
           font-family:'Fraunces',Georgia,serif !important; font-weight:600 !important; font-size:22px !important;
           letter-spacing:-.02em !important; line-height:1.04 !important; color:#fff !important; white-space:normal !important;
@@ -26338,7 +26338,7 @@
           text-transform:uppercase !important; color:rgba(255,255,255,.6) !important; margin:7px 0 0 !important; padding:0 !important;
         }
         ${G} .v2-status-pill, ${G} .delivery-bar, ${D} .v2-status-pill, ${D} .delivery-bar { display:none !important; }
-        ${G} .v2-tile-meter, ${D} .v2-tile-meter { padding:13px 16px 16px !important; border-top:none !important; margin:0 !important; }
+        ${G} .v2-tile-meter, ${D} .v2-tile-meter { padding:13px 22px 16px !important; border-top:none !important; margin:0 !important; }
         ${G} .tmw-tile-pm, ${D} .tmw-tile-pm { margin:0 !important; }
         ${G} .tmw-tile-pm .pm-tl-date, ${D} .tmw-tile-pm .pm-tl-date {
           text-align:right !important; font-family:'Inter',sans-serif !important; font-size:8.5px !important;
