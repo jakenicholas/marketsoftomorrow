@@ -236,18 +236,28 @@
   .trip-req{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#160f26;background:var(--terra);border:1px solid var(--terra);border-radius:99px;padding:11px 18px;cursor:pointer;transition:background .18s,transform .18s}
   .trip-req:hover{background:#9E4A28;transform:translateY(-1px)}
   /* partnership modal */
-  .pr-scrim{position:fixed;inset:0;z-index:90;background:rgba(40,25,12,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .pr-scrim{position:fixed;inset:0;z-index:90;background:rgba(18,12,34,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
   .pr-scrim.on{display:flex}
-  .pr-box{width:min(460px,100%);background:#131614;border:1px solid rgba(167,139,250,.3);border-radius:18px;padding:26px 26px 24px;box-shadow:0 30px 80px rgba(40,25,12,.35)}
+  .pr-box{position:relative;width:min(460px,100%);background:#131614;border:1px solid rgba(167,139,250,.32);border-radius:18px;padding:26px 26px 24px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 40px -8px rgba(167,139,250,.35)}
+  /* travelling purple highlight around the border, echoing the Intelligence glow */
+  .pr-box::before{content:"";position:absolute;inset:-1px;border-radius:19px;padding:1px;pointer-events:none;
+    background:conic-gradient(from var(--prA,0deg), transparent 0deg, rgba(167,139,250,.85) 40deg, rgba(185,166,255,.35) 80deg, transparent 130deg, transparent 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite:exclude;
+    animation:prSpin 4.5s linear infinite}
+  @property --prA{syntax:'<angle>'; initial-value:0deg; inherits:false}
+  @keyframes prSpin{to{--prA:360deg}}
+  @media(prefers-reduced-motion:reduce){ .pr-box::before{animation:none} }
   .pr-box h3{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--white);letter-spacing:-.01em}
   .pr-box .pr-sub{font-size:13px;color:var(--mute);margin-top:6px;line-height:1.5}
   .pr-box label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:14px 0 5px}
-  .pr-box input,.pr-box textarea{width:100%;background:var(--ink);border:1px solid rgba(176,96,58,.3);border-radius:10px;padding:11px 13px;font:400 14px var(--sans);color:var(--white);outline:none}
+  .pr-box input,.pr-box textarea{width:100%;background:var(--ink);border:1px solid rgba(167,139,250,.28);border-radius:10px;padding:11px 13px;font:400 14px var(--sans);color:var(--white);outline:none}
   .pr-box input:focus,.pr-box textarea:focus{border-color:var(--terra)}
   .pr-box textarea{min-height:84px;resize:vertical}
   .pr-actions{display:flex;gap:10px;margin-top:18px}
   .pr-actions .trip-req{margin-top:0;flex:1;justify-content:center}
-  .pr-cancel{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:transparent;border:1px solid rgba(74,57,43,.25);border-radius:99px;padding:11px 18px;cursor:pointer}
+  .pr-cancel{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:transparent;border:1px solid var(--hair2);border-radius:99px;padding:11px 18px;cursor:pointer}
   /* the NEXT trip: pinned first with a warm glow */
   .trip.trip-next{border-color:var(--terra);box-shadow:0 0 0 1px rgba(167,139,250,.32), 0 18px 50px -14px rgba(167,139,250,.45), 0 0 34px -6px rgba(167,139,250,.28)}
   .trip-badge.ended{color:var(--mute2);border:1px solid var(--hair2)}
@@ -706,12 +716,12 @@ function tripHtml(t, i){
     }
     // Divided footer: the markets we're always in, on one line behind a home icon.
     function frequentRow(){
-      return '<div class="atlas-freq"><div class="atlas-freq-k">' + HOME_SVG + 'Markets Frequent</div>'
+      return '<div class="atlas-freq"><div class="atlas-freq-k">' + HOME_SVG + 'Homebases</div>'
         + '<div class="atlas-freq-v">' + FREQUENT.map(esc).join('<i>&middot;</i>') + '</div></div>';
     }
     var lbc = document.getElementById('lbCharts');
     if (lbc) lbc.innerHTML =
-        panel(charts.markets, 'Markets visited',    'by visits', 8, frequentRow())
+        panel(charts.markets, 'Markets Frequent',   'by visits', 8, frequentRow())
       + panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
       + panel(charts.firms,   'Firms we work with', 'by trips together')
       + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);
