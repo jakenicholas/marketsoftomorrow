@@ -9081,12 +9081,11 @@
       position: fixed !important;
       left: 0 !important; right: 0 !important;
       top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
-      /* Clears the action bar. Measured on a 812px viewport: .tmwx-wrap runs
-         740→798 (58px tall, 14px off the bottom), so 72px lands the sheet's
-         edge EXACTLY on the pill's top and a tile gets sliced flush against
-         it — which is what "cut off behind the action bar" was. 92px leaves a
-         20px breathing gap above the dock. */
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 92px) !important;
+      /* Runs to the very bottom of the screen. Ending it above the action bar
+         left a band of live map showing under the panel, which read as the
+         page being cut off. The dock floats ON TOP of the panel instead, and
+         the list carries enough bottom padding to scroll clear of it. */
+      bottom: 0 !important;
       height: auto !important;
       /* translateY(100%) alone only pushes the sheet down by its own height,
          which stops its top edge at the dock line — 72px of closed sheet was
@@ -9104,9 +9103,11 @@
        !important — the earlier `body.v2-sheet-open` rule can no longer win. */
     body.ui-v2.v2-sheet-open .v2-sheet { transform: translateY(0) !important; }
 
-    /* The list runs to the sheet's bottom edge; give it room to scroll the
-       last tile fully clear instead of ending hard against the dock gap. */
-    body.ui-v2 .v2-sheet-body { padding-bottom: 30px !important; }
+    /* The dock now floats over the panel, so the list needs room to scroll
+       its last tile out from under it: 58px pill + 14px offset + air. */
+    body.ui-v2 .v2-sheet-body {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+    }
 
     /* Full screen means no grab affordance and no second search field. */
     body.ui-v2 .v2-sheet-handle,
@@ -9118,7 +9119,7 @@
     body.ui-v2 #projectModal {
       left: 0 !important; right: 0 !important;
       top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 92px) !important;
+      bottom: 0 !important;
       position: fixed !important;
       width: auto !important; height: auto !important;
       border-radius: 0 !important;
@@ -12391,7 +12392,7 @@
     <!-- Pull handle: a tab sticking out top-left, shown only when the drawer is
          collapsed off-screen. Click slides the drawer back in. (Desktop only.) -->
     <button id="tmwDrawerHandle" type="button" aria-label="Open panel" title="Open panel">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6h17M3.5 12h17M3.5 18h17"/></svg>
     </button>
 
     <!-- Suggestions for the bottom search when the drawer is collapsed: picking

@@ -36,6 +36,13 @@
       /* The map owns the search page state (full-screen panel, input docked
          at the bottom by the keyboard). Nothing else can open it. */
       if (typeof window.tmwMapMobileSearch === 'function') { window.tmwMapMobileSearch(true); return; }
+      /* ...unless the map page is serving from cache and predates that hook,
+         in which case drive the same classes directly. The state is entirely
+         class-driven, so this is a faithful stand-in. */
+      document.body.classList.add('v2-sheet-open');
+      document.body.classList.add('v2-searching');
+      var _t = document.getElementById('v2SheetTtl');
+      if (_t) _t.textContent = 'Search';
       /* the v2 discovery sheet opens via the capsule; legacy drawer is the fallback */
       var cap = document.getElementById('v2Capsule');
       if (cap) { try { cap.click(); } catch (e) {} }
@@ -113,7 +120,7 @@
     onyx: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
     /* matches #tmwDrawerHandle on the map's desktop surface */
-    list: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+    list: '<path d="M3.5 6h17M3.5 12h17M3.5 18h17"/>',
     share: '<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><polyline points="8 6 12 2 16 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
@@ -219,8 +226,8 @@
   }
   var PILL = [
     { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
-    { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
-    { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map },
+    { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas, k: 'atlas' },
+    { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map, k: 'map' },
     { ic: 'search', t: 'TMW Intelligence', act: function () { openSearch(''); } },
     { ic: 'watch', t: 'Pulse', act: openPulse, cls: 'bell' },
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
@@ -316,23 +323,24 @@
     '.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
     /* Two actions sharing ONE purple slot: the group carries the glow and the
        halves go flat, so it still reads as a single smart control. */
-    '.tmwx-smartgrp{display:flex;align-items:center;margin-left:3px;border-radius:999px;',
+    '.tmwx-smartgrp{display:flex;align-items:center;margin-left:5px;padding:0 3px;border-radius:999px;',
     'background:rgba(167,139,250,.13);',
     'box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 14px rgba(167,139,250,.32);',
     'animation:tmwxSmartGlow 2.6s ease-in-out infinite}',
-    '.tmwx-smartgrp .tmwx-pbtn.smart{width:40px;margin:0;background:transparent;box-shadow:none;animation:none}',
+    '.tmwx-smartgrp .tmwx-pbtn.smart{width:44px;margin:0;background:transparent;box-shadow:none;animation:none}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:first-child{border-radius:999px 0 0 999px}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:last-child{border-radius:0 999px 999px 0}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
     '.tmwx-smartgrp .tmwx-pbtn.smart:active{background:rgba(167,139,250,.3)}',
-    '.tmwx-smartgrp .tmwx-div{width:1px;height:22px;flex:0 0 auto;background:rgba(167,139,250,.34)}',
-    /* The split control is ~37px wider than a single smart button, which on a
-       375-390px phone pushed the whole cluster past both screen edges (it was
-       already within ~9px of overflowing). Tighten the glyphs on narrow
-       screens, and only where the split control actually exists. */
-    '@media (max-width:470px){',
-    '.tmwx-pill:has(.tmwx-smartgrp) .tmwx-pbtn{width:36px}',
-    '.tmwx-pill:has(.tmwx-smartgrp) .tmwx-smartgrp .tmwx-pbtn.smart{width:32px}',
+    '.tmwx-smartgrp .tmwx-div{width:1px;height:22px;margin:0 2px;flex:0 0 auto;background:rgba(167,139,250,.34)}',
+    /* The split control needs ~37px more than a single smart button and the
+       cluster had no room to give — shrinking every glyph to buy it made the
+       whole bar look squished. Buy the room by dropping two icons instead:
+       on a PHONE on the map, Atlas and Map are the two the map page can
+       spare (Map is the page you're already on). Desktop keeps all of them. */
+    '@media (max-width:800px){',
+    'html.tmw-surf-map .tmwx-pill .tmwx-pbtn[data-k="atlas"],',
+    'html.tmw-surf-map .tmwx-pill .tmwx-pbtn[data-k="map"]{display:none}',
     '}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
     '.tmwx-search .si svg{width:100%;height:100%;display:block;overflow:visible}',
@@ -397,6 +405,7 @@
     b.className = 'tmwx-pbtn' + (t.cls ? ' ' + t.cls : '') + (t.on ? ' on' : '');
     b.setAttribute('aria-label', t.t);
     b.setAttribute('data-tip', t.t);
+    if (t.k) b.setAttribute('data-k', t.k);
     /* The Search pill wears the Onyx sparkle, same as the tray's search
        bar - intelligence search is the sparkle everywhere in this dock. */
     b.innerHTML = (t.ic === 'search') ? HEX_SI : svg(I[t.ic]);
