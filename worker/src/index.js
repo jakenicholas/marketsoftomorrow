@@ -14793,7 +14793,10 @@ function mvValidPieces(pieces) {
     if (ring.some(pt => !isFinite(pt[0]) || !isFinite(pt[1]))) return null;
     const base = Math.max(0, Math.round(+pc.base || 0)), top = Math.round(+pc.top || 0);
     if (top <= base || top > 700) return null;
-    out.push({ ring, base, top });
+    // r = corner roundness 0..1, kept so the editor can still treat a cylinder
+    // as a parametric box. The map only ever reads the ring.
+    const r = Math.max(0, Math.min(1, +pc.r || 0));
+    out.push(r ? { ring, base, top, r: +r.toFixed(3) } : { ring, base, top });
   }
   return out;
 }
