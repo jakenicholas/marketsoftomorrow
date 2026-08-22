@@ -14684,10 +14684,40 @@ ${planImg ? '- Draw ONE piece per building shown on the plan, not one per block 
 - Every piece must sit on the site parcel / the development site visible in the satellite view — never on water, roads, or neighbouring buildings.
 - Align bearings to the street grid visible in the satellite view.
 - |cx| and |cy| must stay ≤ ${planImg ? 650 : 200}.` });
+  const MV_TOOL = {
+    name: 'massing',
+    description: 'Return the massing blocks for this development.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        pieces: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              cx: { type: 'number', description: 'metres east of the anchor' },
+              cy: { type: 'number', description: 'metres north of the anchor' },
+              w:  { type: 'number', description: 'width in metres' },
+              l:  { type: 'number', description: 'length in metres' },
+              bearing: { type: 'number', description: 'degrees clockwise from north of the l axis' },
+              base: { type: 'number', description: 'metres above ground the piece starts' },
+              top:  { type: 'number', description: 'metres above ground the piece ends' },
+            },
+            required: ['cx', 'cy', 'w', 'l', 'bearing', 'base', 'top'],
+          },
+        },
+        confidence: { type: 'number' },
+        note: { type: 'string' },
+      },
+      required: ['pieces'],
+    },
+  };
   const mvCall = async (blocks) => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model: WRITE_MODEL, max_tokens: 2500, messages: [{ role: 'user', content: blocks }] }),
+    body: JSON.stringify({ model: WRITE_MODEL, max_tokens: 8000,
+      tools: [MV_TOOL], tool_choice: { type: 'tool', name: 'massing' },
+      messages: [{ role: 'user', content: blocks }] }),
   });
   let resp = await mvCall(content);
   // A 400 is usually Anthropic failing to fetch a rendering URL (oversized or
@@ -14698,25 +14728,41 @@ ${planImg ? '- Draw ONE piece per building shown on the plan, not one per block 
   if (!resp.ok) return json({ error: 'model call failed', status: resp.status, detail: (await resp.text()).slice(0, 300) }, { status: 502 }, env, origin);
   const out = await resp.json();
   const txt = (out.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
-  let draft = null;
-  const i0 = txt.indexOf('{'), i1 = txt.lastIndexOf('}');
-  if (i0 >= 0 && i1 > i0) { try { draft = JSON.parse(txt.slice(i0, i1 + 1)); } catch (_) {} }
-  if (!draft || !Array.isArray(draft.pieces) || !draft.pieces.length) {
-    return json({ error: 'unparseable draft', raw: txt.slice(0, 400) }, { status: 422 }, env, origin);
+  // Forced tool use gives us the object directly; the text paths below only
+  // matter if a future model answers in prose anyway.
+  let draft = (out.content || []).find(b => b.type === 'tool_use' && b.name === 'massing');
+  draft = draft ? draft.input : null;
+  if (!draft) {
+    const i0 = txt.indexOf('{'), i1 = txt.lastIndexOf('}');
+    if (i0 >= 0 && i1 > i0) { try { draft = JSON.parse(txt.slice(i0, i1 + 1)); } catch (_) {} }
+    if (!draft && txt) { try { draft = repairTruncatedJson(txt); } catch (_) {} }
   }
-  const maxTop = Math.max(floors * 3.35 * 1.4, 80) + 30;
-  const pieces = [];
+  if (!draft || !Array.isArray(draft.pieces) || !draft.pieces.length) {
+    return json({ error: 'unparseable draft', stop: out.stop_reason || null,
+                  raw: (txt || JSON.stringify(out.content || '')).slice(0, 600) },
+                { status: 422 }, env, origin);
+  }
+  // An umbrella carries no floors of its own, so floors*3.35 would cap a whole
+  // master plan at 80m and throw every tower away.
+  const maxTop = planImg ? Math.max(floors * 3.35 * 1.4, 260) + 30
+                         : Math.max(floors * 3.35 * 1.4, 80) + 30;
+  const pieces = [], rejects = [];
+  const rej = (pc, why) => { rejects.push(why + ': ' + JSON.stringify(pc).slice(0, 90)); };
   for (const pc of draft.pieces.slice(0, maxPieces)) {
     const cx = +pc.cx, cy = +pc.cy, w = +pc.w, l = +pc.l;
     const bearing = ((+pc.bearing % 360) + 360) % 360 || 0;
     const base = Math.max(0, +pc.base || 0), top = +pc.top || 0;
-    if (![cx, cy, w, l, top].every(isFinite)) continue;
-    if (Math.abs(cx) > (planImg ? 700 : 250) || Math.abs(cy) > (planImg ? 700 : 250)) continue;
-    if (w < 6 || w > 220 || l < 6 || l > 260) continue;
-    if (top <= base || top > maxTop) continue;
+    if (![cx, cy, w, l, top].every(isFinite)) { rej(pc, 'non-numeric'); continue; }
+    if (Math.abs(cx) > (planImg ? 700 : 250) || Math.abs(cy) > (planImg ? 700 : 250)) { rej(pc, 'too far from the anchor'); continue; }
+    if (w < 6 || w > (planImg ? 400 : 220) || l < 6 || l > (planImg ? 460 : 260)) { rej(pc, 'implausible footprint'); continue; }
+    if (top <= base || top > maxTop) { rej(pc, 'height out of range (max ' + Math.round(maxTop) + 'm)'); continue; }
     pieces.push({ ring: mvRing(anchor, cx, cy, w, l, bearing), base: Math.round(base), top: Math.round(top) });
   }
-  if (!pieces.length) return json({ error: 'no valid pieces after validation', raw: txt.slice(0, 400) }, { status: 422 }, env, origin);
+  if (!pieces.length) {
+    return json({ error: 'no valid pieces after validation', rejected: rejects.slice(0, 8),
+                  candidates: draft.pieces.length, maxTop: Math.round(maxTop),
+                  raw: txt.slice(0, 300) }, { status: 422 }, env, origin);
+  }
   return json({ slug, pieces, confidence: +draft.confidence || 0, note: String(draft.note || '').slice(0, 300),
                 satellite: satOk, renderings: renders.length, plan: !!planImg, model: WRITE_MODEL }, {}, env, origin);
 }
