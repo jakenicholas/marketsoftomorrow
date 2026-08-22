@@ -10508,13 +10508,23 @@
       box-shadow: 0 24px 64px rgba(0,0,0,0.6) !important;
       overflow: hidden !important;
     }
-    /* State both ends explicitly. A :not(.open) rule alone left the open
-       state to a weaker non-important rule, so the panel never slid in. */
+    /* The project POPS onto the box instead of sliding in from off-screen —
+       it is replacing what is already there, not arriving from somewhere else.
+       State both ends explicitly: a :not(.open) rule alone leaves the open
+       state to a weaker non-important rule and the panel never appears. */
     body.ui-v2 #projectModal {
-      transform: translateX(calc(-100% - var(--v2-box-left) - 8px)) !important;
+      transform: scale(0.955) !important;
+      opacity: 0 !important;
+      transform-origin: 50% 40%;
+      transition: transform .26s cubic-bezier(.2,.9,.28,1.14), opacity .16s ease !important;
+      will-change: transform, opacity;
     }
     body.ui-v2 #projectModal.open {
-      transform: translateX(0) !important;
+      transform: none !important;
+      opacity: 1 !important;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body.ui-v2 #projectModal { transition: opacity .12s ease !important; transform: none !important; }
     }
     /* Solid dark header so tiles can't show through behind the search /
        tabs / filter pills while the sidebar body scrolls underneath. */
@@ -11770,18 +11780,23 @@
       #tmwDrawerClose:hover{ background:rgba(32,32,36,0.96); color:#fff; transform:scale(1.06); }
       body.ui-v2 #tmwDrawerClose{ display:flex; }
       /* Pull handle — a tab on the left edge, shown only while collapsed. */
+      /* Reopens the box. Was a sliver tab welded to the screen edge; now a
+         circle that matches the fullscreen button, parked where the box's own
+         top-left corner sits. */
       #tmwDrawerHandle{
-        position:fixed; left:0; top:calc(var(--header-height) + 26px); z-index:26;
-        width:26px; height:54px; padding:0;
-        border:1px solid rgba(255,255,255,0.12); border-left:0;
-        border-top-right-radius:13px; border-bottom-right-radius:13px;
-        background:rgba(17,17,19,0.92); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
-        color:rgba(255,255,255,0.82); display:none; align-items:center; justify-content:center; cursor:pointer;
-        box-shadow:2px 0 18px rgba(0,0,0,0.42);
-        transition:background .15s ease, transform .15s ease;
+        position:fixed; left:var(--v2-box-left, 16px); top:var(--v2-box-top, 76px); z-index:80;
+        width:44px; height:44px; padding:0;
+        border:1px solid rgba(255,255,255,0.1);
+        border-radius:50%;
+        background:rgba(15,15,15,0.72);
+        -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4);
+        color:#fff; display:none; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:0 6px 20px rgba(0,0,0,0.45);
+        transition:background .15s ease, transform .12s ease;
       }
-      #tmwDrawerHandle svg{ width:16px; height:16px; }
-      #tmwDrawerHandle:hover{ background:rgba(30,30,34,0.96); transform:translateX(2px); }
+      #tmwDrawerHandle svg{ width:18px; height:18px; display:block; }
+      #tmwDrawerHandle:hover{ background:rgba(34,34,38,0.9); }
+      #tmwDrawerHandle:active{ transform:scale(0.93); }
       body.ui-v2.v2-sidebar-collapsed #tmwDrawerHandle{ display:flex; }
       body.ui-v2.v2-sidebar-collapsed #tmwDrawerClose{ display:none; }
       /* A project page has its own close — hide the drawer X then. */
@@ -12237,7 +12252,7 @@
     <!-- Pull handle: a tab sticking out top-left, shown only when the drawer is
          collapsed off-screen. Click slides the drawer back in. (Desktop only.) -->
     <button id="tmwDrawerHandle" type="button" aria-label="Open panel" title="Open panel">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
     </button>
 
     <!-- Suggestions for the bottom search when the drawer is collapsed: picking
