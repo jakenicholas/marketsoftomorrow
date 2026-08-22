@@ -214,7 +214,7 @@
   /* the open pill is the partnership CTA now (a real <button> inside a card that
      may itself be an <a>), so reset UA chrome and give it affordance */
   button.trip-pill.open-pill{display:inline-flex;align-items:center;gap:6px;font-family:inherit;line-height:1.15;cursor:pointer;transition:background .18s,transform .18s}
-  button.trip-pill.open-pill:hover{background:#9E4A28;border-color:#9E4A28;transform:translateY(-1px)}
+  button.trip-pill.open-pill:hover{background:#8B6BE8;border-color:#8B6BE8;transform:translateY(-1px)}
   button.trip-pill.open-pill .arw{transition:transform .18s}
   button.trip-pill.open-pill:hover .arw{transform:translateX(3px)}
   .p-lead{color:var(--mute);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;align-self:center;margin-right:2px}
@@ -517,7 +517,7 @@ function imgHtml(t, i){
 }
 function partnersHtml(list, openCTA, tripTitle){
   var pills = (list || []).map(function(p){ return '<span class="trip-pill">'+esc(p)+'</span>'; });
-  if(openCTA) pills.unshift('<button type="button" class="trip-pill open-pill trip-reqlink" data-trip="'+esc(tripTitle||'').replace(/\n/g,' ')+'">Open to Partnerships <span class="arw">\u2192</span></button>');
+  if(openCTA) pills.unshift('<button type="button" class="trip-pill open-pill trip-reqlink" data-trip="'+esc(tripTitle||'').replace(/\n/g,' ')+'">Request collab <span class="arw">\u2192</span></button>');
   if(!pills.length) return '';
   return '<div class="trip-partners"><span class="p-lead">Partners</span>' + pills.join('') + '</div>';
 }
