@@ -153,10 +153,14 @@
   .atlas-type-bar-wrap{background:rgba(255,255,255,0.05);height:8px;border-radius:4px;overflow:hidden}
   .atlas-type-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c63d6,#A78BFA);transition:width .3s}
   .atlas-type-count{font-family:var(--mono);font-size:12px;color:var(--mute-2);text-align:right}
-  /* home markets: an icon in place of the bar, so they don't skew the scale */
-  .atlas-type-row.is-home .atlas-type-label{color:var(--gold-soft,#f0d68a)}
-  .atlas-home-mark{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold,#E6C574)}
-  .atlas-home-mark svg{width:13px;height:13px;flex:0 0 auto}
+  /* the markets we're always in: a divided footer row, not part of the ranking */
+  .atlas-freq{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}
+  .atlas-freq-k{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--gold,#E6C574);white-space:nowrap}
+  .atlas-freq-k svg{width:13px;height:13px;flex:0 0 auto}
+  .atlas-freq-v{display:flex;align-items:center;gap:9px;font-size:13px;color:rgba(255,255,255,.82);flex-wrap:wrap}
+  .atlas-freq-v i{font-style:normal;color:var(--mute)}
   @media(max-width:640px){ .lb-name{font-size:15px} .lb-row{grid-template-columns:24px 1fr auto;gap:10px;padding:11px 12px} }
   @media(max-width:760px){
     .tdesk{padding-top:22px;margin-bottom:18px}
@@ -645,16 +649,17 @@ function tripHtml(t, i){
     // Brands and years are AUTHORED, not derived: they count our whole travel
     // history, which is larger than the trip list rendered on this page. Edit
     // these two objects to update the charts.
-    var STAY_COUNTS = { 'Four Seasons': 4, 'Cabot': 4, 'Ritz-Carlton': 3, 'Nobu': 1 };
+    var STAY_COUNTS = { 'Four Seasons': 4, 'Ritz-Carlton': 3, 'Cabot': 2, 'Streamsong': 2, 'Nobu': 1 };
     var YEAR_COUNTS = { '2026': 30, '2025': 44, '2024': 22, '2023': 12 };
+    var FIRM_COUNTS = { 'Quinn': 6, 'C&R': 5, 'Carli PR': 3, 'REM': 3 };
     // Home markets are not trips: counting them alongside destinations made the
     // real travel numbers unreadable (100+ vs 20) and compared two different
     // things. They pin to the top with an icon and no bar; everything below is
     // ranked travel, scaled to the largest real count.
+    // Markets we're in constantly; shown as a divided footer row with a home
+    // icon rather than ranked, since they aren't trips.
+    var FREQUENT = ['Florida', 'Minnesota', 'Wisconsin'];
     var MARKET_COUNTS = [
-      { name:'South Florida', kind:'home'  },
-      { name:'Minnesota',     kind:'lived' },
-      { name:'Milwaukee',     kind:'lived' },
       { name:'Florida Keys',  n:20 },
       { name:'California',    n:7 },
       { name:'Hawaii',        n:6 },
@@ -680,37 +685,33 @@ function tripHtml(t, i){
         .map(function(k){ return { name:k, count:o[k] }; }); }
       function authoredByKey(o){ return Object.keys(o).sort().reverse()
         .map(function(k){ return { name:k, count:o[k] }; }); }
-      var homes = MARKET_COUNTS.filter(function(d){ return d.kind; });
-      var trips = MARKET_COUNTS.filter(function(d){ return !d.kind; })
-        .sort(function(a,b){ return b.n - a.n; });
-      var mk = homes.map(function(d){ return { name:d.name, kind:d.kind }; })
-        .concat(trips.map(function(d){ return { name:d.name, count:d.n }; }));
-      return { stays: authored(STAY_COUNTS), firms: rank(firms),
+      var mk = MARKET_COUNTS.slice().sort(function(a,b){ return b.n - a.n; })
+        .map(function(d){ return { name:d.name, count:d.n }; });
+      return { stays: authored(STAY_COUNTS), firms: authored(FIRM_COUNTS),
                markets: mk, years: authoredByKey(YEAR_COUNTS) };
     })();
-    function panel(rows, title, hint, cap){
+    function panel(rows, title, hint, cap, footer){
       rows = rows.slice(0, cap || 7);
       if (!rows.length) return '';
       var max = Math.max.apply(null, rows.map(function(d){ return d.count||0; }).concat([1]));
       var HOME_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2.5 11h3v9h5v-5.5h3V20h5v-9h3L12 3z"/></svg>';
-      var LIVED_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6 3.4 11h2.4v8.4h4.4v-5.2h3.6v5.2h4.4V11h2.4L12 3.6z"/></svg>';
       return '<div class="atlas-panel">'
         + '<h3 class="atlas-ph"><span class="lbl">'+esc(title)+'</span><span class="hint">'+esc(hint)+'</span></h3>'
         + rows.map(function(d){
-            if (d.kind) {
-              return '<div class="atlas-type-row is-home"><div class="atlas-type-label">'+esc(d.name)+'</div>'
-                + '<div class="atlas-home-mark">'+(d.kind === 'home' ? HOME_SVG : LIVED_SVG)
-                + '<span>'+(d.kind === 'home' ? 'Home base' : 'Lived here')+'</span></div>'
-                + '<div class="atlas-type-count"></div></div>';
-            }
             return '<div class="atlas-type-row"><div class="atlas-type-label">'+esc(d.name)+'</div>'
               + '<div class="atlas-type-bar-wrap"><div class="atlas-type-bar" style="width:'+((d.count||0)/max*100)+'%"></div></div>'
               + '<div class="atlas-type-count">'+esc(d.label != null ? d.label : String(d.count||0))+'</div></div>'; }).join('')
+        + (footer || '')
         + '</div>';
+    }
+    // Divided footer: the markets we're always in, on one line behind a home icon.
+    function frequentRow(){
+      return '<div class="atlas-freq"><div class="atlas-freq-k">' + HOME_SVG + 'Markets Frequent</div>'
+        + '<div class="atlas-freq-v">' + FREQUENT.map(esc).join('<i>&middot;</i>') + '</div></div>';
     }
     var lbc = document.getElementById('lbCharts');
     if (lbc) lbc.innerHTML =
-        panel(charts.markets, 'Markets visited',    'by visits', 8)
+        panel(charts.markets, 'Markets visited',    'by visits', 8, frequentRow())
       + panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
       + panel(charts.firms,   'Firms we work with', 'by trips together')
       + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);

@@ -139,7 +139,9 @@
     function render() {
       var ind = fInd.value, loc = fLoc.value;
       var list = items.filter(function (i) {
-        return (!ind || (i.industries || '').split('|').indexOf(ind) >= 0) && (!loc || i.location === loc);
+        var locs = (i.location || '').split('|').map(function (x) { return x.trim(); });
+        var inds = (i.industries || '').split('|').map(function (x) { return x.trim(); });
+        return (!ind || inds.indexOf(ind) >= 0) && (!loc || locs.indexOf(loc) >= 0);
       });
       if (sortMode === 'alpha') list = list.slice().sort(function (a, b) { return (a.name||'').localeCompare(b.name||''); });
       count.textContent = list.length;
@@ -178,7 +180,7 @@
         var inds = {}, locs = {};
         items.forEach(function (i) {
           (i.industries || '').split('|').forEach(function (x) { if (x.trim()) inds[x.trim()] = 1; });
-          if (i.location) locs[i.location] = 1;
+          (i.location || '').split('|').forEach(function (x) { if (x.trim()) locs[x.trim()] = 1; });
         });
         options(fInd, Object.keys(inds));
         options(fLoc, Object.keys(locs));
