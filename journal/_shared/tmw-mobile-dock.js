@@ -33,16 +33,14 @@
     if (window.matchMedia('(max-width: 800px)').matches) {
       try { if (typeof window.closeProjectModal === 'function') window.closeProjectModal(); } catch (e) {}
       try { if (typeof window._dismissMapLanding === 'function') window._dismissMapLanding(); } catch (e) {}
+      /* The map owns the search page state (full-screen panel, input docked
+         at the bottom by the keyboard). Nothing else can open it. */
+      if (typeof window.tmwMapMobileSearch === 'function') { window.tmwMapMobileSearch(true); return; }
       /* the v2 discovery sheet opens via the capsule; legacy drawer is the fallback */
       var cap = document.getElementById('v2Capsule');
       if (cap) { try { cap.click(); } catch (e) {} }
       else if (typeof window.mobileDrawerExpand === 'function') { try { window.mobileDrawerExpand(); } catch (e) {} }
       else { document.body.classList.add('v2-sheet-open'); }
-      /* The panel is full screen now and its top search field is gone — the
-         input only exists in the `v2-searching` page state, docked at the
-         bottom by the keyboard. Without this the search button opened the
-         drawer and focused a display:none input, i.e. nothing happened. */
-      try { if (typeof window._v2SetSearchMode === 'function') window._v2SetSearchMode(true); } catch (e) {}
       var minp = document.getElementById('v2SearchInput') || document.getElementById('mobileSearchBar');
       if (minp) {
         /* focus synchronously inside the tap gesture so iOS raises the
@@ -64,7 +62,7 @@
   function mapList() {
     closeNow();
     if (window.matchMedia('(max-width: 800px)').matches) {
-      try { if (typeof window._v2SetSearchMode === 'function') window._v2SetSearchMode(false); } catch (e) {}
+      try { if (typeof window.tmwMapMobileSearch === 'function') window.tmwMapMobileSearch(false); } catch (e) {}
       if (document.body.classList.contains('v2-sheet-open')) { document.body.classList.remove('v2-sheet-open'); return; }
       var cap = document.getElementById('v2Capsule');
       if (cap) { try { cap.click(); return; } catch (e) {} }

@@ -9140,7 +9140,6 @@
       border-top: 1px solid rgba(255,255,255,0.08);
       background: rgba(16,16,20,0.98);
     }
-    body.ui-v2.v2-searching .v2-sheet-title-row { display: none !important; }
     @media (prefers-reduced-motion: reduce) {
       body.ui-v2 #projectModal { transition: opacity .12s ease !important; transform: none !important; }
     }
@@ -27148,8 +27147,6 @@
           });
         });
       }
-      /* The action bar's search button needs this from outside the closure. */
-      window._v2SetSearchMode = setSearchMode;
       function setSearchMode(on) {
         document.body.classList.toggle('v2-searching', !!on);
         const tab = document.getElementById('v2DesktopSearchTab');
@@ -28015,6 +28012,18 @@
         // when paired with a moving frame over the WebGL map).
         document.body.classList.remove('v2-sheet-settled');
         document.body.classList.remove('v2-sheet-open');
+        // The search page is a state OF this panel, so closing leaves it —
+        // otherwise reopening would land back in search with a stale query.
+        if (document.body.classList.contains('v2-searching')) {
+          document.body.classList.remove('v2-searching');
+          var _t = document.getElementById('v2SheetTtl');
+          if (_t) _t.textContent = 'Discover';
+          var _s = document.getElementById('v2SearchInput');
+          if (_s && _s.value) {
+            _s.value = '';
+            try { _s.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+          }
+        }
       }
       // Once the slide-in transition finishes, layer in the backdrop blur.
       // The blur is essentially free when the sheet is static (one paint),
@@ -28040,6 +28049,33 @@
       // Expose globally so other contexts (View on Map, Map return btn) can
       // close the sheet without needing to duplicate class-removal logic.
       window.v2CloseSheet = closeSheet;
+
+      // ‚îÄ‚îÄ Mobile search page ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+      // With the panel full screen its top search field is gone, so searching
+      // is its own state: the input docks to the bottom by the keyboard and
+      // the title row stays up so the X is still reachable. Desktop's
+      // equivalent (setSearchMode) lives inside installDesktopSearchOverlay,
+      // which returns immediately under 801px — hence a separate switch here.
+      function mobileSearchMode(on) {
+        document.body.classList.toggle('v2-searching', !!on);
+        var ttl = document.getElementById('v2SheetTtl');
+        if (ttl) ttl.textContent = on ? 'Search' : 'Discover';
+        if (on) {
+          openSheet();
+          if (search) {
+            // Focus inside the tap gesture so iOS raises the keyboard, then
+            // re-assert once the open transition settles.
+            try { search.focus({ preventScroll: true }); } catch (e) { try { search.focus(); } catch (e2) {} }
+            setTimeout(function () { try { search.focus(); } catch (e) {} }, 420);
+          }
+          return;
+        }
+        if (search && search.value) {
+          search.value = '';
+          try { search.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+        }
+      }
+      window.tmwMapMobileSearch = mobileSearchMode;
       // Back-to-map pill in the drawer search bar → close the drawer.
       var mapPill = document.getElementById('v2MapPill');
       if (mapPill) mapPill.addEventListener('click', function(e){ e.stopPropagation(); closeSheet(); });
