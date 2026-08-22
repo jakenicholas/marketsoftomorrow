@@ -13728,8 +13728,8 @@
           if (activePopup) { activePopup.remove(); activePopup = null; }
           // Same frame the map boots to (see the mapboxgl.Map constructor).
           const bv = window._tmwBootView
-            || { center: isMobile ? [-80.180, 25.752] : [-80.196, 25.745], zoom: isMobile ? 11.1 : 10.6 };
-          map.flyTo({ center: bv.center, zoom: bv.zoom, duration: 700 });
+            || { center: isMobile ? [-80.196, 25.768] : [-80.195, 25.772], zoom: isMobile ? 12.7 : 13.2, pitch: 55 };
+          map.flyTo({ center: bv.center, zoom: bv.zoom, pitch: window._skyOn ? (bv.pitch || 0) : 0, duration: 700 });
           showToast('Returned to default view');
           break;
       }
@@ -13781,13 +13781,19 @@
     try { var _bp = new URLSearchParams(location.search); _bootDeepLink = !!(_bp.get('project') || _bp.get('city')); } catch (e) {}
     // The one place the default Miami frame is defined. The reset-view button
     // reads the same constants, so the two can't drift apart.
-    const BOOT_CENTER = isMobile ? [-80.180, 25.752] : [-80.196, 25.745];
-    const BOOT_ZOOM   = isMobile ? 11.1 : 10.6;
+    // The default frame is the DOWNTOWN SKYLINE, not a regional overview:
+    // Miami's towers, pitched, close enough to read the buildings. Earlier
+    // rounds tuned this while the old auto-click was still flying the camera
+    // somewhere else afterwards, which is how it ended up at a 10.6 regional
+    // view once that click was retired.
+    const BOOT_CENTER = isMobile ? [-80.196, 25.768] : [-80.195, 25.772];
+    const BOOT_ZOOM   = isMobile ? 12.7 : 13.2;
+    const BOOT_PITCH  = 55;
     // Published so the reset-view button can read the same frame. It is wired
     // EARLIER in the file than this declaration and its enclosing scope is not
     // obvious, so going through window removes any chance of a TDZ / scope
     // ReferenceError silently killing the reset handler.
-    window._tmwBootView = { center: BOOT_CENTER, zoom: BOOT_ZOOM };
+    window._tmwBootView = { center: BOOT_CENTER, zoom: BOOT_ZOOM, pitch: BOOT_PITCH };
     const map = new mapboxgl.Map({
       container: 'map',
       projection: 'mercator',   // explicit: GL v3 must not switch us to globe
@@ -13801,13 +13807,19 @@
       // camera movement on a plain load, so the map just appeared already
       // parked on Miami — it stopped reading as "zooming in".
       center: _bootDeepLink ? [-96.0, 38.6] : BOOT_CENTER,
-      zoom:   _bootDeepLink ? 3.5 : (BOOT_ZOOM - 2.4)
+      zoom:   _bootDeepLink ? 3.5 : (BOOT_ZOOM - 2.0)
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
     // don't collide with `window.map`, which the browser sets to the
     // <div id="map"> element via id-named-globals.
     window._tmwMap = map;
+
+    // Same stored preference the Interactive Layers panel restores from. Read
+    // directly here because that panel boots much later than this flight.
+    function skyPrefWantsOn() {
+      try { return localStorage.getItem('tmw-sky-pref') !== 'off'; } catch (e) { return true; }
+    }
 
     // ── Arrival ────────────────────────────────────────────────────────────
     // Ease from the wide boot frame into the default Miami frame so the map
@@ -13820,6 +13832,9 @@
           window._mapFlyingTo = true;
           map.easeTo({
             center: BOOT_CENTER, zoom: BOOT_ZOOM,
+            // Tilt only when the skyline is actually coming up — a pitched
+            // camera over a flat 2D map just skews the labels.
+            pitch: skyPrefWantsOn() ? BOOT_PITCH : 0,
             duration: 2100, essential: true
           });
         } catch (e) { /* worst case the map just sits on the wide frame */ }
@@ -15224,13 +15239,14 @@
             window._skySelUid = uid || '';
             const u = window._skySelUid;
             try {
-              if (map.getLayer('tmw-sky-future')) {
-                map.setPaintProperty('tmw-sky-future', 'fill-extrusion-color',
+              ['tmw-sky-future','tmw-sky-roof'].forEach(function(lid){
+                if (!map.getLayer(lid)) return;
+                map.setPaintProperty(lid, 'fill-extrusion-color',
                   u ? ['case', ['==', ['get','uid'], u], SKY_GOLD, ['get','color']] : ['get','color']);
-                // NB: fill-extrusion-emissive-strength takes NO data expression
-                // (Mapbox rejects it and logs a style error), so the gold has to
-                // carry the selection on colour alone.
-              }
+              });
+              // NB: fill-extrusion-emissive-strength takes NO data expression
+              // (Mapbox rejects it and logs a style error), so the gold has to
+              // carry the selection on colour alone.
               if (map.getLayer('tmw-sky-halo')) {
                 map.setPaintProperty('tmw-sky-halo', 'fill-color',
                   u ? ['case', ['==', ['get','uid'], u], SKY_GOLD, '#7C5CFA'] : '#7C5CFA');
@@ -15238,7 +15254,7 @@
             } catch (e) {}
           };
           function skyRemove(){
-            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-halo','tmw-sky-dedge','tmw-sky-dpool1','tmw-sky-dpool2','tmw-sky-dpool3','tmw-sky-city-full','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
+            ['tmw-sky-names','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-future','tmw-sky-roof','tmw-sky-halo','tmw-sky-dedge','tmw-sky-dpool1','tmw-sky-dpool2','tmw-sky-dpool3','tmw-sky-city-full','tmw-sky-city','tmw-sky-grid','tmw-sky-existing'].forEach(id=>{ try{ if(map.getLayer(id)) map.removeLayer(id); }catch(e){} });
             _cityShown = '';
             [SKY_SRC, SKY_SHL, SKY_LBL, SKY_CITY, SKY_CITY_FULL, SKY_DIST].forEach(id=>{ try{ if(map.getSource(id)) map.removeSource(id); }catch(e){} });
           }
@@ -15337,6 +15353,23 @@
             });
             map.addLayer({ id:'tmw-sky-future', type:'fill-extrusion', source:SKY_SRC, minzoom:10.5,
               paint:{ 'fill-extrusion-color':['get','color'],'fill-extrusion-height':['get','height'],'fill-extrusion-base':['coalesce',['get','base'],0],'fill-extrusion-opacity':1,'fill-extrusion-emissive-strength':0.55,'fill-extrusion-vertical-gradient':true } });
+            // ROOF CAP. The beacon shells (tmw-sky-aura*) are translucent tubes
+            // that rise off the roof, so looking down at a tower you saw through
+            // the near wall to the far one and the top read as an open cylinder.
+            // A short opaque slab at the very top — flat, no vertical gradient,
+            // drawn after both — closes it into a proper flat roof.
+            try {
+              map.addLayer({ id:'tmw-sky-roof', type:'fill-extrusion', source:SKY_SRC, minzoom:10.5,
+                paint:{
+                  'fill-extrusion-color':['get','color'],
+                  'fill-extrusion-height':['get','height'],
+                  // Never let the cap start below the piece's own base (podiums).
+                  'fill-extrusion-base':['max',['coalesce',['get','base'],0],['-',['get','height'],3]],
+                  'fill-extrusion-opacity':1,
+                  'fill-extrusion-emissive-strength':0.75,
+                  'fill-extrusion-vertical-gradient':false
+                } });
+            } catch(e){}
             // Roof names: elevated symbols ride on top of the extrusions, so
             // occluded towers stay findable and clickable — the pins, reborn.
             try {
@@ -15399,7 +15432,7 @@
               if (y === lastYr) return;
               lastYr = y;
               const flt = (y == null) ? null : ['any', ['==',['get','yr'],0], ['<=',['get','yr'],y]];
-              ['tmw-sky-future','tmw-sky-halo','tmw-sky-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
+              ['tmw-sky-future','tmw-sky-roof','tmw-sky-halo','tmw-sky-names'].forEach(id=>{ try{ if(map.getLayer(id)) map.setFilter(id, flt); }catch(e){} });
               [1,2,3].forEach(t=>{ const tf = ['==',['get','tier'],t];
                 try{ if(map.getLayer('tmw-sky-aura'+t)) map.setFilter('tmw-sky-aura'+t, flt ? ['all', tf, flt] : tf); }catch(e){} });
               [1,2,3].forEach(t=>{ const pf = ['all', ['==',['get','kind'],'pool'], ['==',['get','tier'],t]];
@@ -15561,7 +15594,7 @@
             if (typeof window._handlePinClick === 'function') window._handlePinClick({ features: [f] });
             else if (typeof showPopup === 'function') showPopup(f);
           }
-          ['tmw-sky-future','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-names'].forEach(id => {
+          ['tmw-sky-future','tmw-sky-roof','tmw-sky-aura1','tmw-sky-aura2','tmw-sky-aura3','tmw-sky-names'].forEach(id => {
             map.on('click', id, skyClick);
             map.on('mouseenter', id, ()=>{ map.getCanvas().style.cursor='pointer'; });
             map.on('mouseleave', id, ()=>{ map.getCanvas().style.cursor=''; });
