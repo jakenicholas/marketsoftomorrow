@@ -20,6 +20,16 @@
 <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Memberstack + the full-screen welcome flow. These itinerary pages skip
+     journal-chrome.js (own cream design, no site header), so they load both
+     directly: the itinerary is account-gated and the gate IS the signup flow.
+     useCookies + setCookieOnRootDomain must be set BEFORE the script or the
+     session splits per-origin and Safari ITP purges it. -->
+<script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
+<script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
+        src="https://static.memberstack.com/scripts/v2/memberstack.js"
+        type="text/javascript" async></script>
+<script src="/_shared/tmw-welcome.js?v=20260821a" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
@@ -1367,11 +1377,10 @@ function gateHtml(){
   return '<div class="lockbox">'
     + '<div class="lock-k">Private itinerary</div>'
     + '<h2 class="lock-h">See the full itinerary</h2>'
-    + '<p class="lock-p">Exact stays and dates aren’t public. Leave your email and it opens right up. '
-    + 'Feel free to pass this along to colleagues.</p>'
+    + '<p class="lock-p">Exact stays, dates and transit are for members. '
+    + 'Create a free account and it opens right up.</p>'
     + '<form class="lock-form" id="lockForm" novalidate>'
-    +   '<input class="lock-in" id="lockEmail" type="email" autocomplete="email" placeholder="you@company.com">'
-    +   '<button class="lock-cta" id="lockGo" type="submit">View itinerary <span class="pt-arw">→</span></button>'
+    +   '<button class="lock-cta" id="lockGo" type="submit">Create a free account <span class="pt-arw">&rarr;</span></button>'
     + '</form>'
     + '<div class="lock-msg" id="lockMsg" role="status"></div>'
     + '</div>';
@@ -1400,11 +1409,14 @@ function gateHtml(){
     try { buildTopShow(); } catch(e){}
     finish();
     var msg = document.getElementById('lockMsg');
-    function submit(body, btn){
-      msg.className = 'lock-msg'; msg.textContent = 'Checking…';
+    // Mint the per-viewer itinerary token from the account's email. Same
+    // endpoint as before; the email now comes from a real account rather than
+    // a form field, so every unlock is attributable to a member.
+    function unlockFor(email, btn){
+      if(!email){ msg.className='lock-msg err'; msg.textContent='Could not read your account email. Try reloading.'; return; }
+      msg.className = 'lock-msg'; msg.textContent = 'Opening the itinerary…';
       if(btn) btn.disabled = true;
-      body.slug = TRIP_SLUG;
-      fetch(ACCESS_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      fetch(ACCESS_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ slug: TRIP_SLUG, email: email }) })
         .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
         .then(function(x){
           if(!x.ok || !x.j.token){
@@ -1415,16 +1427,47 @@ function gateHtml(){
           }
           try { localStorage.setItem(TKEY, x.j.token); } catch(e){}
           load(x.j.token).then(function(ok){
-            if(ok){ initSlideshowsSafe(); }
+            if(ok){ initSlideshowsSafe(); try { if(window.tmwWelcome && window.tmwWelcome.close) window.tmwWelcome.close(true); } catch(e2){} }
             else { msg.className='lock-msg err'; msg.textContent='Could not load the itinerary. Try again.'; if(btn) btn.disabled=false; }
           });
         })
         .catch(function(){ msg.className='lock-msg err'; msg.textContent='Network error. Try again.'; if(btn) btn.disabled=false; });
     }
+    // A brand-new account unlocks without a reload (login reloads on its own).
+    document.addEventListener('tmw:account-created', function(ev){
+      unlockFor((ev && ev.detail && ev.detail.email) || '', document.getElementById('lockGo'));
+    });
+    function openSignup(){
+      if(window.tmwWelcome && window.tmwWelcome.gate){
+        // Already signed in → gate() returns false, so unlock straight away.
+        if(window.tmwWelcome.gate({ source: 'travel_itinerary' }) === false) currentEmail(function(em){ unlockFor(em, null); });
+        return;
+      }
+      msg.className='lock-msg'; msg.textContent='Still loading, one moment…';
+      setTimeout(openSignup, 400);
+    }
     document.getElementById('lockForm').addEventListener('submit', function(e){
       e.preventDefault();
-      submit({ email: document.getElementById('lockEmail').value.trim() }, document.getElementById('lockGo'));
+      openSignup();
     });
+    // Show the full-screen signup immediately; the panel behind it is the
+    // fallback if they dismiss it.
+    setTimeout(openSignup, 600);
+  }
+  // Resolve the signed-in member's email (null when signed out). Memberstack
+  // loads async, so poll briefly rather than assuming it is ready.
+  function currentEmail(cb, tries){
+    tries = tries || 0;
+    var m = window.$memberstackDom;
+    if(m && m.getCurrentMember){
+      m.getCurrentMember().then(function(r){
+        var d = r && r.data;
+        cb((d && d.auth && d.auth.email) || (d && d.email) || null);
+      }).catch(function(){ cb(null); });
+      return;
+    }
+    if(tries > 12){ cb(null); return; }
+    setTimeout(function(){ currentEmail(cb, tries + 1); }, 250);
   }
   function initSlideshowsSafe(){ try { initSlideshows(); initRouteMap(); } catch(e){} }
   // A saved unlock (or a legacy per-recipient ?k= link) skips the form.
@@ -1432,7 +1475,21 @@ function gateHtml(){
   var saved = '';
   try { saved = localStorage.getItem(TKEY) || ''; } catch(e){}
   var tok = k || saved;
-  if(!tok){ showGate(); return; }
+  if(!tok){
+    // Signed-in members skip the gate entirely; everyone else gets the signup.
+    currentEmail(function(em){
+      if(!em){ showGate(); return; }
+      fetch(ACCESS_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ slug: TRIP_SLUG, email: em }) })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(j){
+          if(!j || !j.token){ showGate(); return; }
+          try { localStorage.setItem(TKEY, j.token); } catch(e){}
+          load(j.token).then(function(ok){ if(ok) finish(); else showGate(); });
+        })
+        .catch(function(){ showGate(); });
+    });
+    return;
+  }
   load(tok).then(function(ok){
     if(ok){ if(k){ try { localStorage.setItem(TKEY, k); } catch(e){} } finish(); }
     else { try { localStorage.removeItem(TKEY); } catch(e){} showGate(); }

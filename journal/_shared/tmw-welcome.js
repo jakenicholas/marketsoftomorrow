@@ -259,6 +259,11 @@
     try { localStorage.setItem(KEY, 'subscribed'); localStorage.setItem(SUB_EMAIL_KEY, email); } catch (e2) {}
     track('subscribe_article', { email: email, source: source });
     track('free_account_created', { email: email, source: source });
+    // Surfaces that gate on having an account (the private travel itineraries)
+    // need to know the moment one exists, with the email, so they can mint
+    // their own access token without a reload. Login already reloads the page;
+    // signup does not, hence this event.
+    try { document.dispatchEvent(new CustomEvent('tmw:account-created', { detail: { email: email, source: source } })); } catch (e2) {}
     if (intent && intent.indexOf('checkout:') === 0) {
       var priceId = intent.slice(9);
       track('welcome_trial_signup_checkout', { price_id: priceId });
