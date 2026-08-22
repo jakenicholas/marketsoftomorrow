@@ -89,7 +89,7 @@
      A dark band at the top of the beige page: the hub reports its own
      state (next departure, live counts) instead of introducing itself.
      Tokens are local so the beige page palette below is untouched. */
-  .tdesk{--d-ink:#0B0C0B;--d-panel:#131614;--d-hair:rgba(255,255,255,.10);--d-hair2:rgba(255,255,255,.18);
+  .tdesk{--d-ink:#070807;--d-panel:#131614;--d-hair:rgba(255,255,255,.10);--d-hair2:rgba(255,255,255,.18);
          --d-text:#ECEAE5;--d-mute:#8b958d;--d-mute2:#C2C9C3;--d-acc:#A78BFA;--d-white:#fff;
          background:var(--d-ink);color:var(--d-text);padding:30px 0 0;margin-bottom:26px}
   .tdesk .wrap{padding:0 22px}
@@ -139,20 +139,18 @@
   .td-sec-eye{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--terra)}
   .td-sec-h{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,36px);line-height:1.05;letter-spacing:-.02em;color:var(--white);margin-top:10px}
   .td-sec-p{color:var(--mute2);font-size:14.5px;line-height:1.6;margin-top:9px;max-width:64ch}
-  /* partner leaderboard */
-  .lb{padding-bottom:10px}
-  .lb-seg{display:inline-flex;gap:3px;padding:4px;border:1px solid var(--hair);border-radius:999px;background:var(--ink2);margin-bottom:20px}
-  .lb-btn{border:0;background:transparent;color:var(--mute);font:700 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;border-radius:999px;cursor:pointer;transition:background .18s,color .18s}
-  .lb-btn.on{background:rgba(167,139,250,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(167,139,250,.4)}
-  .lb-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
-  .lb-row{display:grid;grid-template-columns:30px 1fr auto;gap:14px;align-items:center;padding:12px 14px;border-radius:12px;position:relative;overflow:hidden;background:var(--ink2);border:1px solid var(--hair)}
-  .lb-row .bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(167,139,250,.20),rgba(167,139,250,.05));pointer-events:none}
-  .lb-row > *{position:relative;z-index:1}
-  .lb-rank{font-family:var(--mono);font-size:11px;color:var(--mute)}
-  .lb-row.top .lb-rank{color:var(--terra);font-weight:700}
-  .lb-name{font-family:var(--serif);font-size:17px;font-weight:600;color:#fff;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .lb-val{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2);white-space:nowrap}
-  .lb-empty{color:var(--mute);font-size:14px;padding:14px 0}
+  /* Partner charts — Atlas panel styling, copied so the two read the same. */
+  .atlas-dash-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px}
+  @media(max-width:820px){ .atlas-dash-row{grid-template-columns:1fr} }
+  .atlas-panel{border:1px solid var(--hair);border-radius:16px;padding:22px 24px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c;display:flex;flex-direction:column}
+  .atlas-ph{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--purple-soft);margin:0 0 16px;display:flex;align-items:center;gap:9px;justify-content:space-between;font-weight:600}
+  .atlas-ph .hint{font-size:9px;letter-spacing:.06em;color:var(--mute);font-weight:400;text-transform:none}
+  .atlas-type-row{display:grid;grid-template-columns:128px 1fr 46px;align-items:center;gap:12px;padding:6px 0}
+  @media(max-width:800px){ .atlas-type-row{grid-template-columns:104px 1fr 40px;gap:10px} }
+  .atlas-type-label{font-size:13px;color:rgba(255,255,255,0.78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .atlas-type-bar-wrap{background:rgba(255,255,255,0.05);height:8px;border-radius:4px;overflow:hidden}
+  .atlas-type-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c63d6,#A78BFA);transition:width .3s}
+  .atlas-type-count{font-family:var(--mono);font-size:12px;color:var(--mute-2);text-align:right}
   @media(max-width:640px){ .lb-name{font-size:15px} .lb-row{grid-template-columns:24px 1fr auto;gap:10px;padding:11px 12px} }
   @media(max-width:760px){
     .tdesk{padding-top:22px;margin-bottom:18px}
@@ -215,12 +213,12 @@
   /* status pill anchored inside the image's top-right corner, filled with the tile bg */
   .trip-badge{position:absolute;top:14px;right:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:5px 12px;background:#11140f;box-shadow:0 2px 10px rgba(0,0,0,.5)}
   .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.55)}
-  .trip-badge.planning{color:#1d7a3e;border:1px solid rgba(29,122,62,.5)}
+  .trip-badge.planning{color:#1FDF67;border:1px solid rgba(31,223,103,.55);background:rgba(31,223,103,.10)}
   /* section dividers */
   .trips-div{display:flex;align-items:center;gap:16px;margin:34px 0 18px}
   .trips-div:first-child{margin-top:0}
-  .trips-div span{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--terra);white-space:nowrap}
-  .trips-div::before,.trips-div::after{content:"";height:1px;background:rgba(176,96,58,.25);flex:1}
+  .trips-div span{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--mute-2);white-space:nowrap}
+  .trips-div::before,.trips-div::after{content:"";height:1px;background:var(--hair-2);flex:1}
   .trips-div::before{max-width:34px}
   button.trip-link{background:none;border:0;padding:0;font-family:inherit;cursor:pointer;text-align:left}
   /* request-partnership button (modal send) */
@@ -270,18 +268,43 @@
 
   /* ── Markets visited grid ── */
   #markets{padding:48px 0 20px}
-  .mk-filters{display:flex;justify-content:center;align-items:center;gap:16px;margin:24px 0 22px;flex-wrap:wrap}
-  .mk-filters select{background-color:#131614;color:var(--text);border:1px solid var(--hair2);border-radius:10px;padding:9px 32px 9px 13px;font-family:var(--sans);font-size:13px;color:var(--brown);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23B0603A' stroke-width='2'%3E%3Cpath d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
-  .mk-count{font-size:13px;color:var(--mute2);font-weight:500}
-  .mk-count b{color:var(--brown)}
-  .mk-clear{background:none;border:0;color:var(--terra);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
-  .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
-  .mtile{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--panel);border:1px solid var(--hair)}
-  .mtile img{width:100%;height:100%;object-fit:cover}
-  .mtile figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 13px 11px;background:linear-gradient(transparent,rgba(40,25,12,.74));color:#FBF6EC;pointer-events:none}
-  .mtile .mc{display:block;font-family:var(--serif);font-weight:600;font-size:15.5px;letter-spacing:-.01em}
-  .mtile .mr{display:block;font-size:10.5px;letter-spacing:.07em;opacity:.85;margin-top:1px}
+  /* Markets section: CSS copied VERBATIM from the media page so the two
+     render identically. Update it there and re-copy, or better, lift it
+     into a shared module like tmw-clients.js. */
+.mgrid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:8px}
+/* markets-visited world map — dark, matches /map */
+#tmapMedia{width:100%; height:460px; border-radius:14px; overflow:hidden; border:1px solid var(--hair); margin:0 0 30px; position:relative; background:#0a131c}
+#tmapMedia .mapboxgl-ctrl-logo,#tmapMedia .mapboxgl-ctrl-attrib{opacity:.45}
+.tmm-marker{width:7px; height:7px}
+.tmm-dot{display:block; width:7px; height:7px; border-radius:50%; background:#E6C574; box-shadow:0 0 4px 1px rgba(230,197,116,.45)}
+.tmm-pop .mapboxgl-popup-content{background:#12140f; border:1px solid rgba(230,197,116,.3); border-radius:8px; padding:7px 11px; box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tmm-pop .mapboxgl-popup-tip{border-top-color:#12140f; border-bottom-color:#12140f}
+.tmm-pop-tx{font-family:var(--mono); font-size:11px; letter-spacing:.02em; color:#F3ECD9}
+.tmm-pop-tx b{color:#E6C574}
+@media(max-width:700px){ #tmapMedia{height:340px} }
+/* markets-visited filter row — centered, /travel layout in dark colors */
+.mk-filters{position:relative; display:flex; justify-content:center; align-items:center; gap:16px; margin:24px 0 22px; flex-wrap:wrap}
+.mk-cta{position:absolute; right:0; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px; background-color:rgba(255,255,255,.04); border:1px solid var(--hair,rgba(255,255,255,.12)); color:#fff; font-family:'Inter',-apple-system,sans-serif; font-size:13px; font-weight:500; text-decoration:none; white-space:nowrap; transition:background .2s, border-color .2s}
+.mk-cta:hover{background-color:rgba(255,255,255,.08); border-color:var(--hair2,rgba(255,255,255,.2))}
+@media(max-width:760px){ .mk-cta{position:static; transform:none; margin-top:2px} }
+.mk-filters select{appearance:none; -webkit-appearance:none; background-color:rgba(255,255,255,.04); border:1px solid var(--hair); border-radius:10px; padding:9px 32px 9px 13px; font-family:'Inter',-apple-system,sans-serif; font-size:13px; color:var(--cream,#F3ECD9); cursor:pointer; outline:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23E6C574' stroke-width='2'%3E%3Cpath d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 11px center}
+.mk-filters select:hover{border-color:var(--hair2,rgba(255,255,255,.16))}
+.mk-filters select:focus{border-color:var(--gold,#E6C574)}
+.mk-filters select option{background:#141714; color:var(--cream,#F3ECD9)}
+.mk-count{font-size:13px; color:var(--mute,#9AA39C); font-weight:500}
+.mk-count b{color:var(--gold-soft,#E6C574)}
+.mk-clear{background:none; border:0; color:var(--gold-soft,#E6C574); font-size:12px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0}
+.mtile{position:relative; margin:0; border-radius:12px; overflow:hidden; border:1px solid var(--hair); aspect-ratio:4/3}
+.mtile img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease, filter .4s ease; filter:saturate(.82) brightness(.74)}
+.mtile::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(160deg, rgba(7,30,18,.28), rgba(7,8,7,.42));
+  box-shadow:inset 0 0 60px rgba(7,8,7,.5); transition:opacity .4s ease}
+.mtile:hover img{transform:scale(1.06); filter:saturate(.95) brightness(.92)}
+.mtile:hover::after{opacity:.4}
+.mtile figcaption{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:16px 12px 11px; background:linear-gradient(transparent, rgba(7,8,7,.92)); display:flex; flex-direction:column; gap:1px}
+.mtile .mc{font-size:13px; font-weight:600; color:#fff; line-height:1.15}
+.mtile .mr{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--green-soft)}
 
   @media(max-width:640px){
     .trip{grid-template-columns:1fr;gap:11px;padding:13px 22px 16px;margin-top:12px}
@@ -328,14 +351,7 @@
     <h2 class="td-sec-h">Who we travel with</h2>
     <p class="td-sec-p">Ranked by how often they have hosted or worked with us on the road.</p>
   </div>
-  <div class="lb">
-    <div class="lb-seg" id="lbSeg">
-      <button type="button" class="lb-btn on" data-board="stays">Stays</button>
-      <button type="button" class="lb-btn" data-board="firms">Firms</button>
-      <button type="button" class="lb-btn" data-board="markets">Markets</button>
-    </div>
-    <ol class="lb-list" id="lbList"></ol>
-  </div>
+  <div class="atlas-dash-row" id="lbCharts"></div>
   <div class="td-sec" style="padding-top:44px">
     <div class="td-sec-eye">Clients</div>
     <h2 class="td-sec-h">The brands we work with</h2>
@@ -536,7 +552,12 @@ function tripHtml(t, i){
   var future = TRIPS.filter(function(t){ return tripStatus(t) !== 'ended'; })
     .sort(function(a,b){ return String(a.start||'9999').localeCompare(String(b.start||'9999')); });
   if (future.length) future[0]._next = true;
-  var past = TRIPS.filter(function(t){ return tripStatus(t) === 'ended'; });
+  var past = TRIPS.filter(function(t){ return tripStatus(t) === 'ended'; })
+    .sort(function(a,b){
+      var ae = a.end || a.start || '', be = b.end || b.start || '';
+      if (ae && be) return be.localeCompare(ae);      // ISO dates sort lexically
+      return ae ? -1 : be ? 1 : 0;                    // dated trips first
+    });
   var div = function(label){ return '<div class="trips-div"><span>'+label+'</span></div>'; };
   el.innerHTML =
       (future.length ? div('Next up') + tripHtml(future[0], 0) : '')
@@ -609,51 +630,46 @@ function tripHtml(t, i){
       var top = document.querySelector('.tdesk');
       if (top) window.scrollTo({ top: top.offsetTop, behavior: 'smooth' });
     });
-    // Partner leaderboards, all three built from the trips data on the page.
-    // Firms are matched by name pattern (PR / agency / hospitality group);
-    // everything else that hosted us counts as a stay. Jake can correct the
-    // FIRM_RE list if a name lands in the wrong board.
+    // Four partner charts, Atlas-panel style, all derived from the trips data.
+    // Firms are matched by name pattern; correct FIRM_RE if one lands wrong.
     var FIRM_RE = /\bPR\b|^LDPR$|Agency|Public Relations|Communications|Hospitality|Global|Quinn|Nauka|Firefly|Bacchus|Jusich|C&R|J\/PR/i;
-    var boards = (function(){
-      var stays = {}, firms = {}, markets = {};
+    var charts = (function(){
+      var stays = {}, firms = {}, markets = {}, years = {};
       TRIPS.forEach(function(t){
         (t.partners||[]).forEach(function(p){
           var bucket = FIRM_RE.test(p) ? firms : stays;
           bucket[p] = (bucket[p]||0) + 1;
         });
-        var place = String(t.place||'').trim();
+        var place = String(t.place||'').split('·')[0].trim();
         if (place) markets[place] = (markets[place]||0) + 1;
+        var y = (t.start || '').slice(0,4) || (String(t.date||'').match(/20\d{2}/)||[''])[0];
+        if (y) years[y] = (years[y]||0) + 1;
       });
-      function rank(o, unit){
-        return Object.keys(o).sort(function(a,b){ return o[b]-o[a] || a.localeCompare(b); })
-          .map(function(k){ return { name:k, n:o[k], unit:unit }; });
-      }
-      return { stays: rank(stays,'trip'), firms: rank(firms,'trip'), markets: rank(markets,'visit') };
+      function rank(o){ return Object.keys(o).sort(function(a,b){ return o[b]-o[a] || a.localeCompare(b); })
+        .map(function(k){ return { name:k, count:o[k] }; }); }
+      function byKey(o){ return Object.keys(o).sort().map(function(k){ return { name:k, count:o[k] }; }); }
+      return { stays: rank(stays), firms: rank(firms), markets: rank(markets), years: byKey(years) };
     })();
-    function paintBoard(which){
-      var rows = boards[which] || [], list = document.getElementById('lbList');
-      if (!list) return;
-      if (!rows.length) { list.innerHTML = '<li class="lb-empty">Nothing logged here yet.</li>'; return; }
-      var max = rows[0].n || 1;
-      list.innerHTML = rows.map(function(r, i){
-        var pct = Math.max(6, Math.round(r.n / max * 100));
-        return '<li class="lb-row'+(i < 3 ? ' top' : '')+'">'
-          + '<span class="bar" style="width:'+pct+'%"></span>'
-          + '<span class="lb-rank">'+(i+1)+'</span>'
-          + '<span class="lb-name">'+esc(r.name)+'</span>'
-          + '<span class="lb-val">'+r.n+' '+r.unit+(r.n>1?'s':'')+'</span>'
-          + '</li>';
-      }).join('');
+    function panel(rows, title, hint, cap){
+      rows = rows.slice(0, cap || 7);
+      if (!rows.length) return '';
+      var max = Math.max.apply(null, rows.map(function(d){ return d.count||0; }).concat([1]));
+      return '<div class="atlas-panel">'
+        + '<h3 class="atlas-ph"><span class="lbl">'+esc(title)+'</span><span class="hint">'+esc(hint)+'</span></h3>'
+        + rows.map(function(d){
+            return '<div class="atlas-type-row"><div class="atlas-type-label">'+esc(d.name)+'</div>'
+              + '<div class="atlas-type-bar-wrap"><div class="atlas-type-bar" style="width:'+((d.count||0)/max*100)+'%"></div></div>'
+              + '<div class="atlas-type-count">'+(d.count||0)+'</div></div>'; }).join('')
+        + '</div>';
     }
-    var seg = document.getElementById('lbSeg');
-    if (seg) seg.addEventListener('click', function(e){
-      var b = e.target.closest('.lb-btn'); if (!b) return;
-      seg.querySelectorAll('.lb-btn').forEach(function(x){ x.classList.toggle('on', x === b); });
-      paintBoard(b.getAttribute('data-board'));
-    });
-    paintBoard('stays');
+    var lbc = document.getElementById('lbCharts');
+    if (lbc) lbc.innerHTML =
+        panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
+      + panel(charts.firms,   'Firms we work with', 'by trips together')
+      + panel(charts.markets, 'Markets visited',    'by trips')
+      + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);
     var pcount = document.querySelector('[data-cnt="partners"]');
-    if (pcount) pcount.textContent = boards.stays.length + boards.firms.length;
+    if (pcount) pcount.textContent = charts.stays.length + charts.firms.length;
 
     // The universal clients section mounts itself from /_shared/tmw-clients.js
     // the first time the Partners tab is opened.

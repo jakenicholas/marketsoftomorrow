@@ -70,16 +70,11 @@
     if (document.getElementById('tmwc-css')) return;
     var s = document.createElement('style');
     s.id = 'tmwc-css';
-    // scope every selector to .tmwc-root so a host page's own rules can't collide
-    s.textContent = CSS.replace(/(^|\})\s*([^@{}]+)\{/g, function (m, brace, sel) {
-      if (/^\s*(from|to|\d+%)\s*$/.test(sel)) return m;            // keyframe steps
-      var scoped = sel.split(',').map(function (x) {
-        x = x.trim();
-        if (!x) return x;
-        return x.indexOf('.tmwc-root') === 0 ? x : '.tmwc-root ' + x;
-      }).join(',');
-      return brace + scoped + '{';
-    });
+    // Injected VERBATIM, exactly as the media page declares it. An earlier
+    // regex "scoping" pass mangled comments and missed the first rule, which
+    // is what left the grid at 4 columns and the selects unreadable. These
+    // class names are specific enough not to collide; identical is the point.
+    s.textContent = CSS;
     document.head.appendChild(s);
   }
 
