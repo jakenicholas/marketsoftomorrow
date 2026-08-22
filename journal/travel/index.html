@@ -135,6 +135,25 @@
   .td-cta .arw{transition:transform .18s}
   .td-cta:hover .arw{transform:translateX(3px)}
   .td-pad{height:34px}
+  /* ── embedded media page (Hotel partnerships tab) ───────────────── */
+  .td-embed{margin-top:26px;border:1px solid var(--d-hair);border-radius:16px;overflow:hidden;background:var(--d-panel)}
+  .td-embed-bar{display:flex;align-items:center;gap:12px;padding:11px 13px;border-bottom:1px solid var(--d-hair);
+    background:rgba(255,255,255,.02)}
+  .td-embed-k{font-family:var(--mono,'Inter',sans-serif);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--mute);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .td-embed-acts{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
+  .td-embed-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--d-hair2);background:rgba(255,255,255,.05);color:#ECEAE5;text-decoration:none;
+    font-size:11.5px;font-weight:600;letter-spacing:.06em;transition:background .15s,border-color .15s}
+  .td-embed-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3)}
+  .td-embed-btn svg{width:14px;height:14px;flex:0 0 auto}
+  .td-embed-frame{position:relative;background:#070807;height:min(78vh,900px);min-height:520px}
+  .td-embed-frame iframe{width:100%;height:100%;border:0;display:block}
+  /* Native fullscreen: the frame fills the screen and the bar rides on top. */
+  .td-embed-frame:fullscreen{height:100vh;width:100vw}
+  .td-embed-frame:-webkit-full-screen{height:100vh;width:100vw}
+  @media(max-width:700px){.td-embed-frame{height:70vh;min-height:440px}.td-embed-k{display:none}}
+
   /* ── tab panels ─────────────────────────────────────────────── */
   .td-panel[hidden]{display:none}
   .td-sec{padding:6px 0 22px}
@@ -365,6 +384,7 @@
         <button type="button" class="td-tab" data-view="past">Past trips <span class="cnt" data-cnt="past"></span></button>
         <button type="button" class="td-tab" data-view="markets">Markets <span class="cnt" data-cnt="markets"></span></button>
         <button type="button" class="td-tab" data-view="partners">Partners <span class="cnt" data-cnt="partners"></span></button>
+        <button type="button" class="td-tab" data-view="hotels">Hotel partnerships</button>
       </div>
       <button type="button" class="td-cta" id="tdSubmit">Submit a trip <span class="arw">&#8594;</span></button>
     </div>
@@ -392,6 +412,31 @@
     <p class="td-sec-p">Real estate, hospitality and lifestyle brands across the Markets of Tomorrow network.</p>
   </div>
   <div data-tmw-clients></div>
+</div>
+
+<div class="td-panel" data-panel="hotels" hidden>
+  <div class="wrap">
+    <div class="td-embed">
+      <div class="td-embed-bar">
+        <span class="td-embed-k">Hotels of Tomorrow &middot; partnership deliverables</span>
+        <div class="td-embed-acts">
+          <button type="button" class="td-embed-btn" id="hotFull" title="Open full screen" aria-label="Open full screen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            <span>Full screen</span>
+          </button>
+          <a class="td-embed-btn" id="hotOpen" href="/media/hotels/" target="_blank" rel="noopener" title="Open in a new tab" aria-label="Open in a new tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+          </a>
+        </div>
+      </div>
+      <!-- The live media page, not a copy. Loaded lazily so the travel desk's
+           first paint never waits on it, and in embed mode so its own header,
+           dock and sibling rail stay out of the frame. -->
+      <div class="td-embed-frame" id="hotFrame">
+        <iframe id="hotIframe" title="Hotel partnerships" loading="lazy" referrerpolicy="same-origin"></iframe>
+      </div>
+    </div>
+  </div>
 </div>
 
 <section id="markets" class="td-panel" data-panel="markets" hidden><div class="wrap">
@@ -655,8 +700,31 @@ function tripHtml(t, i){
       panels.forEach(function(pn){ pn.hidden = pn.getAttribute('data-panel') !== view; });
       tabs.querySelectorAll('.td-tab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-view') === view); });
       if (view === 'partners') loadClients();
+      if (view === 'hotels') loadHotels();
       try { history.replaceState(null, '', '#' + view); } catch(_){}
     }
+    // The embedded media page loads on first view, not on page load: it is a
+    // whole second document and the travel desk should not pay for it unless
+    // the tab is opened. src is set once and then left alone so switching tabs
+    // never reloads it.
+    function loadHotels(){
+      var f = document.getElementById('hotIframe');
+      if (f && !f.getAttribute('src')) f.setAttribute('src', '/media/hotels/?embed=1');
+    }
+    var full = document.getElementById('hotFull');
+    if (full) full.addEventListener('click', function(){
+      var box = document.getElementById('hotFrame');
+      if (!box) return;
+      // Native fullscreen where it exists; Safari on iPhone has no element
+      // fullscreen, so fall back to opening the real page in a new tab.
+      var req = box.requestFullscreen || box.webkitRequestFullscreen;
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        return;
+      }
+      if (req) { try { req.call(box); return; } catch(_){} }
+      window.open('/media/hotels/', '_blank', 'noopener');
+    });
     if (tabs) tabs.addEventListener('click', function(e){
       var b = e.target.closest && e.target.closest('.td-tab');
       if (!b) return;

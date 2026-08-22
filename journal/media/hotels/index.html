@@ -336,6 +336,22 @@ a.tag:hover svg{transform:translateX(2px)}
 </head>
 <body>
 
+<!-- ── Embed mode (?embed=1) ─────────────────────────────────────────────
+     The travel desk hosts this page inside a tab, where the site header, the
+     bottom dock and the sibling-page rail would all be duplicates of chrome
+     the parent already shows. Adding the class before first paint (rather
+     than in a deferred script) means the chrome never flashes. -->
+<script>try{ if(new URLSearchParams(location.search).get('embed')==='1') document.documentElement.classList.add('tmw-embed'); }catch(e){}</script>
+<style>
+  html.tmw-embed .media-rail,
+  html.tmw-embed .tmw-chrome-head,
+  html.tmw-embed .tmw-chrome-foot,
+  html.tmw-embed .tmwx-wrap,
+  html.tmw-embed .tmw-dock{display:none !important}
+  html.tmw-embed body{padding-top:0}
+  html.tmw-embed .hero{padding-top:16px}
+</style>
+
 <!-- Media-trip switcher - three sibling pages, not anchors -->
 <nav class="media-rail" id="mediaRail" aria-label="Media trip types">
   <a class="mr-jump" data-rail="hotels" href="/media/hotels/">Hotels</a>
