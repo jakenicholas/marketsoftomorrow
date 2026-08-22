@@ -10508,8 +10508,13 @@
       box-shadow: 0 24px 64px rgba(0,0,0,0.6) !important;
       overflow: hidden !important;
     }
-    body.ui-v2 #projectModal:not(.open) {
+    /* State both ends explicitly. A :not(.open) rule alone left the open
+       state to a weaker non-important rule, so the panel never slid in. */
+    body.ui-v2 #projectModal {
       transform: translateX(calc(-100% - var(--v2-box-left) - 8px)) !important;
+    }
+    body.ui-v2 #projectModal.open {
+      transform: translateX(0) !important;
     }
     /* Solid dark header so tiles can't show through behind the search /
        tabs / filter pills while the sidebar body scrolls underneath. */
