@@ -9078,11 +9078,14 @@
        translate. Blurring it mid-animation over the WebGL canvas was the
        original mobile open-lag. */
     body.ui-v2 .v2-sheet {
+      position: fixed !important;
       left: 0 !important; right: 0 !important;
       top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 72px) !important;
       height: auto !important;
       border-radius: 0 !important;
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
       border: 0 !important;
       border-top: 0 !important;
       box-shadow: none !important;
@@ -9099,8 +9102,12 @@
       left: 0 !important; right: 0 !important;
       top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 72px) !important;
+      position: fixed !important;
       width: auto !important; height: auto !important;
-      border-radius: 0 !important; border: 0 !important; box-shadow: none !important;
+      border-radius: 0 !important;
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+      border: 0 !important; box-shadow: none !important;
       transform: scale(0.97) !important;
       opacity: 0 !important;
       transform-origin: 50% 40%;
@@ -9329,6 +9336,20 @@
        mobile sheet). The buttons stay in the DOM so the pane-switching logic
        is untouched — the watchlist chip below just clicks the hidden tab. */
     body.ui-v2 .v2-segmented { display: none !important; }
+    /* One horizontal stack in the panel header: fly to pin, watchlist, close.
+       The X used to be position:fixed in the corner and collided with these. */
+    .v2-sheet-right, #v2DTitleRight {
+      display: flex !important; align-items: center; gap: 8px;
+    }
+    .v2-sheet-right .v2-flyto-toggle, #v2DTitleRight .v2-flyto-toggle { order: 1; }
+    .v2-sheet-right .v2-watch-btn,    #v2DTitleRight .v2-watch-btn    { order: 2; }
+    .v2-sheet-right .v2-sheet-x,      #v2DTitleRight .v2-sheet-x      { order: 3; }
+    #tmwDrawerClose.in-row {
+      order: 3; position: static !important; width: 30px; height: 30px;
+      left: auto !important; top: auto !important; margin: 0 !important;
+      box-shadow: none !important; z-index: auto !important;
+      background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.14) !important;
+    }
     .v2-watch-btn {
       display: inline-flex; align-items: center; gap: 5px;
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
@@ -27273,6 +27294,13 @@
         }
         setTimeout(attach, 400);
         setTimeout(attach, 1500);
+        // Bring the close button into the same row so the three controls line
+        // up instead of the X floating over them.
+        const parkX = () => {
+          const xb = document.getElementById('tmwDrawerClose');
+          if (xb && !right.contains(xb)) { xb.classList.add('in-row'); right.appendChild(xb); }
+        };
+        parkX(); setTimeout(parkX, 400); setTimeout(parkX, 1500);
       })();
       tabs.parentNode.insertBefore(titleRow, tabs.nextSibling);
 
