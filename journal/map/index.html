@@ -13742,7 +13742,7 @@
           if (activePopup) { activePopup.remove(); activePopup = null; }
           // Same frame the map boots to (see the mapboxgl.Map constructor).
           const bv = window._tmwBootView
-            || { center: isMobile ? [-80.194, 25.769] : [-80.194, 25.771], zoom: isMobile ? 13.5 : 14.0, pitch: 55 };
+            || { center: isMobile ? [-80.194, 25.769] : [-80.194, 25.771], zoom: isMobile ? 14.1 : 14.6, pitch: 55 };
           map.flyTo({ center: bv.center, zoom: bv.zoom, pitch: window._skyOn ? (bv.pitch || 0) : 0, duration: 700 });
           showToast('Returned to default view');
           break;
@@ -13795,13 +13795,17 @@
     try { var _bp = new URLSearchParams(location.search); _bootDeepLink = !!(_bp.get('project') || _bp.get('city')); } catch (e) {}
     // The one place the default Miami frame is defined. The reset-view button
     // reads the same constants, so the two can't drift apart.
-    // The default frame is the DOWNTOWN SKYLINE, not a regional overview:
-    // Miami's towers, pitched, close enough to read the buildings. Earlier
-    // rounds tuned this while the old auto-click was still flying the camera
-    // somewhere else afterwards, which is how it ended up at a 10.6 regional
-    // view once that click was retired.
+    // ── The opening shot ───────────────────────────────────────────────────
+    // TWO frames, not one. The map OPENS wide over South Florida — flat, pins
+    // only, no towers (the skyline layers start at z10.5, so pin mode is
+    // automatic out here) — holds for a beat, then flies down into the
+    // downtown Miami skyline and tilts as it goes. Earlier rounds only ever
+    // tuned the destination, which is why the map kept either sitting on a
+    // regional view or appearing already parked downtown.
+    const WIDE_CENTER = [-80.28, 26.02];                 // Boca down to Homestead
+    const WIDE_ZOOM   = isMobile ? 8.4 : 8.7;
     const BOOT_CENTER = isMobile ? [-80.194, 25.769] : [-80.194, 25.771];
-    const BOOT_ZOOM   = isMobile ? 13.5 : 14.0;
+    const BOOT_ZOOM   = isMobile ? 14.1 : 14.6;
     const BOOT_PITCH  = 55;
     // Published so the reset-view button can read the same frame. It is wired
     // EARLIER in the file than this declaration and its enclosing scope is not
@@ -13820,8 +13824,8 @@
       // after load). Retiring the old skyline auto-click also retired the only
       // camera movement on a plain load, so the map just appeared already
       // parked on Miami — it stopped reading as "zooming in".
-      center: _bootDeepLink ? [-96.0, 38.6] : BOOT_CENTER,
-      zoom:   _bootDeepLink ? 3.5 : (BOOT_ZOOM - 2.0)
+      center: _bootDeepLink ? [-96.0, 38.6] : WIDE_CENTER,
+      zoom:   _bootDeepLink ? 3.5 : WIDE_ZOOM
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
@@ -13842,16 +13846,21 @@
     // list refresh for this one programmatic move.
     if (!_bootDeepLink) {
       map.once('load', function () {
-        try {
-          window._mapFlyingTo = true;
-          map.easeTo({
-            center: BOOT_CENTER, zoom: BOOT_ZOOM,
-            // Tilt only when the skyline is actually coming up — a pitched
-            // camera over a flat 2D map just skews the labels.
-            pitch: skyPrefWantsOn() ? BOOT_PITCH : 0,
-            duration: 2100, essential: true
-          });
-        } catch (e) { /* worst case the map just sits on the wide frame */ }
+        // Hold the wide frame briefly so South Florida actually registers as a
+        // place before the camera commits to Miami.
+        setTimeout(function () {
+          try {
+            // Suppress the moveend list refresh for this one scripted flight.
+            window._mapFlyingTo = true;
+            map.flyTo({
+              center: BOOT_CENTER, zoom: BOOT_ZOOM,
+              // Tilt only when the skyline is actually coming up — a pitched
+              // camera over a flat 2D map just skews the labels.
+              pitch: skyPrefWantsOn() ? BOOT_PITCH : 0,
+              duration: 3400, curve: 1.35, essential: true
+            });
+          } catch (e) { /* worst case the map just sits on the wide frame */ }
+        }, 900);
       });
     }
 
