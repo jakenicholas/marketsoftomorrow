@@ -148,6 +148,18 @@
       '.tmww .c-sub{font-size:15px;color:#C2C9C3;line-height:1.65;margin:18px 0 32px;max-width:48ch}',
       '.tmww .c-sub b{color:#fff;font-weight:600}',
       '.tmww .c-form{width:min(380px,100%);display:flex;flex-direction:column;gap:10px}',
+      // profile step: name pair, geocoded homebase dropdown, inline error
+      '.tmww .g-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
+      '@media(max-width:520px){.tmww .g-row{grid-template-columns:1fr}}',
+      '.tmww .g-geo{position:relative}',
+      '.tmww .g-geo-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:8;background:#16181a;border:1px solid rgba(255,255,255,.16);border-radius:12px;overflow:hidden;max-height:230px;overflow-y:auto;box-shadow:0 18px 50px rgba(0,0,0,.6)}',
+      '.tmww .g-geo-list[hidden]{display:none}',
+      '.tmww .g-geo-item{padding:12px 15px;font-size:14px;color:#e8e8e8;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}',
+      '.tmww .g-geo-item:last-child{border-bottom:0}',
+      '.tmww .g-geo-item:hover{background:rgba(167,139,250,.14);color:#fff}',
+      '.tmww .g-err{min-height:16px;font-size:12.5px;color:#ff8f8f;text-align:left}',
+      '.tmww .cta.purple{background:#A78BFA;color:#160f26}',
+      '.tmww .cta.purple:hover{background:#B9A6FF}',
       '.tmww .ring{position:absolute;left:50%;top:40%;width:340px;height:340px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(167,139,250,.2);animation:tmwwRing 3.2s ease-in-out infinite;pointer-events:none}',
       '@keyframes tmwwRing{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}',
       /* PRO */
@@ -269,10 +281,10 @@
       track('welcome_trial_signup_checkout', { price_id: priceId });
       ensurePaywall(function () {
         if (typeof window.tmwProCheckout === 'function') { close(true); window.tmwProCheckout(priceId); }
-        else { member(); }
+        else { profile(email); }
       });
     } else {
-      member();
+      profile(email);
     }
   }
   function gate(opts) {
@@ -403,11 +415,112 @@
   }
 
   // ── MEMBER # ───────────────────────────────────────────────────────────
+  // ── PROFILE ─────────────────────────────────────────────────────────────
+  // Step 2 of signup. First + last required; homebase must be chosen from the
+  // geocoder so we never store a place that doesn't exist; company optional.
+  function profile(email) {
+    var s = screen(
+      '<div class="g-inner">' +
+        '<div class="wm">' + LOGO_IMG + '</div>' +
+        '<div class="eyeb gold">One more thing</div>' +
+        '<div class="c-num" style="font-size:clamp(30px,4.4vw,52px)">Tell us about you</div>' +
+        '<p class="c-sub">So we send you what actually matters &mdash; your markets, your projects.</p>' +
+        '<form class="c-form" data-w="pform" novalidate>' +
+          '<div class="g-row">' +
+            '<input class="in" name="first" placeholder="First name *" autocomplete="given-name" required>' +
+            '<input class="in" name="last" placeholder="Last name *" autocomplete="family-name" required>' +
+          '</div>' +
+          '<div class="g-geo"><input class="in" name="based" placeholder="Homebase &mdash; search a city" autocomplete="off">' +
+            '<div class="g-geo-list" hidden></div></div>' +
+          '<input class="in" name="company" placeholder="Company (optional)" autocomplete="organization">' +
+          '<div class="g-err" data-w="perr" aria-live="polite"></div>' +
+          '<button class="cta purple" type="submit">Continue</button>' +
+        '</form>' +
+      '</div>' +
+      TICKER
+    );
+    track('welcome_profile_shown');
+    var form = s.querySelector('[data-w="pform"]');
+    var err  = s.querySelector('[data-w="perr"]');
+    var geo  = form.querySelector('input[name="based"]');
+    var list = s.querySelector('.g-geo-list');
+    (function () {
+      var TOKEN = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+      var t, hideT;
+      function hide() { list.hidden = true; list.innerHTML = ''; }
+      geo.addEventListener('input', function () {
+        if (geo.getAttribute('data-picked') !== geo.value) geo.removeAttribute('data-picked');
+        clearTimeout(t);
+        var q = geo.value.trim();
+        if (q.length < 2) { hide(); return; }
+        t = setTimeout(function () {
+          fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(q) +
+                '.json?types=place,region,country&limit=5&access_token=' + TOKEN)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) {
+              var feats = (j && j.features) || [];
+              if (!feats.length) { hide(); return; }
+              list.innerHTML = '';
+              feats.forEach(function (f) {
+                var it = document.createElement('div');
+                it.className = 'g-geo-item';
+                it.textContent = f.place_name || '';
+                list.appendChild(it);
+              });
+              list.hidden = false;
+            }).catch(hide);
+        }, 250);
+      });
+      list.addEventListener('mousedown', function (e) {
+        var it = e.target.closest && e.target.closest('.g-geo-item');
+        if (!it) return;
+        e.preventDefault();
+        geo.value = it.textContent;
+        geo.setAttribute('data-picked', it.textContent);
+        hide();
+      });
+      geo.addEventListener('blur', function () { clearTimeout(hideT); hideT = setTimeout(hide, 150); });
+    })();
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = function (n) { return (form[n] && form[n].value || '').trim(); };
+      err.textContent = '';
+      if (!v('first') || !v('last')) {
+        err.textContent = 'First and last name are required.';
+        (v('first') ? form.last : form.first).focus(); return;
+      }
+      if (v('based') && geo.getAttribute('data-picked') !== v('based')) {
+        err.textContent = 'Pick your homebase from the suggestions.';
+        geo.focus(); return;
+      }
+      var btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Saving\u2026';
+      var data = { first: v('first'), last: v('last'), company: v('company'), based: v('based') };
+      var jobs = [];
+      var m = window.$memberstackDom;
+      if (m && m.updateMember) {
+        jobs.push(m.updateMember({ customFields: {
+          'first-name': data.first, 'last-name': data.last,
+          'company-name': data.company, 'based': data.based
+        } }).catch(function () {}));
+      }
+      jobs.push(fetch('https://tmw-subscribe.jake-ab7.workers.dev', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, update: true, first_name: data.first,
+          last_name: data.last, company_name: data.company, based: data.based })
+      }).catch(function () {}));
+      var done = false;
+      var go = function () { if (done) return; done = true; track('welcome_profile_completed'); member(); };
+      Promise.all(jobs).then(go).catch(go);
+      setTimeout(go, 4000);   // never block the celebration on a slow network
+    });
+  }
+
   function member() {
     var s = screen(
       '<div class="g-inner">' +
         '<div class="wm">' + LOGO_IMG + '</div>' +
-        '<div class="eyeb gold">Welcome to the Blueprint</div>' +
+        '<div class="eyeb gold">Welcome to Markets of Tomorrow</div>' +
         '<div class="c-num">Member <i data-w="num">#····</i></div>' +
         '<p class="c-sub">Your number is permanent, and it&rsquo;s yours. You&rsquo;re one of the members <b>shaping the map of what&rsquo;s next</b>. Watch projects, follow markets, and ask Onyx anything.</p>' +
         '<div class="c-form">' +
