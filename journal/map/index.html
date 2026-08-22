@@ -11876,7 +11876,9 @@
          hard-coded left:35% — which left it stranded in open water once the
          panel became a floating box. It now rides inside the box's own
          top-right corner. */
-      #tmwDrawerClose{
+      /* Superseded by the in-row close button (#v2DesktopSheetX). */
+      #tmwDrawerClose{ display:none !important; }
+      #tmwDrawerClose-legacy{
         position:fixed; z-index:25;
         left:calc(var(--v2-box-left, 16px) + var(--v2-box-w, 35%) - 42px);
         top:calc(var(--v2-box-top, 76px) + 14px);
@@ -27294,13 +27296,26 @@
         }
         setTimeout(attach, 400);
         setTimeout(attach, 1500);
-        // Bring the close button into the same row so the three controls line
-        // up instead of the X floating over them.
-        const parkX = () => {
-          const xb = document.getElementById('tmwDrawerClose');
-          if (xb && !right.contains(xb)) { xb.classList.add('in-row'); right.appendChild(xb); }
+        // Own close button in the same row. The old #tmwDrawerClose is not
+        // reliably in the DOM on every load, so this does not depend on it —
+        // it just sets the same collapse class that button's handler sets.
+        const addX = () => {
+          if (document.getElementById('v2DesktopSheetX')) return;
+          const xb = document.createElement('button');
+          xb.className = 'v2-sheet-x';
+          xb.id = 'v2DesktopSheetX';
+          xb.type = 'button';
+          xb.setAttribute('aria-label', 'Close panel');
+          xb.title = 'Close panel';
+          xb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+          xb.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            document.body.classList.add('v2-sidebar-collapsed');
+          });
+          right.appendChild(xb);
         };
-        parkX(); setTimeout(parkX, 400); setTimeout(parkX, 1500);
+        addX(); setTimeout(addX, 400); setTimeout(addX, 1500);
+        if (window.MutationObserver) new MutationObserver(addX).observe(right, { childList: true });
       })();
       tabs.parentNode.insertBefore(titleRow, tabs.nextSibling);
 
