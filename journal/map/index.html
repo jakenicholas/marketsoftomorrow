@@ -9949,6 +9949,20 @@
       border-top-right-radius: 24px !important;
       box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
     }
+    /* Desktop: land the project ON the floating box, not beside it. */
+    @media (min-width: 801px) {
+      body.ui-v2 #projectModal {
+        top: var(--v2-box-top) !important;
+        left: var(--v2-box-left) !important;
+        width: var(--v2-box-w) !important;
+        height: calc(100% - var(--v2-box-top) - var(--v2-box-gap)) !important;
+        bottom: auto !important;
+        border-radius: var(--v2-box-r) !important;
+        border: 1px solid rgba(255,255,255,0.10) !important;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.6) !important;
+        overflow: hidden !important;
+      }
+    }
     /* While the modal is open, dismiss the drawer behind it so the two
        don't fight for the same space. */
     body.ui-v2.v2-modal-open .v2-drawer,
@@ -10464,20 +10478,36 @@
        fades + slides away when the sidebar opens and back when it closes. */
     body.ui-v2 #desktopSearchPill { opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity .3s ease, transform .35s cubic-bezier(.22,1,.36,1); }
     body.ui-v2.v2-sidebar-collapsed #desktopSearchPill { opacity: 1; transform: none; pointer-events: auto; }
+    /* FLOATING BOX (desktop). The map already runs full-bleed underneath, so
+       the panel lifts off the edge instead of being welded to it. Geometry is
+       shared with #projectModal below via --v2-box-* so a project opening
+       lands exactly on the box and reads as the box taking over. */
+    body.ui-v2 {
+      --v2-box-top: 76px;
+      --v2-box-left: 16px;
+      --v2-box-gap: 16px;
+      --v2-box-w: clamp(340px, 31%, 460px);
+      --v2-box-r: 20px;
+    }
     body.ui-v2 #desktopSidebar {
-      /* Match the project modal's width (35% of viewport) so opening a
-         project page sits flush over the sidebar -- no peek-through on
-         smaller laptops, no overhang on big monitors. */
-      width: 35% !important;
-      top: 60px !important;
-      height: calc(100% - 60px) !important;
-      background: rgba(15,15,15,0.96) !important;
-      backdrop-filter: blur(40px) !important;
-      -webkit-backdrop-filter: blur(40px) !important;
-      border-right: 1px solid rgba(255,255,255,0.08) !important;
-      box-shadow: none !important;
+      width: var(--v2-box-w) !important;
+      top: var(--v2-box-top) !important;
+      left: var(--v2-box-left) !important;
+      height: calc(100% - var(--v2-box-top) - var(--v2-box-gap)) !important;
+      background: rgba(13,13,15,0.82) !important;
+      backdrop-filter: blur(34px) saturate(1.25) !important;
+      -webkit-backdrop-filter: blur(34px) saturate(1.25) !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      border-right: 1px solid rgba(255,255,255,0.10) !important;
+      border-radius: var(--v2-box-r) !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35) !important;
       padding-left: 0 !important;
       transform: translateX(0) !important;
+      overscroll-behavior: contain;
+    }
+    /* Collapsing has to clear the left inset too, or a sliver stays on screen. */
+    body.ui-v2.v2-sidebar-collapsed #desktopSidebar {
+      transform: translateX(calc(-100% - var(--v2-box-left) - 8px)) !important;
     }
     /* Solid dark header so tiles can't show through behind the search /
        tabs / filter pills while the sidebar body scrolls underneath. */
@@ -18015,6 +18045,20 @@
 
     function showPopup(f, opts) {
       opts = opts || {};
+      // DESKTOP: the box IS the detail view. Clicking a pin or a 3D tower fills
+      // the floating panel with the project instead of hanging a card off the
+      // map; clicking another pin swaps it, and the modal's X drops you back to
+      // the scrolling list. Mobile keeps the popup — the drawer is its own
+      // pattern and the small viewport has nowhere to put a full project.
+      if (!opts.forcePopup && !isMobile && window.matchMedia('(min-width: 801px)').matches
+          && typeof window.openProjectModal === 'function') {
+        try { if (window._dismissMapLanding) window._dismissMapLanding(); } catch (_) {}
+        if (!opts.skipPaywall && window.paywallCheck && !window.paywallCheck()) return;
+        window._popupFeatureRef = f;
+        try { if (activePopup) { activePopup.remove(); activePopup = null; } } catch (_) {}
+        window.openProjectModal(f, opts.source || 'pin');
+        return;
+      }
       // Picking a project from the landing search clears the gate (no-op if the
       // landing isn't showing).
       try { if (window._dismissMapLanding) window._dismissMapLanding(); } catch(_){}
