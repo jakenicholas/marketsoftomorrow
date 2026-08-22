@@ -15144,11 +15144,18 @@
                   // low down where the shaft is brightest, long faint reaches
                   // up top where it turns into sky.
                   const e0 = Math.pow(sg / segs, 1.7), e1 = Math.pow((sg + 1) / segs, 1.7);
-                  push(tier, r0 * rx, sg === 0 ? b.height - 2 : b.height + rise * e0,
+                  // Start ON the roof, never inside it. These used to begin at
+                  // height-2 (and the bloom at height-5), which sank a
+                  // translucent cylinder THROUGH the roof surface — that is the
+                  // circular hole punched in every tower top. The +1 keeps the
+                  // beam's bottom face off the roof's top face so the two can't
+                  // z-fight either.
+                  push(tier, r0 * rx, sg === 0 ? b.height + 1 : b.height + rise * e0,
                     b.height + rise * e1, skyBeamCol(hot, Math.pow((sg + 1) / segs, 0.85)));
                 }
               });
-              push(3, r0 * 2.2, b.height - 5, b.height + 9, '#C7B0FF');
+              // Roof bloom: sits ON the roof, not sunk into it (see above).
+              push(3, r0 * 2.2, b.height + 1, b.height + 9, '#C7B0FF');
             });
             // ── DISTRICT: a pool of light on the parcel, and ONE shaft for
             // the whole site. Children keep their towers but lose their own
