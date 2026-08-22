@@ -26,78 +26,26 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 <style>
-  /* The universal chrome (header/footer/member badge) reads these :root tokens. On
-     THIS page only we point them at the beige page palette (beige bg, terracotta
-     text) so the chrome matches the travel page — the site-wide chrome is unchanged.
-     The page's own content uses the separate .tvl-page tokens below. */
+  /* The universal chrome keeps its OWN default tokens on this page now — the
+     beige repaint moved to the individual trip pages, which still own it. Only
+     the type tokens the page CSS reads are declared here. */
   :root{
-    --ink:#F2E9D7; --ink-2:#F2E9D7; --panel:#ECE1CD; --panel-2:#ECE1CD; --panel-3:#E7DCC6;
-    --hair:rgba(176,96,58,.18); --hair-2:rgba(176,96,58,.28);
-    --white:#8A3F22; --cream:#B0603A; --mute:#B0603A; --mute-2:#B0603A;
-    --green:#B0603A; --green-deep:#9E4A28; --green-soft:#C47A50; --gold:#B0603A; --gold-soft:#C47A50; --gold-deep:#9E4A28;
-    --purple:#B0603A; --purple-glow:#C47A50;
-    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --glass:blur(16px) saturate(1.4);
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono','Inter',monospace;
   }
   /* THIS page only: recolor the header Dashboard button's avatar + count circles
      from purple to the page terracotta, with the light-beige page bg as the text.
      tmw-dashbtn.js injects its CSS after us, so !important is needed to win. */
-  /* the ".tmw-auth *" recolor below outguns equal-specificity rules, so the
-     beige text inside the two circles needs the longer selectors to survive */
-  .tmw-chrome-head .tmw-auth .tmw-dashbtn .db-face{background:none !important;color:#B0603A !important;font-weight:800 !important}
-  .tmw-chrome-head .tmw-auth .tmw-dashbtn .db-n{background:#B0603A !important;color:#F2E9D7 !important;box-shadow:0 0 12px rgba(176,96,58,.55) !important}
-  .tmw-dashbtn .db-n:hover{box-shadow:0 0 18px rgba(176,96,58,.9) !important}
-  .tmw-dashbtn .db-n.db-zero{background:rgba(176,96,58,.16) !important;box-shadow:none !important}
-  .tmw-dashbtn .db-n.db-zero svg{stroke:#B0603A !important}
-  /* Override the chrome's few hardcoded dark surfaces + drop the Intelligence
-     search overlay and pinned dock — all scoped to this page's DOM only. */
-  .tmw-chrome-head nav.main{background:#F2E9D7 !important; border-bottom:1px solid rgba(176,96,58,.2) !important}
-  .tmw-chrome-head .nav-links{background:#F2E9D7 !important}
-  .tmw-chrome-head .nav-cta{background:rgba(176,96,58,.06) !important}
-  .tmw-chrome-head .nav-cta .mc-count{background:rgba(176,96,58,.12) !important; border-color:rgba(176,96,58,.32) !important}
-  /* nav dropdown panels → the page (darker) beige, not the tile beige */
-  .tmw-fm-panel,.tmw-fm-panel.v2{background:#F2E9D7 !important; border-color:rgba(176,96,58,.2) !important}
-  /* Focus Markets: tiles get the whiter travel-tile bg; the white name + stat
-     numbers become the travel gray (the banner text stays white over its image) */
-  .tmw-chrome-head .tmw-fm-panel .tmw-oc{background:#FBF6EC !important; border-color:rgba(176,96,58,.14) !important}
-  .tmw-chrome-head .tmw-fm-panel .tmw-oc-name,
-  .tmw-chrome-head .tmw-fm-panel .tmw-oc-st .v{color:#5E4C3C !important}
-  /* Database: item titles → red (they were white = invisible on beige) */
-  .tmw-chrome-head .tmw-fm-panel .tmw-mm-tx b{color:#B0603A !important}
-  /* The Lists: beige panel like the others; only the featured card's text sits over
-     its image, so keep that white — the side rows/eyebrow use the normal dark text. */
-  .tmw-chrome-head .tmw-fm-panel .tmw-lc-feat .tmw-lc-fm,
-  .tmw-chrome-head .tmw-fm-panel .tmw-lc-feat .tmw-lc-fm *{color:#fff !important}
-  .tmw-chrome-head .tmw-fm-panel .tmw-lc-feat .tmw-lc-fm .tmw-lc-eye{color:#B0603A !important}
-  /* TMW logo (header + footer) → red */
-  .tmw-chrome-head .wm-fill,.tmw-chrome-foot .wm-fill{fill:#B0603A !important}
-  /* view toggle: icons only (hide labels), red icons + red container border, nothing selected */
-  .tmw-chrome-head .tmw-st-lbl{display:none !important}
-  .tmw-chrome-head .tmw-st{border-color:#B0603A !important}
-  .tmw-chrome-head .tmw-st-seg, .tmw-chrome-head .tmw-st-seg.on{background:transparent !important; border-color:transparent !important; color:#B0603A !important}
-  /* auth: terracotta; notification pulse stays original purple; Join/profile = red outline (not filled) */
-  .tmw-chrome-head .tmw-auth, .tmw-chrome-head .tmw-auth *{color:#B0603A !important}
-  .tmw-chrome-head .tmw-pulse-bell, .tmw-chrome-head .tmw-pulse-bell *{color:#A78BFA !important}
-  .tmw-chrome-head .v2-profile-btn{background:transparent !important; border-color:#B0603A !important}
-  .tmw-chrome-head .v2-login-text{color:#B0603A !important}
-  .tmw-chrome-head .v2-profile-btn svg, .tmw-chrome-head .v2-profile-btn svg *{color:#B0603A !important; stroke:#B0603A !important; fill:none !important}
-  /* Pro premium star → filled black (overrides the outlined-icon rule above) */
-  .tmw-chrome-head .v2-premium-star svg, .tmw-chrome-head .v2-premium-star svg *{fill:#000 !important; stroke:none !important}
-  /* Hide the retired dock PILL only. .tmw-ov-root was swept in here too,
-     which killed the Intelligence search overlay on this page: it opened
-     (class 'open', opacity 1) but stayed display:none. The overlay renders
-     outside .tvl-page so it keeps its own dark palette. */
-  .tmw-dock{display:none !important}
-  /* mobile drawer: the dropdown triggers (div.tmw-fm) miss the divider the > a items get */
-  @media(max-width:980px){ .tmw-chrome-head .nav-links > .tmw-fm{border-bottom:1px solid var(--hair) !important} }
+    /* Universal chrome renders in its own default dark styling here; the
+     beige treatment now lives only on the individual trip pages. */
   /* Beige Mediterranean palette — travel page content only. */
   .tvl-page{
-    --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
-    --text:#4A392B; --mute:#8C7862; --mute2:#5E4C3C; --white:#3E2F22;
-    --purple-soft:#B0603A; --gold:#B58A35; --cream:#F3EBDC; --brown:#4A392B; --terra:#B0603A;
+    --ink:#0B0C0B; --ink2:#101210; --panel:#1a1e1c; --hair:rgba(255,255,255,.10); --hair2:rgba(255,255,255,.18);
+    --text:#ECEAE5; --mute:#8b958d; --mute2:#C2C9C3; --white:#ffffff;
+    --purple-soft:#C4B5FD; --gold:#E6C574; --cream:#131614; --brown:#ffffff; --terra:#A78BFA;
     background:var(--ink); color:var(--text);
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{background:#F2E9D7;color:#4A392B;font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  html,body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   body{overflow-x:hidden}
   .tvl-page a{color:inherit;text-decoration:none}
   .tvl-page img{display:block;max-width:100%}
@@ -151,6 +99,29 @@
   .td-cta .arw{transition:transform .18s}
   .td-cta:hover .arw{transform:translateX(3px)}
   .td-pad{height:26px}
+  /* ── tab panels ─────────────────────────────────────────────── */
+  .td-panel[hidden]{display:none}
+  .td-sec{padding:6px 0 22px}
+  .td-sec-eye{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--terra)}
+  .td-sec-h{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,36px);line-height:1.05;letter-spacing:-.02em;color:var(--white);margin-top:10px}
+  .td-sec-p{color:var(--mute2);font-size:14.5px;line-height:1.6;margin-top:9px;max-width:64ch}
+  /* partners cloud */
+  .pcloud{display:flex;flex-wrap:wrap;gap:9px;padding-bottom:56px}
+  .pcloud .pc{display:inline-flex;align-items:center;gap:9px;padding:11px 15px;border:1px solid var(--hair2);border-radius:999px;
+    background:var(--ink2);color:var(--text);font-size:13.5px;font-weight:500}
+  .pcloud .pc b{font-weight:600}
+  .pcloud .pc .n{font-family:var(--mono);font-size:10px;color:var(--mute);border-left:1px solid var(--hair2);padding-left:9px}
+  /* clients grid — logo tiles, same idea as the media page */
+  .cgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding-bottom:56px}
+  .cgrid .c{display:flex;align-items:center;justify-content:center;aspect-ratio:1;border:1px solid var(--hair);border-radius:14px;
+    background:var(--ink2);padding:16px;transition:border-color .18s,background .18s}
+  .cgrid .c:hover{border-color:rgba(167,139,250,.45);background:rgba(167,139,250,.06)}
+  .cgrid .c img{max-width:100%;max-height:52px;object-fit:contain;opacity:.82;filter:grayscale(1) brightness(1.9)}
+  .cgrid .c:hover img{opacity:1}
+  .cgrid .c .cn{font-size:12px;color:var(--mute2);text-align:center;line-height:1.3}
+  .cgrid-empty{color:var(--mute);font-size:14px;padding:20px 0 60px}
+  @media(max-width:980px){ .cgrid{grid-template-columns:repeat(4,1fr)} }
+  @media(max-width:640px){ .cgrid{grid-template-columns:repeat(3,1fr);gap:10px} .cgrid .c{padding:11px} .cgrid .c img{max-height:38px} }
   @media(max-width:760px){
     .tdesk{padding-top:22px;margin-bottom:18px}
     .td-top{grid-template-columns:1fr;gap:16px}
@@ -176,7 +147,7 @@
     cursor:pointer;transition:background .18s,border-color .18s}
   .trips-more:hover{background:rgba(176,96,58,.08);border-color:rgba(176,96,58,.6)}
   .trip{position:relative;display:grid;grid-template-columns:minmax(0,38%) 1fr;gap:24px;align-items:center;
-        padding:20px;border:1px solid var(--hair);border-radius:20px;background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);
+        padding:20px;border:1px solid var(--hair);border-radius:20px;background:linear-gradient(180deg,#161a18 0%,var(--cream) 100%);
         margin-top:15px;box-shadow:0 8px 30px rgba(74,57,43,.07)}
   a.trip{transition:transform .18s,box-shadow .18s,border-color .18s}
   a.trip:hover{transform:translateY(-3px);box-shadow:0 16px 44px rgba(74,57,43,.14);border-color:var(--terra)}
@@ -197,7 +168,7 @@
   .trip-place{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--purple-soft);margin-top:3px}
   .trip-partners{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
   .trip-pill{font-size:10.5px;font-weight:600;letter-spacing:.01em;color:var(--mute2);border:1px solid var(--hair2);border-radius:99px;padding:4px 10px;background:rgba(176,96,58,.05);white-space:nowrap}
-  .trip-pill.open-pill{color:#FBF6EC;background:var(--terra);border-color:var(--terra)}
+  .trip-pill.open-pill{color:#160f26;background:var(--terra);border-color:var(--terra)}
   /* the open pill is the partnership CTA now (a real <button> inside a card that
      may itself be an <a>), so reset UA chrome and give it affordance */
   button.trip-pill.open-pill{display:inline-flex;align-items:center;gap:6px;font-family:inherit;line-height:1.15;cursor:pointer;transition:background .18s,transform .18s}
@@ -209,7 +180,7 @@
   .trip-link .arw{transition:transform .18s}
   a.trip:hover .trip-link .arw{transform:translateX(4px)}
   /* status pill anchored inside the image's top-right corner, filled with the tile bg */
-  .trip-badge{position:absolute;top:14px;right:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:5px 12px;background:#FBF6EC;box-shadow:0 2px 8px rgba(40,25,12,.18)}
+  .trip-badge{position:absolute;top:14px;right:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:5px 12px;background:#11140f;box-shadow:0 2px 10px rgba(0,0,0,.5)}
   .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.55)}
   .trip-badge.planning{color:#1d7a3e;border:1px solid rgba(29,122,62,.5)}
   /* section dividers */
@@ -220,26 +191,26 @@
   .trips-div::before{max-width:34px}
   button.trip-link{background:none;border:0;padding:0;font-family:inherit;cursor:pointer;text-align:left}
   /* request-partnership button (modal send) */
-  .trip-req{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#FBF6EC;background:var(--terra);border:1px solid var(--terra);border-radius:99px;padding:11px 18px;cursor:pointer;transition:background .18s,transform .18s}
+  .trip-req{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#160f26;background:var(--terra);border:1px solid var(--terra);border-radius:99px;padding:11px 18px;cursor:pointer;transition:background .18s,transform .18s}
   .trip-req:hover{background:#9E4A28;transform:translateY(-1px)}
   /* partnership modal */
   .pr-scrim{position:fixed;inset:0;z-index:90;background:rgba(40,25,12,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
   .pr-scrim.on{display:flex}
-  .pr-box{width:min(460px,100%);background:#FBF6EC;border:1px solid rgba(176,96,58,.3);border-radius:18px;padding:26px 26px 24px;box-shadow:0 30px 80px rgba(40,25,12,.35)}
-  .pr-box h3{font-family:var(--serif);font-size:24px;font-weight:600;color:#3E2F22;letter-spacing:-.01em}
-  .pr-box .pr-sub{font-size:13px;color:#8C7862;margin-top:6px;line-height:1.5}
-  .pr-box label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8C7862;margin:14px 0 5px}
-  .pr-box input,.pr-box textarea{width:100%;background:#F2E9D7;border:1px solid rgba(176,96,58,.3);border-radius:10px;padding:11px 13px;font:400 14px var(--sans);color:#3E2F22;outline:none}
+  .pr-box{width:min(460px,100%);background:#131614;border:1px solid rgba(167,139,250,.3);border-radius:18px;padding:26px 26px 24px;box-shadow:0 30px 80px rgba(40,25,12,.35)}
+  .pr-box h3{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--white);letter-spacing:-.01em}
+  .pr-box .pr-sub{font-size:13px;color:var(--mute);margin-top:6px;line-height:1.5}
+  .pr-box label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:14px 0 5px}
+  .pr-box input,.pr-box textarea{width:100%;background:var(--ink);border:1px solid rgba(176,96,58,.3);border-radius:10px;padding:11px 13px;font:400 14px var(--sans);color:var(--white);outline:none}
   .pr-box input:focus,.pr-box textarea:focus{border-color:var(--terra)}
   .pr-box textarea{min-height:84px;resize:vertical}
   .pr-actions{display:flex;gap:10px;margin-top:18px}
   .pr-actions .trip-req{margin-top:0;flex:1;justify-content:center}
-  .pr-cancel{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#8C7862;background:transparent;border:1px solid rgba(74,57,43,.25);border-radius:99px;padding:11px 18px;cursor:pointer}
+  .pr-cancel{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:transparent;border:1px solid rgba(74,57,43,.25);border-radius:99px;padding:11px 18px;cursor:pointer}
   /* the NEXT trip: pinned first with a warm glow */
   .trip.trip-next{border-color:var(--terra);box-shadow:0 0 0 1px rgba(176,96,58,.30), 0 18px 50px -14px rgba(176,96,58,.50), 0 0 34px -6px rgba(176,96,58,.25)}
   .trip-badge.ended{color:var(--mute2);border:1px solid var(--hair2)}
   /* Live = we're on the trip right now: filled terracotta + a pulsing dot. */
-  .trip-badge.live{color:#FBF6EC;background:var(--terra);border:1px solid var(--terra);display:inline-flex;align-items:center;gap:6px}
+  .trip-badge.live{color:#160f26;background:var(--terra);border:1px solid var(--terra);display:inline-flex;align-items:center;gap:6px}
   .trip-badge.live .live-dot{width:6px;height:6px;border-radius:50%;background:#FBF6EC;animation:trip-live 1.8s ease-in-out infinite}
   @keyframes trip-live{0%,100%{opacity:1}50%{opacity:.3}}
 
@@ -267,7 +238,7 @@
   /* ── Markets visited grid ── */
   #markets{padding:48px 0 20px}
   .mk-filters{display:flex;justify-content:center;align-items:center;gap:16px;margin:24px 0 22px;flex-wrap:wrap}
-  .mk-filters select{background-color:#FBF6EC;border:1px solid var(--hair2);border-radius:10px;padding:9px 32px 9px 13px;font-family:var(--sans);font-size:13px;color:var(--brown);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
+  .mk-filters select{background-color:#131614;color:var(--text);border:1px solid var(--hair2);border-radius:10px;padding:9px 32px 9px 13px;font-family:var(--sans);font-size:13px;color:var(--brown);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23B0603A' stroke-width='2'%3E%3Cpath d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
   .mk-count{font-size:13px;color:var(--mute2);font-weight:500}
   .mk-count b{color:var(--brown)}
@@ -304,16 +275,41 @@
       <button type="button" class="td-tab on" data-view="itinerary">Itinerary</button>
       <button type="button" class="td-tab" data-view="past">Past trips <span class="cnt" data-cnt="past"></span></button>
       <button type="button" class="td-tab" data-view="markets">Markets <span class="cnt" data-cnt="markets"></span></button>
+      <button type="button" class="td-tab" data-view="partners">Partners <span class="cnt" data-cnt="partners"></span></button>
+      <button type="button" class="td-tab" data-view="clients">Clients <span class="cnt" data-cnt="clients"></span></button>
       <button type="button" class="td-cta" id="tdSubmit">Submit a trip <span class="arw">&#8594;</span></button>
     </div>
     <div class="td-pad"></div>
   </div>
 </header>
-<div class="wrap">
+<div class="wrap td-panel" data-panel="itinerary">
   <main class="trips" id="trips"></main>
 </div>
 
-<section id="markets"><div class="wrap">
+<div class="wrap td-panel" data-panel="past" hidden>
+  <main class="trips" id="tripsPast"></main>
+</div>
+
+<div class="wrap td-panel" data-panel="partners" hidden>
+  <div class="td-sec">
+    <div class="td-sec-eye">Partners of Tomorrow</div>
+    <h2 class="td-sec-h">Who we travel with</h2>
+    <p class="td-sec-p">Every hotel, resort and agency that has hosted or partnered on a journey, most frequent first.</p>
+  </div>
+  <div class="pcloud" id="pcloud"></div>
+</div>
+
+<div class="wrap td-panel" data-panel="clients" hidden>
+  <div class="td-sec">
+    <div class="td-sec-eye">Clients</div>
+    <h2 class="td-sec-h">The brands we work with</h2>
+    <p class="td-sec-p">Real estate, hospitality and lifestyle brands across the Markets of Tomorrow network.</p>
+  </div>
+  <div class="cgrid" id="cgrid"></div>
+  <div class="cgrid-empty" id="cempty">Loading clients…</div>
+</div>
+
+<section id="markets" class="td-panel" data-panel="markets" hidden><div class="wrap">
   <div class="sec-head">
     <div class="sec-k">Markets Visited</div>
     <h2>Markets we've visited</h2>
@@ -509,8 +505,11 @@ function tripHtml(t, i){
   var div = function(label){ return '<div class="trips-div"><span>'+label+'</span></div>'; };
   el.innerHTML =
       (future.length ? div('Next up') + tripHtml(future[0], 0) : '')
-    + (future.length > 1 ? div('Pipeline') + future.slice(1).map(tripHtml).join('') : '')
-    + (past.length ? div('Past trips') + past.map(tripHtml).join('') : '')
+    + (future.length > 1 ? div('Pipeline') + future.slice(1).map(tripHtml).join('') : '');
+  // Past trips live in their own tab panel now, not appended under the itinerary.
+  var elPast = document.getElementById('tripsPast');
+  if (elPast) elPast.innerHTML =
+      (past.length ? past.map(tripHtml).join('') : '<p class="td-sec-p">No past trips logged yet.</p>')
     + (hasOlder ? '<button type="button" class="trips-more" id="tripsMore">Load older trips</button>' : '');
   // ── Travel Desk masthead: reports the page's own state from the same
   //    TRIPS data the list renders, so it can never drift out of sync.
@@ -548,20 +547,57 @@ function tripHtml(t, i){
     var pc = document.querySelector('[data-cnt="past"]'); if (pc) pc.textContent = past.length;
     var mc = document.querySelector('[data-cnt="markets"]'); if (mc) mc.textContent = marketCount;
 
-    // Tabs scroll to the section they name; the masthead stays put.
+    // Tabs are real view switches: one panel at a time, deep-linkable via #hash.
     var tabs = document.getElementById('tdTabs');
+    var panels = document.querySelectorAll('.td-panel');
+    function show(view){
+      panels.forEach(function(pn){ pn.hidden = pn.getAttribute('data-panel') !== view; });
+      tabs.querySelectorAll('.td-tab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-view') === view); });
+      if (view === 'clients') loadClients();
+      try { history.replaceState(null, '', '#' + view); } catch(_){}
+    }
     if (tabs) tabs.addEventListener('click', function(e){
       var b = e.target.closest && e.target.closest('.td-tab');
       if (!b) return;
-      tabs.querySelectorAll('.td-tab').forEach(function(x){ x.classList.toggle('on', x === b); });
-      var v = b.getAttribute('data-view'), target = null;
-      if (v === 'markets') target = document.getElementById('markets');
-      else if (v === 'past') {
-        var divs = el.querySelectorAll('.trips-div');
-        for (var i = 0; i < divs.length; i++) if (/past/i.test(divs[i].textContent)) { target = divs[i]; break; }
-      } else target = el;
-      if (target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+      show(b.getAttribute('data-view'));
+      var top = document.querySelector('.tdesk');
+      if (top) window.scrollTo({ top: top.offsetTop, behavior: 'smooth' });
     });
+    // Partners cloud, built from the trips the page already carries.
+    (function(){
+      var counts = {};
+      TRIPS.forEach(function(t){ (t.partners||[]).forEach(function(p){ counts[p] = (counts[p]||0) + 1; }); });
+      var names = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a] || a.localeCompare(b); });
+      var pc = document.getElementById('pcloud');
+      if (pc) pc.innerHTML = names.map(function(n){
+        return '<span class="pc"><b>'+esc(n)+'</b>'+(counts[n]>1 ? '<span class="n">'+counts[n]+' trips</span>' : '')+'</span>';
+      }).join('');
+      var el2 = document.querySelector('[data-cnt="partners"]'); if (el2) el2.textContent = names.length;
+    })();
+    // Clients: same worker list the media page reads. Fetched once, on demand.
+    var clientsLoaded = false;
+    function loadClients(){
+      if (clientsLoaded) return; clientsLoaded = true;
+      var grid = document.getElementById('cgrid'), empty = document.getElementById('cempty');
+      fetch('https://tmw.jake-ab7.workers.dev/list/clients', { cache:'no-store' })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(w){
+          var items = (w && w.data && Array.isArray(w.data.items)) ? w.data.items.filter(function(i){ return i && i.active !== false; }) : [];
+          if (!items.length) { empty.textContent = 'Client list unavailable right now.'; return; }
+          grid.innerHTML = items.map(function(i){
+            return '<div class="c" title="'+esc(i.name||'')+'">'
+              + (i.logo ? '<img src="'+esc(i.logo)+'" alt="'+esc(i.name||'')+'" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'cn\',textContent:this.alt}))">'
+                        : '<span class="cn">'+esc(i.name||'')+'</span>')
+              + '</div>';
+          }).join('');
+          empty.hidden = true;
+          var cc = document.querySelector('[data-cnt="clients"]'); if (cc) cc.textContent = items.length;
+        })
+        .catch(function(){ empty.textContent = 'Client list unavailable right now.'; });
+    }
+    // Honour a #hash on load so tabs are linkable.
+    var h = (location.hash || '').replace('#','');
+    if (h && document.querySelector('.td-panel[data-panel="'+h+'"]')) show(h);
 
     var sub = document.getElementById('tdSubmit');
     if (sub) sub.addEventListener('click', function(){
@@ -570,7 +606,7 @@ function tripHtml(t, i){
   }, 0);
 
   var btn = document.getElementById('tripsMore');
-  if (btn) btn.addEventListener('click', function(){ el.classList.add('show-older'); btn.remove(); });
+  if (btn) btn.addEventListener('click', function(){ (elPast || el).classList.add('show-older'); btn.remove(); });
 })();
 
 // ── Request-partnership popup: a short form that composes an email to the
