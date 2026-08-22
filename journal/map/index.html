@@ -9081,8 +9081,17 @@
       position: fixed !important;
       left: 0 !important; right: 0 !important;
       top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 72px) !important;
+      /* Clears the action bar. Measured on a 812px viewport: .tmwx-wrap runs
+         740→798 (58px tall, 14px off the bottom), so 72px lands the sheet's
+         edge EXACTLY on the pill's top and a tile gets sliced flush against
+         it — which is what "cut off behind the action bar" was. 92px leaves a
+         20px breathing gap above the dock. */
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 92px) !important;
       height: auto !important;
+      /* translateY(100%) alone only pushes the sheet down by its own height,
+         which stops its top edge at the dock line — 72px of closed sheet was
+         still painting around and behind the pill. Overshoot past the dock. */
+      transform: translateY(calc(100% + 120px)) !important;
       border-radius: 0 !important;
       border-top-left-radius: 0 !important;
       border-top-right-radius: 0 !important;
@@ -9091,6 +9100,14 @@
       box-shadow: none !important;
       background: rgba(12,12,15,0.99) !important;
     }
+    /* Restated after the block above, which sets the closed transform with
+       !important — the earlier `body.v2-sheet-open` rule can no longer win. */
+    body.ui-v2.v2-sheet-open .v2-sheet { transform: translateY(0) !important; }
+
+    /* The list runs to the sheet's bottom edge; give it room to scroll the
+       last tile fully clear instead of ending hard against the dock gap. */
+    body.ui-v2 .v2-sheet-body { padding-bottom: 30px !important; }
+
     /* Full screen means no grab affordance and no second search field. */
     body.ui-v2 .v2-sheet-handle,
     body.ui-v2 .v2-drag-zone,
@@ -9101,7 +9118,7 @@
     body.ui-v2 #projectModal {
       left: 0 !important; right: 0 !important;
       top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 72px) !important;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 92px) !important;
       position: fixed !important;
       width: auto !important; height: auto !important;
       border-radius: 0 !important;
@@ -9136,6 +9153,16 @@
     body:has(#projectModal.open) .tmwx-scrim {
       opacity: 0 !important;
       pointer-events: none !important;
+    }
+    /* Even with the panel closed, the scrim is inset:0 — so opening the dock
+       tray dimmed the universal header, and the pill's own backdrop-filter
+       sampled it and darkened the action bar too. Both read as the chrome
+       changing opacity. Confine it to the map band: below the header, above
+       the pill. Nothing the scrim is there to dim lives outside that band. */
+    .tmwx-scrim {
+      top: calc(var(--header-height) + var(--safe-area-top, 0px)) !important;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important;
+      left: 0 !important; right: 0 !important;
     }
 
     /* Close button, sitting right of the bookmark chip. */
@@ -27121,6 +27148,8 @@
           });
         });
       }
+      /* The action bar's search button needs this from outside the closure. */
+      window._v2SetSearchMode = setSearchMode;
       function setSearchMode(on) {
         document.body.classList.toggle('v2-searching', !!on);
         const tab = document.getElementById('v2DesktopSearchTab');

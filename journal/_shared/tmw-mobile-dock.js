@@ -38,6 +38,11 @@
       if (cap) { try { cap.click(); } catch (e) {} }
       else if (typeof window.mobileDrawerExpand === 'function') { try { window.mobileDrawerExpand(); } catch (e) {} }
       else { document.body.classList.add('v2-sheet-open'); }
+      /* The panel is full screen now and its top search field is gone — the
+         input only exists in the `v2-searching` page state, docked at the
+         bottom by the keyboard. Without this the search button opened the
+         drawer and focused a display:none input, i.e. nothing happened. */
+      try { if (typeof window._v2SetSearchMode === 'function') window._v2SetSearchMode(true); } catch (e) {}
       var minp = document.getElementById('v2SearchInput') || document.getElementById('mobileSearchBar');
       if (minp) {
         /* focus synchronously inside the tap gesture so iOS raises the
@@ -53,6 +58,23 @@
     if (w) w.style.display = 'none';
     var inp = document.querySelector('.tmw-dock-search input');
     if (inp) setTimeout(function () { inp.focus(); }, 60);
+  }
+  /* The other half of the map's purple control: open the project panel.
+     Mobile opens the full-screen page; desktop un-collapses the floating box. */
+  function mapList() {
+    closeNow();
+    if (window.matchMedia('(max-width: 800px)').matches) {
+      try { if (typeof window._v2SetSearchMode === 'function') window._v2SetSearchMode(false); } catch (e) {}
+      if (document.body.classList.contains('v2-sheet-open')) { document.body.classList.remove('v2-sheet-open'); return; }
+      var cap = document.getElementById('v2Capsule');
+      if (cap) { try { cap.click(); return; } catch (e) {} }
+      if (typeof window.mobileDrawerExpand === 'function') { try { window.mobileDrawerExpand(); return; } catch (e) {} }
+      document.body.classList.add('v2-sheet-open');
+      return;
+    }
+    document.body.classList.remove('v2-sidebar-collapsed');
+    var sb = document.getElementById('desktopSidebar');
+    if (sb && !sb.classList.contains('open')) sb.classList.add('open');
   }
   function exitMapSearch() {
     document.documentElement.classList.remove('tmwx-mapsearch');
@@ -92,6 +114,8 @@
     watch: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
     onyx: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+    /* matches #tmwDrawerHandle on the map's desktop surface */
+    list: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
     share: '<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><polyline points="8 6 12 2 16 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
@@ -165,7 +189,12 @@
   }
   var SMART = null;
   if (/^\/post\//.test(path))          SMART = { ic: 'heart',     t: 'Favorite this story',  act: contractWatch('#fav-btn') };
-  else if (IS_MAP)                      SMART = { ic: 'mapsearch', t: 'Search the map',       act: mapSearch };
+  /* The map is the one page whose own tools have to be one tap away, and the
+     pill has no spare slot. So its purple action is a single capsule split in
+     two: search on the left, open-the-panel on the right. Costs no slot, and
+     the map icon stays lit as the page indicator. */
+  else if (IS_MAP)                      SMART = [{ ic: 'search', t: 'Search the map', act: mapSearch },
+                                                 { ic: 'list',   t: 'Project panel',  act: mapList }];
   else if (/^\/atlas/.test(path))       SMART = { ic: 'atlassearch', t: 'Search the Atlas',   act: atlasSearch };
   else if (/^\/projects?\//.test(path)) SMART = { ic: 'watch',     t: 'Watch this project',   act: contractWatch('#watchBtn') };
 
@@ -287,6 +316,18 @@
     'box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 14px rgba(167,139,250,.32);',
     'animation:tmwxSmartGlow 2.6s ease-in-out infinite}',
     '.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
+    /* Two actions sharing ONE purple slot: the group carries the glow and the
+       halves go flat, so it still reads as a single smart control. */
+    '.tmwx-smartgrp{display:flex;align-items:center;margin-left:3px;border-radius:999px;',
+    'background:rgba(167,139,250,.13);',
+    'box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 14px rgba(167,139,250,.32);',
+    'animation:tmwxSmartGlow 2.6s ease-in-out infinite}',
+    '.tmwx-smartgrp .tmwx-pbtn.smart{width:40px;margin:0;background:transparent;box-shadow:none;animation:none}',
+    '.tmwx-smartgrp .tmwx-pbtn.smart:first-child{border-radius:999px 0 0 999px}',
+    '.tmwx-smartgrp .tmwx-pbtn.smart:last-child{border-radius:0 999px 999px 0}',
+    '.tmwx-smartgrp .tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
+    '.tmwx-smartgrp .tmwx-pbtn.smart:active{background:rgba(167,139,250,.3)}',
+    '.tmwx-smartgrp .tmwx-div{width:1px;height:22px;flex:0 0 auto;background:rgba(167,139,250,.34)}',
     '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
     '.tmwx-search .si svg{width:100%;height:100%;display:block;overflow:visible}',
     /* The intelligence mark reads a touch larger than the other glyphs. */
@@ -377,13 +418,25 @@
     })();
   })();
   if (SMART) {
-    var sb = document.createElement('button');
-    sb.className = 'tmwx-pbtn smart';
-    sb.setAttribute('aria-label', SMART.t);
-    sb.setAttribute('data-tip', SMART.t);
-    sb.innerHTML = svg(I[SMART.ic]);
-    sb.addEventListener('click', SMART.act);
-    pill.appendChild(sb);
+    var smarts = [].concat(SMART);
+    var host = pill;
+    if (smarts.length > 1) {
+      host = document.createElement('div');
+      host.className = 'tmwx-smartgrp';
+      pill.appendChild(host);
+    }
+    smarts.forEach(function (S, i) {
+      if (i && host !== pill) {
+        var dv = document.createElement('span'); dv.className = 'tmwx-div'; host.appendChild(dv);
+      }
+      var sb = document.createElement('button');
+      sb.className = 'tmwx-pbtn smart';
+      sb.setAttribute('aria-label', S.t);
+      sb.setAttribute('data-tip', S.t);
+      sb.innerHTML = svg(I[S.ic]);
+      sb.addEventListener('click', S.act);
+      host.appendChild(sb);
+    });
   }
 
   var fab = document.createElement('button');
