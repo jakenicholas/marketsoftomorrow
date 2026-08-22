@@ -4168,7 +4168,22 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
         # single market and still surface a year's worth of milestones (it sorts
         # by EVENT date and windows itself). "This week on the map" still takes
         # its own first-N in log order. Pulse is log-ordered (newest first).
-        recent_activity = events[:200] if isinstance(events, list) else []
+        if isinstance(events, list):
+            _seen, _clean = set(), []
+            for _e in events:
+                if _e.get('type') == 'status_change' and _e.get('event_date'):
+                    _k = (
+                        (_e.get('project_title') or _e.get('title') or '').strip().lower(),
+                        (_e.get('tag') or '').strip().lower(),
+                        _e.get('event_date') or '',
+                    )
+                    if _k in _seen:
+                        continue
+                    _seen.add(_k)
+                _clean.append(_e)
+            recent_activity = _clean[:200]
+        else:
+            recent_activity = []
     except (FileNotFoundError, json.JSONDecodeError, Exception):
         pass
 

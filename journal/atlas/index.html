@@ -2106,6 +2106,15 @@
         .map(e => { const d = parseEv(e.event_date); return { e, t: d ? d.getTime() : NaN }; })
         .filter(x => !isNaN(x.t) && (nowT - x.t) <= RECENT_MS && (nowT - x.t) >= -FUTURE_SLACK)
         .sort((a, b) => b.t - a.t)
+        .filter((x, i, arr) => {
+          const key = [(x.e.project_title || x.e.title || '').toLowerCase().trim(),
+                       (x.e.tag || '').toLowerCase().trim(),
+                       (x.e.event_date || '')].join('|');
+          return arr.findIndex(y =>
+            [(y.e.project_title || y.e.title || '').toLowerCase().trim(),
+             (y.e.tag || '').toLowerCase().trim(),
+             (y.e.event_date || '')].join('|') === key) === i;
+        })
         .slice(0, 10)
         .map(x => x.e);
       if (!evs.length) return '';
