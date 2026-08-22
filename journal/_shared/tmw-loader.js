@@ -140,8 +140,25 @@
   // the board via the chrome stub + the arrival block below, and lifts it
   // only when the new page is fully loaded AND the 2s budget is spent. The
   // 2s is load time now, not a toll on top of it.
+  // A destination identical to where we already are is not a journey. Used by
+  // both the click handler and go(), so a nav button that points at the current
+  // page never raises the departure board.
+  function samePage(u){
+    try {
+      var t = (u instanceof URL) ? u : new URL(u, location.href);
+      return t.origin === location.origin
+          && t.pathname === location.pathname
+          && t.search === location.search;
+    } catch (_) { return false; }
+  }
+
   function go(url){
     if (!url) return;
+    // Programmatic nav to the current page: no veil, and no pointless reload.
+    if (samePage(url)) {
+      try { var t = new URL(url, location.href); if (t.hash) location.hash = t.hash; } catch (_) {}
+      return;
+    }
     if (reduced()) { location.href = url; return; }
     try { sessionStorage.setItem('tmwl_t0', String(Date.now())); } catch (_) {}
     show();
@@ -199,7 +216,10 @@
     var u; try { u = new URL(a.href, location.href); } catch (_) { return; }
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return;
     if (u.origin !== location.origin) return;
-    if (u.pathname === location.pathname && u.search === location.search && u.hash) return;  // same-page anchor
+    // Same page: a hash link scrolls natively, a bare same-URL link does
+    // nothing at all. Either way the departure board stays down — the user
+    // isn't going anywhere.
+    if (samePage(u)) { if (!u.hash) e.preventDefault(); return; }
     // Reduced-motion users navigate natively (no held animation).
     if (reduced()) return;
     e.preventDefault();
