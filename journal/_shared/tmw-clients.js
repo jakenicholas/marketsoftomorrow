@@ -61,9 +61,11 @@
 
 
 
-/* client tiles: 4 columns on mobile with tighter padding so logos fill more */
+@media(max-width:900px){
+  /* client tiles: 4 columns on mobile with tighter padding so logos fill more */
   .pgrid.view-logo{grid-template-columns:repeat(4,1fr); gap:8px}
   .pgrid.view-logo .p{padding:6px; border-radius:10px}
+}
 `;
 
   function injectCss() {

@@ -70,7 +70,7 @@
     /* mapped onto the homepage palette above so the page bg matches the site */
     --ink2:#0d0f0e; --panel:#141714; --hair2:rgba(255,255,255,.14);
     --text:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
-    --purple-soft:#B9A6FF; --brown:#ffffff; --terra:#A78BFA; --cream:#101210;
+    --purple-soft:#B9A6FF; --brown:#ffffff; --terra:#A78BFA; --card-2:#101210;
     background:var(--ink); color:var(--text);
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -177,7 +177,7 @@
     cursor:pointer;transition:background .18s,border-color .18s}
   .trips-more:hover{background:rgba(176,96,58,.08);border-color:rgba(176,96,58,.6)}
   .trip{position:relative;display:grid;grid-template-columns:minmax(0,38%) 1fr;gap:24px;align-items:center;
-        padding:20px;border:1px solid var(--hair);border-radius:20px;background:linear-gradient(180deg,#161a18 0%,var(--cream) 100%);
+        padding:20px;border:1px solid var(--hair);border-radius:20px;background:linear-gradient(180deg,#161a18 0%,var(--card-2) 100%);
         margin-top:15px;box-shadow:0 8px 30px rgba(74,57,43,.07)}
   a.trip{transition:transform .18s,box-shadow .18s,border-color .18s}
   a.trip:hover{transform:translateY(-3px);box-shadow:0 16px 44px rgba(74,57,43,.14);border-color:var(--terra)}
@@ -257,11 +257,11 @@
   /* ── World map ── */
   .mapsec{padding:34px 0 6px}
   .tm-frame{border:1px solid var(--hair2);border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(74,57,43,.10)}
-  .tm-map{width:100%;height:min(60vh,520px);background:var(--ink)}
+  .tm-map{width:100%;height:min(60vh,520px);background:#0a131c}
   .tm-marker{width:7px;height:7px}
-  .tm-dot{display:block;width:7px;height:7px;border-radius:50%;background:#F5EEDF;border:1px solid #B0603A;box-shadow:0 1px 4px rgba(74,57,43,.4);cursor:pointer;transition:transform .15s}
+  .tm-dot{display:block;width:7px;height:7px;border-radius:50%;background:#E6C574;box-shadow:0 0 4px 1px rgba(230,197,116,.45);cursor:pointer;transition:transform .15s}
   .tm-dot:hover{transform:scale(1.3);z-index:2}
-  .tm-pop{font-family:var(--sans);font-size:12.5px;color:var(--brown)} .tm-pop b{color:var(--terra)}
+  .tm-pop{font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:#F3ECD9} .tm-pop b{color:#E6C574}
   .mapboxgl-popup-content{background:#F5EEDF;border-radius:8px;padding:7px 11px;box-shadow:0 6px 20px rgba(74,57,43,.25)}
   .mapboxgl-popup-tip{border-top-color:#F5EEDF!important;border-bottom-color:#F5EEDF!important}
   .mapboxgl-ctrl-group{background:#F5EEDF;border:1px solid var(--hair2)!important}
@@ -361,10 +361,10 @@
 </div>
 
 <section id="markets" class="td-panel" data-panel="markets" hidden><div class="wrap">
-  <div class="sec-head">
-    <div class="sec-k">Markets Visited</div>
-    <h2>Markets we've visited</h2>
-    <p class="sec-sub">Our team shares from the field, capturing the projects, openings, and destinations shaping the future.</p>
+  <div class="td-sec">
+    <div class="td-sec-eye">Markets Visited</div>
+    <h2 class="td-sec-h">Markets we've visited</h2>
+    <p class="td-sec-p">Our team shares from the field, capturing the projects, openings, and destinations shaping the future.</p>
   </div>
   <div class="tm-frame"><div id="tmap" class="tm-map"></div></div>
   <div class="mk-filters">
@@ -413,7 +413,7 @@ var TRIPS = [
     img:'https://www.charlestoncvb.com/assets/images/home/collage-1.jpg',
     partners:['Kate Hudson PR','Hotel Bennett'] },
   { title:'La Crosse', place:'Wisconsin', date:'August 2026', start:'2026-08-11', end:'2026-08-14',
-    img:'https://explorelacrosse.com/wp-content/uploads/2025/09/Bluffs-Blog-1-1024x576.png',
+    img:'https://media.oftmw.com/2026/08/8dc98eec0a49-Wisconsin-Road.webp',
     partners:[] },
   { title:'Bimini', place:'Bahamas', date:'May 2026',
     img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
@@ -664,9 +664,9 @@ function tripHtml(t, i){
     }
     var lbc = document.getElementById('lbCharts');
     if (lbc) lbc.innerHTML =
-        panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
+        panel(charts.markets, 'Markets visited',    'by trips')
+      + panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
       + panel(charts.firms,   'Firms we work with', 'by trips together')
-      + panel(charts.markets, 'Markets visited',    'by trips')
       + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);
     var pcount = document.querySelector('[data-cnt="partners"]');
     if (pcount) pcount.textContent = charts.stays.length + charts.firms.length;
@@ -834,18 +834,11 @@ function initMarketMap(tries){
   // flat map, slid west so Japan + New Zealand are in view; mobile gets fully zoomed out
   var isMobile = window.matchMedia('(max-width: 700px)').matches;
   var VIEW = { center:[-105, 30], zoom: isMobile ? 0 : 1.1 };
-  var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
+  var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
     projection:'mercator', center:VIEW.center, zoom:VIEW.zoom, renderWorldCopies:true,
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
-  // Flat map: land white, water gray, the base (map bg) → page beige.
-  function paintBg(){
-    try{
-      if(map.getLayer('background')) map.setPaintProperty('background','background-color','#F2E9D7');
-      ['water','water-shadow','ocean'].forEach(function(l){ if(map.getLayer(l)) map.setPaintProperty(l,'fill-color','#D8D5CE'); });
-    }catch(e){}
-  }
-  if(map.isStyleLoaded()) paintBg(); else { map.on('style.load', paintBg); map.on('load', paintBg); }
+  // Custom dark style carries its own palette; no basemap repaint needed.
   MARKETS.forEach(function(m){
     if(m.lat==null||m.lng==null) return;
     var mk=document.createElement('div'); mk.className='tm-marker'; mk.innerHTML='<span class="tm-dot"></span>';
