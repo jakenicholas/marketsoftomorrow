@@ -305,12 +305,6 @@
 .mtile figcaption{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:16px 12px 11px; background:linear-gradient(transparent, rgba(7,8,7,.92)); display:flex; flex-direction:column; gap:1px}
 .mtile .mc{font-size:13px; font-weight:600; color:#fff; line-height:1.15}
 .mtile .mr{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--green-soft)}
-  .mv{position:absolute; top:8px; right:8px; z-index:3; display:inline-flex; align-items:center; gap:2px;
-      font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.04em; color:#12140f;
-      background:var(--gold,#E6C574); border-radius:999px; padding:3px 7px; box-shadow:0 2px 8px rgba(0,0,0,.45)}
-  .mv i{font-style:normal; opacity:.7; font-size:8px}
-  .mv-home{padding:4px; width:20px; height:20px; justify-content:center}
-  .mv-home svg{width:11px; height:11px; display:block}
 
   @media(max-width:640px){
     .trip{grid-template-columns:1fr;gap:11px;padding:13px 22px 16px;margin-top:12px}
@@ -644,6 +638,16 @@ function tripHtml(t, i){
     // these two objects to update the charts.
     var STAY_COUNTS = { 'Four Seasons': 4, 'Cabot': 4, 'Ritz-Carlton': 3, 'Nobu': 1 };
     var YEAR_COUNTS = { '2026': 30, '2025': 44, '2024': 22, '2023': 12 };
+    var MARKET_COUNTS = [
+      { name:'South Florida', n:110, label:'Home' },
+      { name:'Minnesota',     n:100, label:'100+' },
+      { name:'Milwaukee',     n:100, label:'100+' },
+      { name:'Florida Keys',  n:20 },
+      { name:'California',    n:7 },
+      { name:'Hawaii',        n:6 },
+      { name:'Nashville',     n:6 },
+      { name:'New York City', n:3 }
+    ];
     var charts = (function(){
       var stays = {}, firms = {}, markets = {}, years = {};
       TRIPS.forEach(function(t){
@@ -663,8 +667,10 @@ function tripHtml(t, i){
         .map(function(k){ return { name:k, count:o[k] }; }); }
       function authoredByKey(o){ return Object.keys(o).sort().reverse()
         .map(function(k){ return { name:k, count:o[k] }; }); }
+      var mk = MARKET_COUNTS.slice().sort(function(a,b){ return b.n - a.n; })
+        .map(function(d){ return { name:d.name, count:d.n, label:d.label }; });
       return { stays: authored(STAY_COUNTS), firms: rank(firms),
-               markets: rank(markets), years: authoredByKey(YEAR_COUNTS) };
+               markets: mk, years: authoredByKey(YEAR_COUNTS) };
     })();
     function panel(rows, title, hint, cap){
       rows = rows.slice(0, cap || 7);
@@ -675,12 +681,12 @@ function tripHtml(t, i){
         + rows.map(function(d){
             return '<div class="atlas-type-row"><div class="atlas-type-label">'+esc(d.name)+'</div>'
               + '<div class="atlas-type-bar-wrap"><div class="atlas-type-bar" style="width:'+((d.count||0)/max*100)+'%"></div></div>'
-              + '<div class="atlas-type-count">'+(d.count||0)+'</div></div>'; }).join('')
+              + '<div class="atlas-type-count">'+esc(d.label != null ? d.label : String(d.count||0))+'</div></div>'; }).join('')
         + '</div>';
     }
     var lbc = document.getElementById('lbCharts');
     if (lbc) lbc.innerHTML =
-        panel(charts.markets, 'Markets visited',    'by trips')
+        panel(charts.markets, 'Markets visited',    'by visits', 8)
       + panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
       + panel(charts.firms,   'Firms we work with', 'by trips together')
       + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);
@@ -749,13 +755,6 @@ function tripHtml(t, i){
 
 // ── Markets visited: single source for the grid + the world map. To make this
 // Studio-managed later, swap MARKETS for a fetch('/list/markets') and render the same. ──
-// How many times we've been. Matched against a market's city OR region, so a
-// regional entry (California) badges every tile in it. 'home' renders the house
-// icon. Hand-maintained - these are all-time visits, not logged trips.
-var VISITS = {
-  'California': 7, 'Hawaii': 6, 'New York City': 3, 'Nashville': 6,
-  'South Florida': 'home', 'Minnesota': '100+', 'Milwaukee': '100+', 'Florida Keys': 20
-};
 var MARKETS = [
   { city:"Phoenix", region:"Arizona", area:"United States", img:"/media/img/9c8d509c3701.jpg", lat:33.45, lng:-112.07 },
   { city:"Sedona", region:"Arizona", area:"United States", img:"/media/img/7aab92eb6230.jpg", lat:34.87, lng:-111.76 },
@@ -830,17 +829,10 @@ var MARKETS = [
 
 // Markets grid + region filter
 (function(){
-  function visitBadge(m){
-    var v = VISITS[m.city]; if (v == null) v = VISITS[m.region];
-    if (v == null) return '';
-    if (v === 'home') return '<span class="mv mv-home" title="Home"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2.5 11h3v9h5v-5.5h3V20h5v-9h3L12 3z"/></svg></span>';
-    return '<span class="mv">' + esc(String(v)) + '<i>&times;</i></span>';
-  }
   var mg=document.getElementById('mgrid'); if(!mg) return;
   mg.innerHTML = MARKETS.map(function(m){
     return '<figure class="mtile" data-region="'+esc(m.area)+'">'
       + '<img src="'+esc(m.img)+'" alt="'+esc(m.city)+', '+esc(m.region)+'" loading="lazy" onerror="this.style.display=\'none\'">'
-      + visitBadge(m)
       + '<figcaption><span class="mc">'+esc(m.city)+'</span><span class="mr">'+esc(m.region)+'</span></figcaption>'
       + '</figure>';
   }).join('');
