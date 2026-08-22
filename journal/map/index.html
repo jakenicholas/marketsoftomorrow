@@ -27251,7 +27251,17 @@
         if (window.MutationObserver) {
           new MutationObserver(sync).observe(tabs, { subtree: true, attributes: true, childList: true, characterData: true });
         }
-        right.insertBefore(chip, right.firstChild);
+        // The fly-to toggle is written into this same container later and
+        // replaces its contents, taking the chip with it — so re-attach
+        // whenever it goes missing rather than racing that write.
+        const attach = () => { if (!right.contains(chip)) right.insertBefore(chip, right.firstChild); };
+        attach();
+        if (window.MutationObserver) {
+          new MutationObserver(() => { attach(); sync(); })
+            .observe(right, { childList: true });
+        }
+        setTimeout(attach, 400);
+        setTimeout(attach, 1500);
       })();
       tabs.parentNode.insertBefore(titleRow, tabs.nextSibling);
 
