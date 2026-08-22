@@ -136,6 +136,7 @@
   .td-cta:hover .arw{transform:translateX(3px)}
   .td-pad{height:34px}
   /* ── embedded media page (Hotel partnerships tab) ───────────────── */
+  .wrap-wide{max-width:1560px}
   .td-embed{margin-top:26px;border:1px solid var(--d-hair);border-radius:16px;overflow:hidden;background:var(--d-panel)}
   .td-embed-bar{display:flex;align-items:center;gap:12px;padding:11px 13px;border-bottom:1px solid var(--d-hair);
     background:rgba(255,255,255,.02)}
@@ -147,11 +148,8 @@
     font-size:11.5px;font-weight:600;letter-spacing:.06em;transition:background .15s,border-color .15s}
   .td-embed-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3)}
   .td-embed-btn svg{width:14px;height:14px;flex:0 0 auto}
-  .td-embed-frame{position:relative;background:#070807;height:min(78vh,900px);min-height:520px}
+  .td-embed-frame{position:relative;background:#070807;height:min(86vh,1100px);min-height:560px}
   .td-embed-frame iframe{width:100%;height:100%;border:0;display:block}
-  /* Native fullscreen: the frame fills the screen and the bar rides on top. */
-  .td-embed-frame:fullscreen{height:100vh;width:100vw}
-  .td-embed-frame:-webkit-full-screen{height:100vh;width:100vw}
   @media(max-width:700px){.td-embed-frame{height:70vh;min-height:440px}.td-embed-k{display:none}}
 
   /* ── tab panels ─────────────────────────────────────────────── */
@@ -161,8 +159,13 @@
   .td-sec-h{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,36px);line-height:1.05;letter-spacing:-.02em;color:var(--white);margin-top:10px}
   .td-sec-p{color:var(--mute2);font-size:14.5px;line-height:1.6;margin-top:9px;max-width:64ch}
   /* Partner charts — Atlas panel styling, copied so the two read the same. */
-  .atlas-dash-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px}
-  @media(max-width:820px){ .atlas-dash-row{grid-template-columns:1fr} }
+  /* Left column stacks the four counted charts; Favorite markets stands beside
+     them as a single tall ranked column. It used to span the full width with
+     its seven entries flowing down-then-across two columns, so the ranking read
+     1,2,3,4 on the left and 5,6,7 on the right, which nobody parses as an order. */
+  .atlas-dash-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:16px;margin-bottom:8px;align-items:start}
+  .atlas-dash-left{display:flex;flex-direction:column;gap:16px;min-width:0}
+  @media(max-width:900px){ .atlas-dash-row{grid-template-columns:1fr} }
   .atlas-panel{border:1px solid var(--hair);border-radius:16px;padding:22px 24px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c;display:flex;flex-direction:column}
   .atlas-ph{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--purple-soft);margin:0 0 16px;display:flex;align-items:center;gap:9px;justify-content:space-between;font-weight:600}
   .atlas-ph .hint{font-size:9px;letter-spacing:.06em;color:var(--mute);font-weight:400;text-transform:none}
@@ -173,9 +176,8 @@
   .atlas-type-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c63d6,#A78BFA);transition:width .3s}
   .atlas-type-count{font-family:var(--mono);font-size:12px;color:var(--mute-2);text-align:right}
   /* favorites: a ranking, so numerals do the work instead of bars */
-  .atlas-rank-panel{grid-column:1 / -1}
-  .atlas-rank{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 26px}
-  @media(max-width:820px){ .atlas-rank{grid-template-columns:1fr} }
+  .atlas-rank-panel{grid-column:auto}
+  .atlas-rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
   .atlas-rank-row{display:flex;align-items:baseline;gap:14px;padding:9px 0;border-bottom:1px solid var(--hair)}
   .atlas-rank-name{font-family:var(--serif);font-size:17px;font-weight:600;color:rgba(255,255,255,.88);letter-spacing:-.01em;
     min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -415,17 +417,16 @@
 </div>
 
 <div class="td-panel" data-panel="hotels" hidden>
-  <div class="wrap">
+  <!-- Wider than the 960px reading column: this is a whole page inside a
+       frame, and the deliverables grid needs the room to breathe. -->
+  <div class="wrap wrap-wide">
     <div class="td-embed">
       <div class="td-embed-bar">
         <span class="td-embed-k">Hotels of Tomorrow &middot; partnership deliverables</span>
         <div class="td-embed-acts">
-          <button type="button" class="td-embed-btn" id="hotFull" title="Open full screen" aria-label="Open full screen">
+          <a class="td-embed-btn" id="hotFull" href="/media/hotels/" target="_blank" rel="noopener" title="Open the full page in a new tab" aria-label="Open the full page in a new tab">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
             <span>Full screen</span>
-          </button>
-          <a class="td-embed-btn" id="hotOpen" href="/media/hotels/" target="_blank" rel="noopener" title="Open in a new tab" aria-label="Open in a new tab">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
           </a>
         </div>
       </div>
@@ -711,20 +712,6 @@ function tripHtml(t, i){
       var f = document.getElementById('hotIframe');
       if (f && !f.getAttribute('src')) f.setAttribute('src', '/media/hotels/?embed=1');
     }
-    var full = document.getElementById('hotFull');
-    if (full) full.addEventListener('click', function(){
-      var box = document.getElementById('hotFrame');
-      if (!box) return;
-      // Native fullscreen where it exists; Safari on iPhone has no element
-      // fullscreen, so fall back to opening the real page in a new tab.
-      var req = box.requestFullscreen || box.webkitRequestFullscreen;
-      if (document.fullscreenElement || document.webkitFullscreenElement) {
-        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-        return;
-      }
-      if (req) { try { req.call(box); return; } catch(_){} }
-      window.open('/media/hotels/', '_blank', 'noopener');
-    });
     if (tabs) tabs.addEventListener('click', function(e){
       var b = e.target.closest && e.target.closest('.td-tab');
       if (!b) return;
@@ -813,10 +800,12 @@ function tripHtml(t, i){
     }
     var lbc = document.getElementById('lbCharts');
     if (lbc) lbc.innerHTML =
-        panel(charts.markets, 'Markets Frequent',   'by visits', 8, frequentRow())
-      + panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
-      + panel(charts.firms,   'Firms we work with', 'by trips together')
-      + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8)
+        '<div class="atlas-dash-left">'
+      +   panel(charts.markets, 'Markets Frequent',   'by visits', 8, frequentRow())
+      +   panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
+      +   panel(charts.firms,   'Firms we work with', 'by trips together')
+      +   panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8)
+      + '</div>'
       + rankPanel(FAVORITES, 'Favorite markets', 'ranked, not counted');
     var pcount = document.querySelector('[data-cnt="partners"]');
     if (pcount) pcount.textContent = charts.stays.length + charts.firms.length;
