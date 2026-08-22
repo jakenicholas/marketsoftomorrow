@@ -162,7 +162,10 @@
      them as a single tall ranked column. It used to span the full width with
      its seven entries flowing down-then-across two columns, so the ranking read
      1,2,3,4 on the left and 5,6,7 on the right, which nobody parses as an order. */
-  .atlas-dash-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:16px;margin-bottom:8px;align-items:start}
+  .atlas-dash-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px;align-items:stretch}
+  /* Row 1 pairs the two market charts against the tall ranked list, so the
+     stack and the ranking finish at the same height; row 2 is the remaining
+     two charts side by side. */
   .atlas-dash-left{display:flex;flex-direction:column;gap:16px;min-width:0}
   @media(max-width:900px){ .atlas-dash-row{grid-template-columns:1fr} }
   .atlas-panel{border:1px solid var(--hair);border-radius:16px;padding:22px 24px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c;display:flex;flex-direction:column}
@@ -808,10 +811,10 @@ function tripHtml(t, i){
         '<div class="atlas-dash-left">'
       +   panel(charts.markets, 'Markets Frequent',   'by visits', 8, frequentRow())
       +   panel(charts.stays,   'Most-stayed brands', 'by trips hosted')
-      +   panel(charts.firms,   'Firms we work with', 'by trips together')
-      +   panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8)
       + '</div>'
-      + rankPanel(FAVORITES, 'Favorite markets', 'ranked, not counted');
+      + rankPanel(FAVORITES, 'Favorite markets', 'ranked, not counted')
+      + panel(charts.firms,   'Firms we work with', 'by trips together')
+      + panel(charts.years,   'Trips by year',      charts.years.length + ' years logged', 8);
 
     // The universal clients section mounts itself from /_shared/tmw-clients.js
     // the first time the Partners tab is opened.
