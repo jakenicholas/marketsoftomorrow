@@ -267,7 +267,7 @@
   .mapboxgl-ctrl-group{background:#F5EEDF;border:1px solid var(--hair2)!important}
 
   /* ── Markets visited grid ── */
-  #markets{padding:48px 0 20px}
+  #markets{padding:0 0 20px}
   /* Markets section: CSS copied VERBATIM from the media page so the two
      render identically. Update it there and re-copy, or better, lift it
      into a shared module like tmw-clients.js. */
@@ -305,6 +305,12 @@
 .mtile figcaption{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:16px 12px 11px; background:linear-gradient(transparent, rgba(7,8,7,.92)); display:flex; flex-direction:column; gap:1px}
 .mtile .mc{font-size:13px; font-weight:600; color:#fff; line-height:1.15}
 .mtile .mr{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--green-soft)}
+  .mv{position:absolute; top:8px; right:8px; z-index:3; display:inline-flex; align-items:center; gap:2px;
+      font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.04em; color:#12140f;
+      background:var(--gold,#E6C574); border-radius:999px; padding:3px 7px; box-shadow:0 2px 8px rgba(0,0,0,.45)}
+  .mv i{font-style:normal; opacity:.7; font-size:8px}
+  .mv-home{padding:4px; width:20px; height:20px; justify-content:center}
+  .mv-home svg{width:11px; height:11px; display:block}
 
   @media(max-width:640px){
     .trip{grid-template-columns:1fr;gap:11px;padding:13px 22px 16px;margin-top:12px}
@@ -448,7 +454,7 @@ var TRIPS = [
     img:'https://media.oftmw.com/2026/07/db8e4a8c065e-iStock-178735930.jpg', partners:['RE: Agency','Dream Global'] },
   { title:'Orange County, Lake Tahoe\n& Yosemite', place:'California', date:'September 2025',
     img:'https://media.oftmw.com/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg', partners:['C&R PR','Clear Creek Tahoe'] },
-  { title:'Streamsong', place:'Bowling Green, Florida', date:'May 2025',
+  { title:'Streamsong', place:'Streamsong Resort, Florida', date:'May 2025',
     img:'https://media.oftmw.com/bowling-green/streamsong-resort-2.jpeg', partners:['Streamsong'] },
   { title:'North & South New Zealand', place:'New Zealand', date:'April 2025',
     img:'https://media.oftmw.com/wix/ca3b83_908fe409d8c84a6db3f12bab2d5692e4~mv2.jpg', partners:[] },
@@ -565,7 +571,7 @@ function tripHtml(t, i){
   // Past trips live in their own tab panel now, not appended under the itinerary.
   var elPast = document.getElementById('tripsPast');
   if (elPast) elPast.innerHTML =
-      (past.length ? past.map(tripHtml).join('') : '<p class="td-sec-p">No past trips logged yet.</p>')
+      (past.length ? div('Past trips') + past.map(tripHtml).join('') : '<p class="td-sec-p">No past trips logged yet.</p>')
     + (hasOlder ? '<button type="button" class="trips-more" id="tripsMore">Load older trips</button>' : '');
   // ── Travel Desk masthead: reports the page's own state from the same
   //    TRIPS data the list renders, so it can never drift out of sync.
@@ -609,7 +615,7 @@ function tripHtml(t, i){
         '<div class="s"><div class="n">'+TRIPS.length+'</div><div class="l">Trips logged</div></div>'
       + '<div class="s"><div class="n">'+marketCount+'</div><div class="l">Markets visited</div></div>'
       + '<div class="s"><div class="n">'+Object.keys(partners).length+'</div><div class="l">Partners hosted</div></div>'
-      + '<div class="s"><div class="n"><em>'+openCount+'</em> <span class="u">trips</span></div><div class="l">Open for partners</div></div>';
+      + '<div class="s"><div class="n"><em>'+openCount+'</em></div><div class="l">Open trips</div></div>';
 
     var pc = document.querySelector('[data-cnt="past"]'); if (pc) pc.textContent = past.length;
     var mc = document.querySelector('[data-cnt="markets"]'); if (mc) mc.textContent = marketCount;
@@ -633,6 +639,11 @@ function tripHtml(t, i){
     // Four partner charts, Atlas-panel style, all derived from the trips data.
     // Firms are matched by name pattern; correct FIRM_RE if one lands wrong.
     var FIRM_RE = /\bPR\b|^LDPR$|Agency|Public Relations|Communications|Hospitality|Global|Quinn|Nauka|Firefly|Bacchus|Jusich|C&R|J\/PR/i;
+    // Brands and years are AUTHORED, not derived: they count our whole travel
+    // history, which is larger than the trip list rendered on this page. Edit
+    // these two objects to update the charts.
+    var STAY_COUNTS = { 'Four Seasons': 4, 'Cabot': 4, 'Ritz-Carlton': 3, 'Nobu': 1 };
+    var YEAR_COUNTS = { '2026': 30, '2025': 44, '2024': 22, '2023': 12 };
     var charts = (function(){
       var stays = {}, firms = {}, markets = {}, years = {};
       TRIPS.forEach(function(t){
@@ -648,7 +659,12 @@ function tripHtml(t, i){
       function rank(o){ return Object.keys(o).sort(function(a,b){ return o[b]-o[a] || a.localeCompare(b); })
         .map(function(k){ return { name:k, count:o[k] }; }); }
       function byKey(o){ return Object.keys(o).sort().map(function(k){ return { name:k, count:o[k] }; }); }
-      return { stays: rank(stays), firms: rank(firms), markets: rank(markets), years: byKey(years) };
+      function authored(o){ return Object.keys(o).sort(function(a,b){ return o[b]-o[a] || a.localeCompare(b); })
+        .map(function(k){ return { name:k, count:o[k] }; }); }
+      function authoredByKey(o){ return Object.keys(o).sort().reverse()
+        .map(function(k){ return { name:k, count:o[k] }; }); }
+      return { stays: authored(STAY_COUNTS), firms: rank(firms),
+               markets: rank(markets), years: authoredByKey(YEAR_COUNTS) };
     })();
     function panel(rows, title, hint, cap){
       rows = rows.slice(0, cap || 7);
@@ -733,6 +749,13 @@ function tripHtml(t, i){
 
 // ── Markets visited: single source for the grid + the world map. To make this
 // Studio-managed later, swap MARKETS for a fetch('/list/markets') and render the same. ──
+// How many times we've been. Matched against a market's city OR region, so a
+// regional entry (California) badges every tile in it. 'home' renders the house
+// icon. Hand-maintained - these are all-time visits, not logged trips.
+var VISITS = {
+  'California': 7, 'Hawaii': 6, 'New York City': 3, 'Nashville': 6,
+  'South Florida': 'home', 'Minnesota': '100+', 'Milwaukee': '100+', 'Florida Keys': 20
+};
 var MARKETS = [
   { city:"Phoenix", region:"Arizona", area:"United States", img:"/media/img/9c8d509c3701.jpg", lat:33.45, lng:-112.07 },
   { city:"Sedona", region:"Arizona", area:"United States", img:"/media/img/7aab92eb6230.jpg", lat:34.87, lng:-111.76 },
@@ -773,7 +796,7 @@ var MARKETS = [
   { city:"Bozeman", region:"Montana", area:"United States", img:"https://westernhomejournal.com/wp-content/uploads/2024/05/24_BZ_Water_1.jpg.webp", lat:45.68, lng:-111.04 },
   { city:"Angel Fire", region:"New Mexico", area:"United States", img:"https://skinorthamerica100.s3.us-east-2.amazonaws.com/wp-content/uploads/2013/02/15190751/af-runs-3.jpg", lat:36.39, lng:-105.28 },
   { city:"Taos", region:"New Mexico", area:"United States", img:"https://afar.brightspotcdn.com/dims4/default/dbeab46/2147483647/strip/true/crop/1064x532+0+89/resize/1440x720!/quality/90/?url=https%3A%2F%2Fk3-prod-afar-media.s3.us-west-2.amazonaws.com%2Fbrightspot%2F67%2Fed%2F52dc45ef5f4d59b107087ab9e227%2Foriginal-taos.jpeg", lat:36.41, lng:-105.57 },
-  { city:"Manhattan", region:"New York", area:"United States", img:"/media/img/d8eb421fd9fe.jpg", lat:40.78, lng:-73.97 },
+  { city:"New York City", region:"New York", area:"United States", img:"/media/img/d8eb421fd9fe.jpg", lat:40.78, lng:-73.97 },
   { city:"Charleston", region:"South Carolina", area:"United States", img:"https://www.charlestoncvb.com/assets/images/home/collage-1.jpg", lat:32.78, lng:-79.93 },
   { city:"Sioux Falls", region:"South Dakota", area:"United States", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Falls%20Park%2C%20Sioux%20Falls%2C%20South%20Dakota.jpg?width=1280", lat:43.55, lng:-96.73 },
   { city:"Black Hills", region:"South Dakota", area:"United States", img:"https://www.hachettebookgroup.com/wp-content/uploads/2019/01/SD_BadlandsNP_AndriyKravchenko_123rf.jpg", lat:44.00, lng:-103.50 },
@@ -807,10 +830,17 @@ var MARKETS = [
 
 // Markets grid + region filter
 (function(){
+  function visitBadge(m){
+    var v = VISITS[m.city]; if (v == null) v = VISITS[m.region];
+    if (v == null) return '';
+    if (v === 'home') return '<span class="mv mv-home" title="Home"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2.5 11h3v9h5v-5.5h3V20h5v-9h3L12 3z"/></svg></span>';
+    return '<span class="mv">' + esc(String(v)) + '<i>&times;</i></span>';
+  }
   var mg=document.getElementById('mgrid'); if(!mg) return;
   mg.innerHTML = MARKETS.map(function(m){
     return '<figure class="mtile" data-region="'+esc(m.area)+'">'
       + '<img src="'+esc(m.img)+'" alt="'+esc(m.city)+', '+esc(m.region)+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      + visitBadge(m)
       + '<figcaption><span class="mc">'+esc(m.city)+'</span><span class="mr">'+esc(m.region)+'</span></figcaption>'
       + '</figure>';
   }).join('');
