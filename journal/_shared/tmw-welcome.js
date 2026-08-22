@@ -521,7 +521,7 @@
       '<div class="g-inner">' +
         '<div class="wm">' + LOGO_IMG + '</div>' +
         '<div class="eyeb gold">Welcome to Markets of Tomorrow</div>' +
-        '<div class="c-num">Member <i data-w="num">#····</i></div>' +
+        '<div class="c-num">Member <i data-w="num" style="opacity:0">#0000</i></div>' +
         '<p class="c-sub">Your number is permanent, and it&rsquo;s yours. You&rsquo;re one of the members <b>shaping the map of what&rsquo;s next</b>. Watch projects, follow markets, and ask Onyx anything.</p>' +
         '<div class="c-form">' +
           '<button class="cta purple" data-w="topro">See what Pro unlocks</button>' +
@@ -542,7 +542,9 @@
           .then(function (d) {
             var n = d && (d.memberNo || d.member_no);
             var el = s.querySelector('[data-w="num"]');
-            if (n && el) el.textContent = '#' + String(n).padStart(4, '0');
+            // reserve the width but stay invisible until the real number lands,
+            // so nothing flashes placeholder dots
+            if (n && el) { el.textContent = '#' + String(n).padStart(4, '0'); el.style.opacity = '1'; }
           }).catch(function () {});
       }).catch(function () {});
     } catch (e) {}
@@ -567,7 +569,7 @@
     opts = opts || {};
     if (window._isPaidMember === true) return false;
     hardMode = !!opts.hard;
-    var copy = PRO_COPY[opts.source] || ['Try everything, free for 2 weeks', 'The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.'];
+    var copy = PRO_COPY[opts.source] || ['Try everything, free for 2 weeks', 'The full future development map and atlas, unlimited Onyx queries with Deep mode, thousands of data points including projected pricing, supply pressure, capital raised, developer activity. Create your watchlist and receive an automated weekly brief. Cancel anytime during the trial and pay nothing.'];
     var s = screen(
       (opts.hard
         ? '<button class="skip" data-w="gohome">Maybe later</button>'
@@ -578,8 +580,8 @@
         '<h2 class="g-h">' + copy[0] + '</h2>' +
         '<p class="g-sub">' + copy[1] + '</p>' +
         '<div class="plans">' +
-          '<button class="plan sel" data-price="' + PRICE_ANNUAL + '"><span class="tag">Save 17%</span><div class="nm">Annual</div><div class="pr">$900<small>/yr</small></div><div class="nt">$75/month &middot; 14 days free</div></button>' +
-          '<button class="plan" data-price="' + PRICE_MONTHLY + '"><div class="nm">Monthly</div><div class="pr">$90<small>/mo</small></div><div class="nt">14 days free</div></button>' +
+          '<button class="plan sel" data-price="' + PRICE_MONTHLY + '"><div class="nm">Monthly</div><div class="pr">$90<small>/mo</small></div><div class="nt">14 days free</div></button>' +
+          '<button class="plan" data-price="' + PRICE_ANNUAL + '"><span class="tag">Save 17%</span><div class="nm">Annual</div><div class="pr">$900<small>/yr</small></div><div class="nt">$75/month &middot; 14 days free</div></button>' +
         '</div>' +
         '<div class="p-feat">' +
           '<span class="p-ft">&#10003; Full Map &amp; Atlas</span><span class="p-ft">&#10003; Unlimited Onyx + Deep</span>' +
@@ -603,7 +605,7 @@
     });
     s.querySelector('[data-w="checkout"]').addEventListener('click', function () {
       var sel = s.querySelector('.plan.sel');
-      var priceId = (sel && sel.getAttribute('data-price')) || PRICE_ANNUAL;
+      var priceId = (sel && sel.getAttribute('data-price')) || PRICE_MONTHLY;
       track('welcome_pro_checkout', { price_id: priceId });
       // Signed OUT: checkout needs an account first. The old path let
       // journal-paywall pop the "Create your account" lightbox over this

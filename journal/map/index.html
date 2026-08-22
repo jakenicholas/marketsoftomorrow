@@ -5013,6 +5013,20 @@
     50%      { box-shadow: 0 0 34px rgba(167,139,250,0.55), 0 2px 12px rgba(0,0,0,0.4); }
   }
   @media (prefers-reduced-motion: reduce) { #projectModal .pm-btn-learn { animation: none; } }
+  /* Request Info is the quiet sibling — same outline treatment as Watch, no
+     purple glow, so Full Profile is the only lit CTA in the row. */
+  #projectModal .pm-btn-inquire {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: none;
+    animation: none;
+    color: rgba(255,255,255,0.92);
+  }
+  #projectModal .pm-btn-inquire:hover {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.28);
+    box-shadow: none;
+  }
   #projectModal .pm-btn-learn:hover {
     background: rgba(167,139,250,0.18); animation: none; transform: translateY(-1px);
     box-shadow: 0 0 30px rgba(167,139,250,0.62), 0 2px 12px rgba(0,0,0,0.4);
@@ -5246,9 +5260,17 @@
     box-shadow: none;
     padding: 2px 12px;
   }
-  /* The spec sheet is just the facts grid now; hide the whole titled section
-     (not only the box) when there are no facts to show. */
+  /* The spec sheet is just the facts grid now; hide the whole section when
+     there are no facts to show. */
   #projectModal .pm-details-section:has(#pmFacts:empty) { display: none; }
+  /* Small mono label INSIDE the box — the exact treatment the firm cards use
+     for DEVELOPERS / DESIGN (see .pp-firm-group > .k). */
+  #projectModal .pm-panel-k {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(255,255,255,.4);
+    margin-bottom: 11px;
+  }
   #projectModal .pm-intel-head {
     display: flex;
     align-items: center;
@@ -8685,12 +8707,15 @@
     /* When sheet is fully expanded, the right-rail is too tall to fit
        above the sheet — collapse to just the geolocate button, top-
        anchored so its BOTTOM aligns with the Map/Atlas pill bottom. */
+    /* The rail used to re-anchor to the top and drop its children whenever a
+       drawer opened, which animated the whole stack up and back down on every
+       open/close (it carries `transition: top`). The panel is FULL SCREEN now,
+       so the rail is completely covered anyway — hide it in place instead of
+       moving it. */
     body.v2-sheet-open .v2-right-rail {
-      bottom: auto;
-      top: calc(env(safe-area-inset-top, 0px) + 2px);
-    }
-    body.v2-sheet-open .v2-right-rail > * {
-      display: none !important;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
     }
     body.ui-v2 .v2-action-btn {
       width: 44px; height: 44px;
@@ -12936,8 +12961,8 @@
             <div class="pm-atlas" id="pmAtlasChips" hidden></div>
           </div>
           <div class="pm-details-section">
-            <div class="pm-section-title">Details</div>
             <div class="pm-panel">
+              <div class="pm-panel-k">Details</div>
               <div class="pm-facts" id="pmFacts"></div>
             </div>
           </div>
@@ -12966,8 +12991,8 @@
                under the bio; the Watch button sits in the 2nd slot, label always
                visible (incl. mobile) so the watch action reads clearly. -->
           <div class="pm-cta">
-            <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Official Page</a>
-            <button class="pm-btn-learn pm-btn-inquire" id="pmInquireBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Request Info</button>
+            <button class="pm-btn-learn pm-btn-inquire" id="pmInquireBtn" type="button">Request Info<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Full Profile</a>
             <!-- Watch button (Phase 1). Replaces the old icon-only favorite
                  button. The underlying isFavorited()/toggleFavorite() data
                  layer is unchanged -- only the UI is rebranded to "Watch". -->
@@ -13703,7 +13728,9 @@
         case 'm':
           if (activePopup) { activePopup.remove(); activePopup = null; }
           // Same frame the map boots to (see the mapboxgl.Map constructor).
-          map.flyTo({ center: isMobile ? [-80.180, 25.752] : [-80.196, 25.745], zoom: isMobile ? 11.1 : 10.6, duration: 700 });
+          const bv = window._tmwBootView
+            || { center: isMobile ? [-80.180, 25.752] : [-80.196, 25.745], zoom: isMobile ? 11.1 : 10.6 };
+          map.flyTo({ center: bv.center, zoom: bv.zoom, duration: 700 });
           showToast('Returned to default view');
           break;
       }
@@ -13753,6 +13780,15 @@
     // bounded; the "Explore the map" skip lands on our home market).
     var _bootDeepLink = false;
     try { var _bp = new URLSearchParams(location.search); _bootDeepLink = !!(_bp.get('project') || _bp.get('city')); } catch (e) {}
+    // The one place the default Miami frame is defined. The reset-view button
+    // reads the same constants, so the two can't drift apart.
+    const BOOT_CENTER = isMobile ? [-80.180, 25.752] : [-80.196, 25.745];
+    const BOOT_ZOOM   = isMobile ? 11.1 : 10.6;
+    // Published so the reset-view button can read the same frame. It is wired
+    // EARLIER in the file than this declaration and its enclosing scope is not
+    // obvious, so going through window removes any chance of a TDZ / scope
+    // ReferenceError silently killing the reset handler.
+    window._tmwBootView = { center: BOOT_CENTER, zoom: BOOT_ZOOM };
     const map = new mapboxgl.Map({
       container: 'map',
       projection: 'mercator',   // explicit: GL v3 must not switch us to globe
@@ -13761,14 +13797,35 @@
       // inside the towers before you had any bearings. Pull back and drop
       // south so the opening frame reads as Miami (Wynwood down to Brickell)
       // rather than one block of it.
-      center: _bootDeepLink ? [-96.0, 38.6] : (isMobile ? [-80.180, 25.752] : [-80.196, 25.745]),
-      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 11.1 : 10.6)
+      // Boots WIDE and eases into the frame below (see the arrival easeTo
+      // after load). Retiring the old skyline auto-click also retired the only
+      // camera movement on a plain load, so the map just appeared already
+      // parked on Miami — it stopped reading as "zooming in".
+      center: _bootDeepLink ? [-96.0, 38.6] : BOOT_CENTER,
+      zoom:   _bootDeepLink ? 3.5 : (BOOT_ZOOM - 2.4)
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
     // don't collide with `window.map`, which the browser sets to the
     // <div id="map"> element via id-named-globals.
     window._tmwMap = map;
+
+    // ── Arrival ────────────────────────────────────────────────────────────
+    // Ease from the wide boot frame into the default Miami frame so the map
+    // reads as zooming IN rather than simply appearing. Deep links keep their
+    // own destination and are untouched. _mapFlyingTo suppresses the moveend
+    // list refresh for this one programmatic move.
+    if (!_bootDeepLink) {
+      map.once('load', function () {
+        try {
+          window._mapFlyingTo = true;
+          map.easeTo({
+            center: BOOT_CENTER, zoom: BOOT_ZOOM,
+            duration: 2100, essential: true
+          });
+        } catch (e) { /* worst case the map just sits on the wide frame */ }
+      });
+    }
 
     // ── Mobile map perf ────────────────────────────────────────────────────
     // backdrop-filter: blur() is cheap on desktop but brutally expensive on
