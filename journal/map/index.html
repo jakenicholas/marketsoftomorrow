@@ -5246,8 +5246,9 @@
     box-shadow: none;
     padding: 2px 12px;
   }
-  /* The spec sheet is just the facts grid now; hide the shell when empty. */
-  #projectModal .pm-panel:has(#pmFacts:empty) { display: none; }
+  /* The spec sheet is just the facts grid now; hide the whole titled section
+     (not only the box) when there are no facts to show. */
+  #projectModal .pm-details-section:has(#pmFacts:empty) { display: none; }
   #projectModal .pm-intel-head {
     display: flex;
     align-items: center;
@@ -12934,8 +12935,11 @@
             <div class="pm-intel" id="pmIntel" hidden></div>
             <div class="pm-atlas" id="pmAtlasChips" hidden></div>
           </div>
-          <div class="pm-panel">
-            <div class="pm-facts" id="pmFacts"></div>
+          <div class="pm-details-section">
+            <div class="pm-section-title">Details</div>
+            <div class="pm-panel">
+              <div class="pm-facts" id="pmFacts"></div>
+            </div>
           </div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
@@ -13699,7 +13703,7 @@
         case 'm':
           if (activePopup) { activePopup.remove(); activePopup = null; }
           // Same frame the map boots to (see the mapboxgl.Map constructor).
-          map.flyTo({ center: isMobile ? [-80.172, 25.735] : [-80.170, 25.745], zoom: isMobile ? 11.35 : 10.6, duration: 700 });
+          map.flyTo({ center: isMobile ? [-80.180, 25.752] : [-80.196, 25.745], zoom: isMobile ? 11.1 : 10.6, duration: 700 });
           showToast('Returned to default view');
           break;
       }
@@ -13757,8 +13761,8 @@
       // inside the towers before you had any bearings. Pull back and drop
       // south so the opening frame reads as Miami (Wynwood down to Brickell)
       // rather than one block of it.
-      center: _bootDeepLink ? [-96.0, 38.6] : (isMobile ? [-80.172, 25.735] : [-80.170, 25.745]),
-      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 11.35 : 10.6)
+      center: _bootDeepLink ? [-96.0, 38.6] : (isMobile ? [-80.180, 25.752] : [-80.196, 25.745]),
+      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 11.1 : 10.6)
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
@@ -15354,9 +15358,22 @@
           // (purple color), so the DOM markers hide. !important beats the
           // inline display'' that zoomend's applyMoverVis re-applies.
           try { const sst = document.createElement('style'); sst.textContent = 'body.tmw-sky-on .tmw-il-pulse{display:none !important}'; document.head.appendChild(sst); } catch(e){}
+          // ── Skyline preference ────────────────────────────────────────
+          // skyOn started life as a per-load `false`, so the Future Skyline
+          // switched itself off every time the user came back from a project
+          // page. It is now a stored PREFERENCE, defaulting to ON, and only a
+          // manual tap writes 'off'.
+          const SKY_PREF_KEY = 'tmw-sky-pref';
+          function skyPrefOn() {
+            try { return localStorage.getItem(SKY_PREF_KEY) !== 'off'; } catch (e) { return true; }
+          }
+          function skyPrefWrite(on) {
+            try { localStorage.setItem(SKY_PREF_KEY, on ? 'on' : 'off'); } catch (e) {}
+          }
           skyT.addEventListener('click', ()=>{
             skyOn = !skyOn; skyT.classList.toggle('on', skyOn);
             window._skyOn = skyOn;
+            skyPrefWrite(skyOn);
             document.body.classList.toggle('tmw-sky-on', skyOn);
             if (skyOn) {
               skyPrev = { pitch: map.getPitch() };
@@ -15388,6 +15405,32 @@
               map.easeTo({ pitch: (skyPrev && skyPrev.pitch) || 0, duration: 700 });
             }
           });
+          // Restore the stored preference on boot. Deliberately does NOT reuse
+          // the click path: that flies to the nearest tower at zoom 15.1 when
+          // you are below 13.2, which would throw away the tuned default frame
+          // on every single load. It also skips the cinematic orbit — drifting
+          // the camera unasked moves the map and re-renders the project list.
+          // Towers already render at the default zoom, so nothing is missing.
+          (function skyRestorePref(){
+            if (!skyPrefOn()) return;
+            let done = false;
+            const boot = () => {
+              if (done || skyOn) return;
+              done = true;
+              try {
+                skyOn = true;
+                window._skyOn = true;
+                skyT.classList.add('on');
+                document.body.classList.add('tmw-sky-on');
+                skyPrev = { pitch: map.getPitch() };
+                skyAdd();
+                if (window._skyZoomSync) window._skyZoomSync(true);
+              } catch (e) { /* leave it off rather than break the map */ }
+            };
+            if (map.isStyleLoaded && map.isStyleLoaded()) map.once('idle', boot);
+            else map.once('load', () => map.once('idle', boot));
+          })();
+
           // Cinematic orbit: the camera drifts slowly around the skyline until
           // the user takes the controls (drag / touch / scroll), then never
           // fights them. Restarts fresh each time the skyline turns on.
@@ -15709,7 +15752,15 @@
         });
       };
 
-      const baseZoom = Math.max(map.getZoom(), opts.baseZoom || 13);
+      // With the Future Skyline on, a floor of 13 leaves the towers as distant
+      // slivers — the point of flying to a pin in 3D is to arrive at the
+      // BUILDING. Only ever raises the floor, so an already-closer camera and
+      // any explicit higher baseZoom both still win.
+      const SKY_ARRIVE_ZOOM = 15.6;
+      const zoomFloor = window._skyOn
+        ? Math.max(opts.baseZoom || 13, SKY_ARRIVE_ZOOM)
+        : (opts.baseZoom || 13);
+      const baseZoom = Math.max(map.getZoom(), zoomFloor);
       map.once('moveend', settle);
       map.flyTo({
         center: co, zoom: baseZoom, offset: offset,

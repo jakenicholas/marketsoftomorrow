@@ -314,11 +314,11 @@
     host.innerHTML =
       '<div class="tmw-fa">' +
         '<div class="tmw-fa-h">✓ Account created — tell us about you</div>' +
-        '<div class="tmw-fa-sub">A few details so we send you what actually matters. You can skip this.</div>' +
+        '<div class="tmw-fa-sub">A few details so we send you what actually matters.</div>' +
         '<form class="tmw-fa-prof" novalidate>' +
-          '<div class="tmw-fa-row"><input name="first" placeholder="First name" autocomplete="given-name"><input name="last" placeholder="Last name" autocomplete="family-name"></div>' +
-          '<div class="tmw-fa-row"><input name="profession" placeholder="Profession" autocomplete="organization-title"><input name="company" placeholder="Company" autocomplete="organization"></div>' +
-          '<div class="tmw-fa-geo"><input name="based" placeholder="Based in (city)" autocomplete="off"><div class="tmw-fa-geo-list" hidden></div></div>' +
+          '<div class="tmw-fa-row"><input name="first" placeholder="First name *" autocomplete="given-name" required><input name="last" placeholder="Last name *" autocomplete="family-name" required></div>' +
+          '<div class="tmw-fa-geo"><input name="based" placeholder="Homebase — search a city" autocomplete="off"><div class="tmw-fa-geo-list" hidden></div></div>' +
+          '<div class="tmw-fa-row"><input name="company" placeholder="Company (optional)" autocomplete="organization"></div>' +
           '<button type="submit">Finish</button>' +
         '</form>' +
         '<div class="tmw-fa-msg" aria-live="polite"></div>' +
@@ -343,6 +343,7 @@
       var timer, hideT;
       function hide() { list.hidden = true; list.innerHTML = ''; }
       inp.addEventListener('input', function () {
+        if (inp.getAttribute('data-picked') !== inp.value) inp.removeAttribute('data-picked');
         var q = inp.value.trim();
         clearTimeout(timer);
         if (q.length < 2) { hide(); return; }
@@ -370,6 +371,7 @@
         if (!it) return;
         e.preventDefault();
         inp.value = it.textContent;
+        inp.setAttribute('data-picked', it.textContent);   // a real, geocoded place
         hide();
       });
       inp.addEventListener('blur', function () { clearTimeout(hideT); hideT = setTimeout(hide, 150); });
@@ -378,7 +380,21 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = function (n) { return (form[n] && form[n].value || '').trim(); };
-      var data = { first: v('first'), last: v('last'), profession: v('profession'), company: v('company'), based: v('based') };
+      var geoInp = form.querySelector('input[name="based"]');
+      // First + last are required; a typed homebase must be an actual selection
+      // from the dropdown, so we never store a place that doesn't exist.
+      msg.textContent = '';
+      if (!v('first') || !v('last')) {
+        msg.textContent = 'First and last name are required.';
+        (v('first') ? form.last : form.first).focus();
+        return;
+      }
+      if (v('based') && geoInp.getAttribute('data-picked') !== v('based')) {
+        msg.textContent = 'Pick your homebase from the suggestions.';
+        geoInp.focus();
+        return;
+      }
+      var data = { first: v('first'), last: v('last'), profession: '', company: v('company'), based: v('based') };
       var btn = form.querySelector('button'); btn.disabled = true; btn.textContent = 'Saving…';
       var jobs = [];
       var m = window.$memberstackDom;

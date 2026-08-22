@@ -682,7 +682,7 @@ main.wrap{padding-bottom:70px}
   function render(m){
     var cur=lvlOf(m.xp),next=LEVELS[cur.lvl];
     $('av').textContent=ini(m.name); $('nm').textContent=m.name;
-    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding Member':' · Blueprint Member');
+    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding Member':'');
     $('tierbadge').innerHTML='&#9670; '+tierName(cur,m);
     $('lvNum').textContent=cur.lvl;
     $('lvName').innerHTML='<span>'+cur.tier+'</span>';
@@ -1486,6 +1486,12 @@ main.wrap{padding-bottom:70px}
         .then(function(r){return r.ok?r.json():null;})
         .then(function(s){
           if(!s||!s.found) return;
+          // Free members must never see billing state, even if an old Stripe
+          // record exists for their email — it reads as "you were charged".
+          var onPaidPlan = (window._isPaidMember===true)
+            || (window.__tmwMember && window.__tmwMember.plan==='paid')
+            || s.status==='trialing' || s.status==='active' || s.status==='past_due';
+          if(!onPaidPlan) return;
           // Show ONLY while a cancellation is pending — cancelled, but the trial
           // or paid term hasn't run out yet. Once it actually ends (status
           // 'canceled' → they're a free user again), the banner disappears.

@@ -256,7 +256,14 @@
     function answer() { cb(window._tmwSignedIn === true, window._isPaidMember === true); }
     if (window._tmwSignedIn === true || window._tmwSignedIn === false) { answer(); return; }
     var m = window.$memberstackDom;
-    if (m && m.getCurrentMember) { m.getCurrentMember().then(function () { answer(); }).catch(function () { cb(false, false); }); return; }
+    if (m && m.getCurrentMember) {
+      m.getCurrentMember().then(function (res) {
+        var mem = res && (res.data || res);
+        if (mem && mem.id) { window._tmwSignedIn = true; cb(true, window._isPaidMember === true); return; }
+        answer();
+      }).catch(function () { cb(false, false); });
+      return;
+    }
     cb(false, false);
   }
 
